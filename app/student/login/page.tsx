@@ -4,24 +4,32 @@ import React, { useState } from "react";
 import { PageHeader } from "@/components/molecules/PageHeader/PageHeader";
 import { Typography } from "@/components/atoms/Typography/Typography";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/atoms/Button/Button";
+import { Button } from "@/components/ui/stateful-button";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/contexts/auth-context";
+import { useLoginMutation } from "@/lib/hooks/use-auth";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function StudentLoginPage() {
   const router = useRouter();
+  const { state } = useAuth();
+  const loginMutation = useLoginMutation();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setError("");
+
     try {
-      // Placeholder: integrate NextAuth credentials provider later
-      await new Promise((r) => setTimeout(r, 800));
-      router.push("/dashboard/student/lesson-value");
-    } finally {
-      setLoading(false);
+      await loginMutation.mutateAsync({ username, password, role: "student" });
+      // Success animation will be handled by stateful button
+      setTimeout(() => {
+        window.location.href = "/dashboard/student/lesson-value";
+      }, 2000); // Wait for success animation to complete
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Login gagal");
     }
   };
 
@@ -49,12 +57,18 @@ export default function StudentLoginPage() {
             </Typography>
 
             <form onSubmit={onSubmit} className="space-y-4">
+              {error && (
+                <Alert variant="destructive">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+
               <div>
                 <label className="block text-sm mb-1">Username</label>
                 <Input
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="NISN / Username"
+                  placeholder="Username"
                   required
                 />
               </div>
@@ -70,17 +84,17 @@ export default function StudentLoginPage() {
               </div>
               <Button
                 type="submit"
-                className="w-full bg-primary-700 text-white"
-                disabled={loading}
+                className="w-full bg-primary-950 hover:bg-primary-900 text-white"
+                disabled={loginMutation.isPending}
               >
-                {loading ? "Memproses..." : "Masuk"}
+                Masuk
               </Button>
             </form>
 
             <div className="mt-4 text-center">
               <a
                 href="/teacher/login"
-                className="text-sm text-primary-700 underline"
+                className="text-sm text-primary-950 underline"
               >
                 Masuk sebagai Guru
               </a>

@@ -4,29 +4,37 @@ import React, { useState } from "react";
 import { PageHeader } from "@/components/molecules/PageHeader/PageHeader";
 import { Typography } from "@/components/atoms/Typography/Typography";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/atoms/Button/Button";
+import { Button } from "@/components/ui/stateful-button";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/contexts/auth-context";
+import { useLoginMutation } from "@/lib/hooks/use-auth";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function TeacherLoginPage() {
   const router = useRouter();
+  const { state } = useAuth();
+  const loginMutation = useLoginMutation();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<"guru" | "admin">("guru");
-  const [loading, setLoading] = useState(false);
+  const [role, setRole] = useState<"teacher" | "admin">("teacher");
+  const [error, setError] = useState("");
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setError("");
+
     try {
-      // Placeholder: integrate NextAuth credentials provider later
-      await new Promise((r) => setTimeout(r, 800));
-      if (role === "admin") {
-        router.push("/dashboard/admin");
-      } else {
-        router.push("/dashboard/teacher/lesson-value-input");
-      }
-    } finally {
-      setLoading(false);
+      await loginMutation.mutateAsync({ username, password, role });
+      // Success animation will be handled by stateful button
+      setTimeout(() => {
+        if (role === "admin") {
+          window.location.href = "/dashboard/admin";
+        } else {
+          window.location.href = "/dashboard/teacher/lesson-value-input";
+        }
+      }, 2000); // Wait for success animation to complete
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Login gagal");
     }
   };
 
@@ -57,20 +65,26 @@ export default function TeacherLoginPage() {
               <select
                 className="w-full border rounded-md px-3 py-2 text-sm"
                 value={role}
-                onChange={(e) => setRole(e.target.value as "guru" | "admin")}
+                onChange={(e) => setRole(e.target.value as "teacher" | "admin")}
               >
-                <option value="guru">Guru</option>
+                <option value="teacher">Guru</option>
                 <option value="admin">Admin</option>
               </select>
             </div>
 
             <form onSubmit={onSubmit} className="space-y-4">
+              {error && (
+                <Alert variant="destructive">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+
               <div>
                 <label className="block text-sm mb-1">Username</label>
                 <Input
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="NIP / Username"
+                  placeholder="Username"
                   required
                 />
               </div>
@@ -86,17 +100,17 @@ export default function TeacherLoginPage() {
               </div>
               <Button
                 type="submit"
-                className="w-full bg-primary-700 text-white"
-                disabled={loading}
+                className="w-full bg-primary-950 hover:bg-primary-900 text-white"
+                disabled={loginMutation.isPending}
               >
-                {loading ? "Memproses..." : "Masuk"}
+                Masuk
               </Button>
             </form>
 
             <div className="mt-4 text-center">
               <a
                 href="/student/login"
-                className="text-sm text-primary-700 underline"
+                className="text-sm text-primary-950 underline"
               >
                 Masuk sebagai Siswa
               </a>

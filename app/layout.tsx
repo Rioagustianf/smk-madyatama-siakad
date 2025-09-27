@@ -5,6 +5,7 @@ import { Navigation } from "@/components/molecules/Navigation/Navigation";
 import { Footer } from "@/components/molecules/Footer/Footer";
 import { school } from "@/lib/school";
 import { HideOnDashboard } from "@/components/molecules/HideOnDashboard/HideOnDashboard";
+import { Providers } from "@/lib/providers";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -44,15 +45,17 @@ export default function RootLayout({
   return (
     <html lang="id" className={inter.variable}>
       <body className="font-inter antialiased">
-        <div className="min-h-screen flex flex-col">
-          <HideOnDashboard>
-            <Navigation />
-          </HideOnDashboard>
-          <main className="flex-grow">{children}</main>
-          <HideOnDashboard>
-            <Footer />
-          </HideOnDashboard>
-        </div>
+        <Providers>
+          <div className="min-h-screen flex flex-col">
+            <HideOnDashboard>
+              <Navigation />
+            </HideOnDashboard>
+            <main className="flex-grow">{children}</main>
+            <HideOnDashboard>
+              <Footer />
+            </HideOnDashboard>
+          </div>
+        </Providers>
       </body>
     </html>
   );

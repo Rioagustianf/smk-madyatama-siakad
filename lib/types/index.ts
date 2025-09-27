@@ -1,7 +1,7 @@
 // User types
 export interface User {
   id: string;
-  email: string;
+  username: string;
   name: string;
   role: "admin" | "teacher" | "student";
   avatar?: string;
@@ -22,13 +22,9 @@ export interface Student extends User {
 
 // Teacher specific types
 export interface Teacher extends User {
-  teacherId: string;
   subjects: string[];
   classes: string[];
-  expertise?: string;
   education?: string;
-  experience?: number;
-  certifications?: string[];
 }
 
 // Admin specific types

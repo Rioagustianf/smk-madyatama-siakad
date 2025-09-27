@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import { LogOut, User } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { AvatarWithInitials } from "@/components/ui/avatar-with-initials";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,12 +18,22 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/lib/contexts/auth-context";
+import { useRouter } from "next/navigation";
 
 export default function StudentLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { state, logout } = useAuth();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await logout();
+    router.push("/student/login");
+  };
+
   return (
     <SidebarProvider
       style={
@@ -45,28 +55,34 @@ export default function StudentLayout({
             <div className="">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Avatar>
-                    <AvatarImage
-                      src="https://github.com/shadcn.png"
-                      alt="@shadcn"
-                    />
-                    <AvatarFallback>CN</AvatarFallback>
-                  </Avatar>
+                  <AvatarWithInitials
+                    src={state.user?.avatar}
+                    alt={state.user?.name || "Student"}
+                    name={state.user?.name || "Student"}
+                    size="md"
+                  />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                   className="w-56 bg-primary-900"
                   align="start"
                 >
                   <DropdownMenuLabel className="text-white">
-                    Nama Siswa
+                    {state.user?.name || "Nama Siswa"}
                   </DropdownMenuLabel>
-                  <DropdownMenuItem className="text-white">
+                  <DropdownMenuItem
+                    className="text-white cursor-pointer"
+                    onClick={() => router.push("/profile")}
+                  >
+                    <User className="mr-2 h-4 w-4" />
                     Profile
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem className="font-bold text-white">
+                  <DropdownMenuItem
+                    className="font-bold text-white cursor-pointer"
+                    onClick={handleLogout}
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
                     Logout
-                    <LogOut size={16} />
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
