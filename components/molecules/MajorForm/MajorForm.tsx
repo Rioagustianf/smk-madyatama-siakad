@@ -102,7 +102,7 @@ export function MajorForm({
           />
         </div>
       </div>
-      <div className="flex flex-col sm:flex-row gap-3 pt-4">
+      <div className="flex justify-end sm:flex-row gap-3 pt-4">
         <Button
           type="button"
           variant="outline"

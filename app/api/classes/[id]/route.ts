@@ -35,7 +35,7 @@ async function verifyAdminToken(request: NextRequest) {
   }
 }
 
-// GET - Get single subject by ID
+// GET - Get single class by ID
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -45,7 +45,7 @@ export async function GET(
 
     if (!id) {
       return NextResponse.json(
-        { success: false, message: "ID mata pelajaran diperlukan" },
+        { success: false, message: "ID kelas diperlukan" },
         { status: 400 }
       );
     }
@@ -60,15 +60,22 @@ export async function GET(
 
     const collections = await getCollections();
 
-    // Get subject with teacher information using aggregation
+    // Get class with homeroom teacher and major information using aggregation
     const pipeline = [
       { $match: { _id: new ObjectId(id), isActive: true } },
       {
         $addFields: {
-          teacherObjectId: {
+          homeroomTeacherObjectId: {
             $cond: {
-              if: { $ne: ["$teacherId", ""] },
-              then: { $toObjectId: "$teacherId" },
+              if: { $ne: ["$homeroomTeacherId", ""] },
+              then: { $toObjectId: "$homeroomTeacherId" },
+              else: null,
+            },
+          },
+          majorObjectId: {
+            $cond: {
+              if: { $ne: ["$majorId", ""] },
+              then: { $toObjectId: "$majorId" },
               else: null,
             },
           },
@@ -77,40 +84,50 @@ export async function GET(
       {
         $lookup: {
           from: "teachers",
-          localField: "teacherObjectId",
+          localField: "homeroomTeacherObjectId",
           foreignField: "_id",
-          as: "teacher",
+          as: "homeroomTeacher",
+        },
+      },
+      {
+        $lookup: {
+          from: "majors",
+          localField: "majorObjectId",
+          foreignField: "_id",
+          as: "major",
         },
       },
       {
         $addFields: {
-          teacher: { $arrayElemAt: ["$teacher", 0] },
+          homeroomTeacher: { $arrayElemAt: ["$homeroomTeacher", 0] },
+          major: { $arrayElemAt: ["$major", 0] },
         },
       },
       {
         $addFields: {
-          teacherName: "$teacher.name",
-          teacherEducation: "$teacher.education",
+          homeroomTeacherName: "$homeroomTeacher.name",
+          homeroomTeacherEducation: "$homeroomTeacher.education",
+          majorName: "$major.name",
         },
       },
     ];
 
-    const subjects = await collections.subjects.aggregate(pipeline).toArray();
-    const subject = subjects[0];
+    const classes = await collections.classes.aggregate(pipeline).toArray();
+    const classData = classes[0];
 
-    if (!subject) {
+    if (!classData) {
       return NextResponse.json(
-        { success: false, message: "Mata pelajaran tidak ditemukan" },
+        { success: false, message: "Kelas tidak ditemukan" },
         { status: 404 }
       );
     }
 
     return NextResponse.json({
       success: true,
-      data: subject,
+      data: classData,
     });
   } catch (error) {
-    console.error("Error fetching subject:", error);
+    console.error("Error fetching class:", error);
     const errorResponse = handleDatabaseError(error);
     return NextResponse.json(
       { success: false, message: errorResponse.message },
@@ -119,7 +136,7 @@ export async function GET(
   }
 }
 
-// PUT - Update subject by ID
+// PUT - Update class by ID
 export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -145,14 +162,14 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { name, code, description, teacherId } = body;
+    const { name, majorId, homeroomTeacherId } = body;
 
     // Validation
-    if (!name || !code) {
+    if (!name) {
       return NextResponse.json(
         {
           success: false,
-          message: "Nama dan kode mata pelajaran diperlukan",
+          message: "Nama kelas diperlukan",
         },
         { status: 400 }
       );
@@ -160,70 +177,69 @@ export async function PUT(
 
     const collections = await getCollections();
 
-    // Check if subject exists
-    const existingSubject = await collections.subjects.findOne({
+    // Check if class exists
+    const existingClass = await collections.classes.findOne({
       _id: new ObjectId(id),
     });
-    if (!existingSubject) {
+    if (!existingClass) {
       return NextResponse.json(
-        { success: false, message: "Mata pelajaran tidak ditemukan" },
+        { success: false, message: "Kelas tidak ditemukan" },
         { status: 404 }
       );
     }
 
-    // Check if code is used by another subject
-    const codeExists = await collections.subjects.findOne({
-      code,
+    // Check if name is used by another class
+    const nameExists = await collections.classes.findOne({
+      name,
       _id: { $ne: new ObjectId(id) },
     });
-    if (codeExists) {
+    if (nameExists) {
       return NextResponse.json(
-        { success: false, message: "Kode mata pelajaran sudah digunakan" },
+        { success: false, message: "Nama kelas sudah digunakan" },
         { status: 400 }
       );
     }
 
-    // Validate teacherId if provided
-    if (teacherId) {
+    // Validate homeroom teacher if provided
+    if (homeroomTeacherId) {
       const teacher = await collections.teachers.findOne({
-        _id: new ObjectId(teacherId),
+        _id: new ObjectId(homeroomTeacherId),
       });
       if (!teacher) {
         return NextResponse.json(
-          { success: false, message: "Guru tidak ditemukan" },
+          { success: false, message: "Guru wali kelas tidak ditemukan" },
           { status: 400 }
         );
       }
     }
 
-    // Update subject (align to seeder fields)
+    // Update class
     const updateData = {
       name,
-      code,
-      description: description || "",
-      teacherId: teacherId || "",
+      majorId: majorId || "",
+      homeroomTeacherId: homeroomTeacherId || "",
       updatedAt: new Date(),
     };
 
-    const result = await collections.subjects.updateOne(
+    const result = await collections.classes.updateOne(
       { _id: new ObjectId(id) },
       { $set: updateData }
     );
 
     if (result.matchedCount === 0) {
       return NextResponse.json(
-        { success: false, message: "Mata pelajaran tidak ditemukan" },
+        { success: false, message: "Kelas tidak ditemukan" },
         { status: 404 }
       );
     }
 
     return NextResponse.json({
       success: true,
-      message: "Mata pelajaran berhasil diperbarui",
+      message: "Kelas berhasil diperbarui",
       data: { _id: id, ...updateData },
     });
   } catch (error) {
-    console.error("Error updating subject:", error);
+    console.error("Error updating class:", error);
     const errorResponse = handleDatabaseError(error);
     return NextResponse.json(
       { success: false, message: errorResponse.message },
@@ -232,7 +248,7 @@ export async function PUT(
   }
 }
 
-// DELETE - Delete subject by ID
+// DELETE - Delete class by ID
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -249,13 +265,6 @@ export async function DELETE(
 
     const { id } = params;
 
-    if (!id) {
-      return NextResponse.json(
-        { success: false, message: "ID mata pelajaran diperlukan" },
-        { status: 400 }
-      );
-    }
-
     // Validate ObjectId format
     if (!ObjectId.isValid(id)) {
       return NextResponse.json(
@@ -266,64 +275,50 @@ export async function DELETE(
 
     const collections = await getCollections();
 
-    // Check if subject exists
-    const existingSubject = await collections.subjects.findOne({
+    // Check if class exists
+    const existingClass = await collections.classes.findOne({
       _id: new ObjectId(id),
     });
-    if (!existingSubject) {
+    if (!existingClass) {
       return NextResponse.json(
-        { success: false, message: "Mata pelajaran tidak ditemukan" },
+        { success: false, message: "Kelas tidak ditemukan" },
         { status: 404 }
       );
     }
 
-    // Check if subject has grades
-    const gradesCount = await collections.grades.countDocuments({
-      subjectId: new ObjectId(id),
+    // Check if class has students
+    const studentsInClass = await collections.students.countDocuments({
+      class: existingClass.name,
     });
-    if (gradesCount > 0) {
+    if (studentsInClass > 0) {
       return NextResponse.json(
         {
           success: false,
-          message: `Tidak dapat menghapus mata pelajaran karena masih memiliki ${gradesCount} nilai`,
+          message: "Kelas tidak dapat dihapus karena masih memiliki siswa",
         },
         { status: 400 }
       );
     }
 
-    // Check if subject has schedules (match by code like seeder)
-    const schedulesCount = await collections.schedules.countDocuments({
-      subject: existingSubject.code,
-    });
-    if (schedulesCount > 0) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: `Tidak dapat menghapus mata pelajaran karena masih memiliki ${schedulesCount} jadwal`,
-        },
-        { status: 400 }
-      );
-    }
-
-    // Soft delete (set isActive to false)
-    const result = await collections.subjects.updateOne(
+    // Soft delete class
+    const result = await collections.classes.updateOne(
       { _id: new ObjectId(id) },
       { $set: { isActive: false, updatedAt: new Date() } }
     );
 
     if (result.matchedCount === 0) {
       return NextResponse.json(
-        { success: false, message: "Mata pelajaran tidak ditemukan" },
+        { success: false, message: "Kelas tidak ditemukan" },
         { status: 404 }
       );
     }
 
     return NextResponse.json({
       success: true,
-      message: "Mata pelajaran berhasil dihapus",
+      message: "Kelas berhasil dihapus",
     });
   } catch (error) {
-    console.error("Error deleting subject:", error);
+    console.error("Error deleting class:", error);
     const errorResponse = handleDatabaseError(error);
     return NextResponse.json(
       { success: false, message: errorResponse.message },

@@ -51,6 +51,7 @@ function useSidebarData() {
           items: [
             { title: "Program Keahlian", url: "/dashboard/admin/academic" },
             { title: "Mata Pelajaran", url: "/dashboard/admin/course" },
+            { title: "Kelas", url: "/dashboard/admin/classes" },
             { title: "Jadwal Pelajaran", url: "/dashboard/admin/schedules" },
             { title: "Jadwal Ujian", url: "/dashboard/admin/exams" },
           ],

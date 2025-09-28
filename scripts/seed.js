@@ -35,9 +35,11 @@ async function main() {
     const data = await result.json();
 
     console.log("\n📊 Seeding Results:");
+    console.log(`   🎓 Majors: ${data.data.majors}`);
     console.log(`   👥 Students: ${data.data.students}`);
     console.log(`   👨‍🏫 Teachers: ${data.data.teachers}`);
     console.log(`   📚 Subjects: ${data.data.subjects}`);
+    console.log(`   🏫 Classes: ${data.data.classes}`);
     console.log(`   📅 Schedules: ${data.data.schedules}`);
     console.log(`   👤 Admins: ${data.data.admins}`);
 

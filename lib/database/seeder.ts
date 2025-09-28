@@ -88,89 +88,214 @@ const studentsTKJ2 = [
   { name: "Zahwatul Hayyah", nisn: "0076235621" },
 ];
 
-// Data guru berdasarkan data client
+// Data jurusan (majors)
+const majors = [
+  {
+    name: "Teknik Komputer dan Jaringan",
+    code: "TKJ",
+    description: "Program keahlian Teknik Komputer dan Jaringan",
+    facilities: [
+      "Lab Komputer",
+      "Lab Jaringan",
+      "Workshop Hardware",
+      "Ruang Server",
+    ],
+    careerProspects: [
+      "Network Administrator",
+      "System Administrator",
+      "IT Support",
+      "Network Engineer",
+      "Cyber Security Specialist",
+    ],
+    isActive: true,
+  },
+  {
+    name: "Perhotelan",
+    code: "PH",
+    description: "Program keahlian Perhotelan",
+    facilities: [
+      "Lab Tata Boga",
+      "Lab Tata Graha",
+      "Lab Front Office",
+      "Simulasi Hotel",
+    ],
+    careerProspects: [
+      "Front Office Staff",
+      "Housekeeping Supervisor",
+      "Food & Beverage Manager",
+      "Event Coordinator",
+      "Hotel Manager",
+    ],
+    isActive: true,
+  },
+];
+
+// Data guru berdasarkan data client - dengan struktur relasi proper
 const teachers = [
   {
     name: "Iik Ayu Meilani",
     username: "iik_ayu",
-    subjects: ["ASJ"],
-    classes: ["12 TKJ 1", "12 TKJ 2"],
+    phone: "081234567890",
     education: "A.Md",
+    subjects: [], // Will be populated after subjects are created
+    classes: ["12 TKJ 1", "12 TKJ 2"],
+    isActive: true,
   },
   {
     name: "Supriyanto",
     username: "supriyanto",
-    subjects: ["TLJ"],
-    classes: ["12 TKJ 1", "12 TKJ 2"],
+    phone: "081234567891",
     education: "S.Kom",
+    subjects: [],
+    classes: ["12 TKJ 1", "12 TKJ 2"],
+    isActive: true,
   },
   {
     name: "Miranda",
     username: "miranda",
-    subjects: ["AIJ"],
-    classes: ["12 TKJ 2"],
+    phone: "081234567892",
     education: "S.Kom",
+    subjects: [],
+    classes: ["12 TKJ 2"],
+    isActive: true,
   },
   {
     name: "Erwin Mulyadi",
     username: "erwin_mulyadi",
-    subjects: ["PKK"],
-    classes: ["12 TKJ 1", "12 TKJ 2"],
+    phone: "081234567893",
     education: "A.Md",
+    subjects: [],
+    classes: ["12 TKJ 1", "12 TKJ 2"],
+    isActive: true,
   },
   {
     name: "Eka Yunita",
     username: "eka_yunita",
-    subjects: ["PKN"],
-    classes: ["12 TKJ 1", "12 TKJ 2"],
+    phone: "081234567894",
     education: "S.E",
+    subjects: [],
+    classes: ["12 TKJ 1", "12 TKJ 2"],
+    isActive: true,
   },
   {
     name: "Yesi Oktavia",
     username: "yesi_oktavia",
-    subjects: ["MTK"],
-    classes: ["12 TKJ 1", "12 TKJ 2"],
+    phone: "081234567895",
     education: "S.Pd",
+    subjects: [],
+    classes: ["12 TKJ 1", "12 TKJ 2"],
+    isActive: true,
   },
   {
     name: "Fadhilah Khairani",
     username: "fadhilah_khairani",
-    subjects: ["B. Inggris"],
-    classes: ["12 TKJ 1", "12 TKJ 2"],
+    phone: "081234567896",
     education: "M.Pd",
+    subjects: [],
+    classes: ["12 TKJ 1", "12 TKJ 2"],
+    isActive: true,
   },
   {
     name: "Lina Maryana",
     username: "lina_maryana",
-    subjects: ["B. Indonesia"],
-    classes: ["12 TKJ 1", "12 TKJ 2"],
+    phone: "081234567897",
     education: "S.Pd",
+    subjects: [],
+    classes: ["12 TKJ 1", "12 TKJ 2"],
+    isActive: true,
+  },
+  {
+    name: "Ustadz Ahmad",
+    username: "ustadz_ahmad",
+    phone: "081234567898",
+    education: "S.Ag",
+    subjects: [],
+    classes: ["12 TKJ 1", "12 TKJ 2"],
+    isActive: true,
   },
 ];
 
-// Data mata pelajaran
+// Data mata pelajaran - dengan teacherId reference (akan diisi setelah teachers dibuat)
 const subjects = [
   {
     code: "ASJ",
     name: "Administrasi Sistem Jaringan",
-    teacher: "Iik Ayu Meilani",
+    description: "Mata pelajaran Administrasi Sistem Jaringan",
+    teacherId: "", // Will be populated with actual teacher _id
+    isActive: true,
   },
-  { code: "TLJ", name: "Teknik Layanan Jaringan", teacher: "Supriyanto" },
+  {
+    code: "TLJ",
+    name: "Teknik Layanan Jaringan",
+    description: "Mata pelajaran Teknik Layanan Jaringan",
+    teacherId: "",
+    isActive: true,
+  },
   {
     code: "AIJ",
     name: "Administrasi Infrastruktur Jaringan",
-    teacher: "Miranda",
+    description: "Mata pelajaran Administrasi Infrastruktur Jaringan",
+    teacherId: "",
+    isActive: true,
   },
   {
     code: "PKK",
     name: "Produk Kreatif Kewirausahaan",
-    teacher: "Erwin Mulyadi",
+    description: "Mata pelajaran Produk Kreatif Kewirausahaan",
+    teacherId: "",
+    isActive: true,
   },
-  { code: "PKN", name: "Pendidikan Kewarganegaraan", teacher: "Eka Yunita" },
-  { code: "MTK", name: "Matematika", teacher: "Yesi Oktavia" },
-  { code: "B. Inggris", name: "Bahasa Inggris", teacher: "Fadhilah Khairani" },
-  { code: "B. Indonesia", name: "Bahasa Indonesia", teacher: "Lina Maryana" },
-  { code: "Agama", name: "Pendidikan Agama Islam", teacher: "Ustadz Ahmad" },
+  {
+    code: "PKN",
+    name: "Pendidikan Kewarganegaraan",
+    description: "Mata pelajaran Pendidikan Kewarganegaraan",
+    teacherId: "",
+    isActive: true,
+  },
+  {
+    code: "MTK",
+    name: "Matematika",
+    description: "Mata pelajaran Matematika",
+    teacherId: "",
+    isActive: true,
+  },
+  {
+    code: "B. Inggris",
+    name: "Bahasa Inggris",
+    description: "Mata pelajaran Bahasa Inggris",
+    teacherId: "",
+    isActive: true,
+  },
+  {
+    code: "B. Indonesia",
+    name: "Bahasa Indonesia",
+    description: "Mata pelajaran Bahasa Indonesia",
+    teacherId: "",
+    isActive: true,
+  },
+  {
+    code: "Agama",
+    name: "Pendidikan Agama Islam",
+    description: "Mata pelajaran Pendidikan Agama Islam",
+    teacherId: "",
+    isActive: true,
+  },
+];
+
+// Data kelas dengan wali kelas
+const classes = [
+  {
+    name: "12 TKJ 1",
+    majorId: "", // Will be populated with actual major _id
+    homeroomTeacherId: "", // Will be populated with actual teacher _id
+    isActive: true,
+  },
+  {
+    name: "12 TKJ 2",
+    majorId: "", // Will be populated with actual major _id
+    homeroomTeacherId: "", // Will be populated with actual teacher _id
+    isActive: true,
+  },
 ];
 
 // Jadwal pelajaran 12 TKJ 1
@@ -377,6 +502,9 @@ export async function seedDatabase() {
     console.log("📊 Collections:", Object.keys(collections));
 
     // Clear existing data
+    if (collections.majors) {
+      await collections.majors.deleteMany({});
+    }
     if (collections.students) {
       await collections.students.deleteMany({});
     }
@@ -385,6 +513,9 @@ export async function seedDatabase() {
     }
     if (collections.subjects) {
       await collections.subjects.deleteMany({});
+    }
+    if (collections.classes) {
+      await collections.classes.deleteMany({});
     }
     if (collections.schedules) {
       await collections.schedules.deleteMany({});
@@ -399,9 +530,24 @@ export async function seedDatabase() {
     const hashedPassword = await bcrypt.hash("password123", 10);
     const hashedAdminPassword = await bcrypt.hash("admin123", 10);
 
+    // Seed majors first
+    const majorData = majors.map((major) => ({
+      ...major,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }));
+
+    if (collections.majors) {
+      const result = await collections.majors.insertMany(majorData);
+      console.log(`✅ Seeded ${result.insertedCount} majors`);
+    } else {
+      console.log("❌ Majors collection not found");
+    }
+
     // Seed students
     const studentData = [
       ...studentsTKJ1.map((student, index) => ({
+        id: student.nisn || `TKJ1-${String(index + 1).padStart(2, "0")}`,
         studentId: student.nisn || `TKJ1-${String(index + 1).padStart(2, "0")}`,
         name: student.name,
         username: nameToUsername(student.name),
@@ -409,12 +555,14 @@ export async function seedDatabase() {
         class: "12 TKJ 1",
         major: "Teknik Komputer dan Jaringan",
         nisn: student.nisn || "",
+        year: 2024,
         isActive: true,
-        role: "student",
+        role: "student" as const,
         createdAt: new Date(),
         updatedAt: new Date(),
       })),
       ...studentsTKJ2.map((student, index) => ({
+        id: student.nisn || `TKJ2-${String(index + 1).padStart(2, "0")}`,
         studentId: student.nisn || `TKJ2-${String(index + 1).padStart(2, "0")}`,
         name: student.name,
         username: nameToUsername(student.name),
@@ -422,8 +570,9 @@ export async function seedDatabase() {
         class: "12 TKJ 2",
         major: "Teknik Komputer dan Jaringan",
         nisn: student.nisn || "",
+        year: 2024,
         isActive: true,
-        role: "student",
+        role: "student" as const,
         createdAt: new Date(),
         updatedAt: new Date(),
       })),
@@ -436,43 +585,108 @@ export async function seedDatabase() {
       console.log("❌ Students collection not found");
     }
 
-    // Seed teachers
-    const teacherData = teachers.map((teacher, index) => ({
+    // Seed teachers first
+    const teacherData = teachers.map((teacher) => ({
+      id: teacher.username,
       name: teacher.name,
       username: teacher.username,
+      phone: teacher.phone,
       password: hashedPassword,
-      subjects: teacher.subjects,
+      subjects: [], // Will be populated after subjects are created
       classes: teacher.classes,
       education: teacher.education,
-      isActive: true,
-      role: "teacher",
+      isActive: teacher.isActive,
+      role: "teacher" as const,
       createdAt: new Date(),
       updatedAt: new Date(),
     }));
 
+    let teacherIds: { [key: string]: string } = {};
     if (collections.teachers) {
       const result = await collections.teachers.insertMany(teacherData);
       console.log(`✅ Seeded ${result.insertedCount} teachers`);
+
+      // Create mapping of teacher names to IDs
+      const insertedTeachers = await collections.teachers.find({}).toArray();
+      insertedTeachers.forEach((teacher) => {
+        teacherIds[teacher.name] = teacher._id.toString();
+      });
     } else {
       console.log("❌ Teachers collection not found");
     }
 
-    // Seed subjects
-    const subjectData = subjects.map((subject) => ({
-      code: subject.code,
-      name: subject.name,
-      teacher: subject.teacher,
-      description: `Mata pelajaran ${subject.name}`,
-      isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    }));
+    // Seed subjects with teacher references
+    const subjectData = subjects.map((subject) => {
+      // Map teacher names to IDs
+      const teacherNameMap: { [key: string]: string } = {
+        ASJ: "Iik Ayu Meilani",
+        TLJ: "Supriyanto",
+        AIJ: "Miranda",
+        PKK: "Erwin Mulyadi",
+        PKN: "Eka Yunita",
+        MTK: "Yesi Oktavia",
+        "B. Inggris": "Fadhilah Khairani",
+        "B. Indonesia": "Lina Maryana",
+        Agama: "Ustadz Ahmad", // Will need to add this teacher
+      };
+
+      const teacherName = teacherNameMap[subject.code];
+      const teacherId = teacherName ? teacherIds[teacherName] : "";
+
+      return {
+        code: subject.code,
+        name: subject.name,
+        description: subject.description,
+        teacherId: teacherId,
+        isActive: subject.isActive,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+    });
 
     if (collections.subjects) {
       await collections.subjects.insertMany(subjectData);
       console.log(`✅ Seeded ${subjectData.length} subjects`);
     } else {
       console.log("⚠️ Subjects collection not found, skipping...");
+    }
+
+    // Seed classes with homeroom teacher references
+    // Get majors from database to get actual _id
+    const majorsFromDB = await collections.majors.find({}).toArray();
+    const majorIds: { [key: string]: string } = {};
+    majorsFromDB.forEach((major: any) => {
+      majorIds[major.name] = major._id.toString();
+    });
+
+    const classData = classes.map((cls) => {
+      // Assign homeroom teachers (first teacher for TKJ 1, second for TKJ 2)
+      const homeroomTeacherMap: { [key: string]: string } = {
+        "12 TKJ 1": "Iik Ayu Meilani", // ASJ teacher
+        "12 TKJ 2": "Supriyanto", // TLJ teacher
+      };
+
+      const teacherName = homeroomTeacherMap[cls.name];
+      const homeroomTeacherId = teacherName ? teacherIds[teacherName] : "";
+
+      // Get TKJ major ID from database
+      const majorId = majorIds["Teknik Komputer dan Jaringan"] || "";
+
+      {"_id":{"$oid":"68d91ceaa9cd52346d5b0b23"},"name":"12 TKJ 1","majorId":"68d91ceaa9cd52346d5b0ac0","homeroomTeacherId":"68d91ceaa9cd52346d5b0b11","isActive":true,"createdAt":{"$date":{"$numberLong":"1759059178557"}},"updatedAt":{"$date":{"$numberLong":"1759059178557"}}      return {
+        name: cls.name,
+        majorId: majorId,
+        homeroomTeacherId: homeroomTeacherId,
+        isActive: cls.isActive,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+    });
+
+    if (collections.classes) {
+      const result = await collections.classes.insertMany(classData);
+      console.log(`✅ Seeded ${result.insertedCount} classes`);
+    } else {
+      console.log("❌ Classes collection not found");
     }
 
     // Seed schedules
@@ -510,12 +724,13 @@ export async function seedDatabase() {
 
     // Seed default admin
     const adminData = {
+      id: "admin",
       name: "Administrator",
       username: "admin",
       password: hashedAdminPassword,
       permissions: ["all"],
       isActive: true,
-      role: "admin",
+      role: "admin" as const,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -526,16 +741,20 @@ export async function seedDatabase() {
     console.log("🎉 Database seeding completed successfully!");
 
     return {
+      majors: majorData.length,
       students: studentData.length,
       teachers: teacherData.length,
       subjects: subjectData.length,
+      classes: classData.length,
       schedules: scheduleData.length,
       admins: 1,
     };
   } catch (error) {
     console.error("❌ Error seeding database:", error);
-    console.error("❌ Error details:", error.message);
-    console.error("❌ Error stack:", error.stack);
+    if (error instanceof Error) {
+      console.error("❌ Error details:", error.message);
+      console.error("❌ Error stack:", error.stack);
+    }
     throw error;
   }
 }

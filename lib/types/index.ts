@@ -22,9 +22,10 @@ export interface Student extends User {
 
 // Teacher specific types
 export interface Teacher extends User {
-  subjects: string[];
-  classes: string[];
+  subjects: string[]; // Array of Subject._id
+  classes: string[]; // Array of Class names
   education?: string;
+  phone?: string;
 }
 
 // Admin specific types
@@ -46,14 +47,22 @@ export interface Major {
 }
 
 export interface Subject {
-  id: string;
+  _id: string;
   name: string;
   code: string;
   description?: string;
-  credits: number;
-  majorId: string;
-  teacherId: string;
-  semester: number;
+  teacherId: string; // Reference to Teacher._id
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Class types
+export interface Class {
+  _id: string;
+  name: string;
+  majorId?: string; // Reference to Major._id
+  homeroomTeacherId: string; // Reference to Teacher._id (wali kelas)
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -61,6 +70,17 @@ export interface Subject {
 
 // Course types (alias for Subject)
 export interface Course extends Subject {}
+
+// Class types
+export interface Class {
+  _id: string;
+  name: string; // "12 TKJ 1", "12 TKJ 2"
+  majorId: string; // Reference to Major._id
+  homeroomTeacherId: string; // Reference to Teacher._id (wali kelas)
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 // Staff types
 export interface Staff {

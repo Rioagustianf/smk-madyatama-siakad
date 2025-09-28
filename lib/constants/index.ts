@@ -151,6 +151,12 @@ export const API_ENDPOINTS = {
     UPDATE: (id: string) => `/api/teachers/${id}`,
     DELETE: (id: string) => `/api/teachers/${id}`,
   },
+  CLASSES: {
+    LIST: "/api/classes",
+    CREATE: "/api/classes",
+    UPDATE: (id: string) => `/api/classes/${id}`,
+    DELETE: (id: string) => `/api/classes/${id}`,
+  },
   STUDENTS: {
     LIST: "/api/students",
     CREATE: "/api/students",

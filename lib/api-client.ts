@@ -108,11 +108,20 @@ export const apiMethods = {
   teachers: {
     list: (filters?: Record<string, any>) =>
       api.get(API_ENDPOINTS.TEACHERS.LIST, { params: filters }),
-    get: (id: string) => api.get(API_ENDPOINTS.TEACHERS.GET(id)),
+    get: (id: string) => api.get(`/api/teachers/${id}`),
     create: (data: any) => api.post(API_ENDPOINTS.TEACHERS.CREATE, data),
     update: (id: string, data: any) =>
       api.put(API_ENDPOINTS.TEACHERS.UPDATE(id), data),
     delete: (id: string) => api.delete(API_ENDPOINTS.TEACHERS.DELETE(id)),
+  },
+  classes: {
+    list: (filters?: Record<string, any>) =>
+      api.get(API_ENDPOINTS.CLASSES.LIST, { params: filters }),
+    get: (id: string) => api.get(`/api/classes/${id}`),
+    create: (data: any) => api.post(API_ENDPOINTS.CLASSES.CREATE, data),
+    update: (id: string, data: any) =>
+      api.put(API_ENDPOINTS.CLASSES.UPDATE(id), data),
+    delete: (id: string) => api.delete(API_ENDPOINTS.CLASSES.DELETE(id)),
   },
 
   // Students

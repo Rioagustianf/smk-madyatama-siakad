@@ -37,8 +37,9 @@ export const getCollections = async () => {
     teachers: database.collection<Teacher>("teachers"),
     students: database.collection<Student>("students"),
     admins: database.collection<Admin>("admins"),
-    courses: database.collection("courses"),
+    subjects: database.collection("subjects"),
     majors: database.collection("majors"),
+    classes: database.collection("classes"),
     schedules: database.collection("schedules"),
     grades: database.collection("grades"),
     announcements: database.collection("announcements"),
@@ -62,19 +63,24 @@ export const dbUtils = {
     await collections.users.createIndex({ role: 1 });
 
     // Teachers indexes
-    await collections.teachers.createIndex({ teacherId: 1 }, { unique: true });
-    await collections.teachers.createIndex({ email: 1 }, { unique: true });
+    await collections.teachers.createIndex({ username: 1 }, { unique: true });
 
     // Students indexes
     await collections.students.createIndex({ studentId: 1 }, { unique: true });
-    await collections.students.createIndex({ email: 1 }, { unique: true });
+    await collections.students.createIndex({ username: 1 }, { unique: true });
     await collections.students.createIndex({ class: 1 });
     await collections.students.createIndex({ major: 1 });
 
-    // Courses indexes
-    await collections.courses.createIndex({ code: 1 }, { unique: true });
-    await collections.courses.createIndex({ majorId: 1 });
-    await collections.courses.createIndex({ teacherId: 1 });
+    // Subjects indexes
+    await collections.subjects.createIndex({ code: 1 }, { unique: true });
+    await collections.subjects.createIndex({ teacherId: 1 });
+    await collections.subjects.createIndex({ isActive: 1 });
+
+    // Classes indexes
+    await collections.classes.createIndex({ name: 1 }, { unique: true });
+    await collections.classes.createIndex({ majorId: 1 });
+    await collections.classes.createIndex({ homeroomTeacherId: 1 });
+    await collections.classes.createIndex({ isActive: 1 });
 
     // Schedules indexes
     await collections.schedules.createIndex({ classId: 1 });
@@ -121,14 +127,20 @@ export const dbUtils = {
     }
 
     // Create default admin user
-    const defaultAdmin = {
-      _id: new Date().toISOString(),
-      email: "admin@smk.edu",
+    const nowId = new Date().toISOString();
+    const userDoc = {
+      id: nowId,
+      username: "admin",
       name: "Administrator",
       role: "admin" as const,
       isActive: true,
       createdAt: new Date(),
       updatedAt: new Date(),
+    };
+
+    await collections.users.insertOne(userDoc);
+    const adminDoc = {
+      ...userDoc,
       permissions: [
         "manage_users",
         "manage_content",
@@ -137,12 +149,7 @@ export const dbUtils = {
         "system_settings",
       ],
     };
-
-    await collections.users.insertOne(defaultAdmin);
-    await collections.admins.insertOne({
-      ...defaultAdmin,
-      permissions: defaultAdmin.permissions,
-    });
+    await collections.admins.insertOne(adminDoc as any);
 
     console.log("Initial data seeded successfully");
   },

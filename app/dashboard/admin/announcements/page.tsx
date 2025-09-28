@@ -286,17 +286,17 @@ export default function AdminAnnouncementsPage() {
               <span>Gagal memuat data pengumuman</span>
             </div>
           ) : (
-            <Table className="bg-white">
-              <TableHeader className="rounded-md">
-                <TableRow className="bg-primary-900 hover:bg-primary-900">
-                  <TableHead className="text-white">Judul</TableHead>
-                  <TableHead className="text-white">Kategori</TableHead>
-                  <TableHead className="text-white">Tanggal</TableHead>
-                  <TableHead className="text-white">Status</TableHead>
-                  <TableHead className="w-20 text-white">Aksi</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+          <Table className="bg-white">
+            <TableHeader className="rounded-md">
+              <TableRow className="bg-primary-900 hover:bg-primary-900">
+                <TableHead className="text-white">Judul</TableHead>
+                <TableHead className="text-white">Kategori</TableHead>
+                <TableHead className="text-white">Tanggal</TableHead>
+                <TableHead className="text-white">Status</TableHead>
+                <TableHead className="w-20 text-white">Aksi</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
                 {filtered.length === 0 ? (
                   <TableRow>
                     <TableCell
@@ -309,8 +309,8 @@ export default function AdminAnnouncementsPage() {
                 ) : (
                   filtered.map((a) => (
                     <TableRow key={a._id} className="hover:bg-muted/50">
-                      <TableCell className="font-medium">{a.title}</TableCell>
-                      <TableCell>{a.category}</TableCell>
+                  <TableCell className="font-medium">{a.title}</TableCell>
+                  <TableCell>{a.category}</TableCell>
                       <TableCell>
                         {new Date(a.createdAt).toLocaleDateString("id-ID")}
                       </TableCell>
@@ -325,36 +325,36 @@ export default function AdminAnnouncementsPage() {
                           {a.isPublished ? "Dipublikasikan" : "Draft"}
                         </span>
                       </TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
                             <DropdownMenuItem
                               className="gap-2"
                               onClick={() => handleEdit(a)}
                             >
-                              <Edit className="h-4 w-4" />
-                              Edit
-                            </DropdownMenuItem>
+                          <Edit className="h-4 w-4" />
+                          Edit
+                        </DropdownMenuItem>
                             <DropdownMenuItem
                               className="gap-2 text-destructive"
                               onClick={() => handleDelete(a._id)}
                             >
-                              <Trash2 className="h-4 w-4" />
-                              Hapus
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
+                          <Trash2 className="h-4 w-4" />
+                          Hapus
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
                   ))
                 )}
-              </TableBody>
-            </Table>
+            </TableBody>
+          </Table>
           )}
         </AdminTableCard>
 

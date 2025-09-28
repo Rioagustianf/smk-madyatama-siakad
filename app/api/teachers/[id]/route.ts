@@ -35,7 +35,7 @@ async function verifyAdminToken(request: NextRequest) {
   }
 }
 
-// GET - Get single subject by ID
+// GET - Get single teacher by ID
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -45,7 +45,7 @@ export async function GET(
 
     if (!id) {
       return NextResponse.json(
-        { success: false, message: "ID mata pelajaran diperlukan" },
+        { success: false, message: "ID guru diperlukan" },
         { status: 400 }
       );
     }
@@ -60,57 +60,24 @@ export async function GET(
 
     const collections = await getCollections();
 
-    // Get subject with teacher information using aggregation
-    const pipeline = [
-      { $match: { _id: new ObjectId(id), isActive: true } },
-      {
-        $addFields: {
-          teacherObjectId: {
-            $cond: {
-              if: { $ne: ["$teacherId", ""] },
-              then: { $toObjectId: "$teacherId" },
-              else: null,
-            },
-          },
-        },
-      },
-      {
-        $lookup: {
-          from: "teachers",
-          localField: "teacherObjectId",
-          foreignField: "_id",
-          as: "teacher",
-        },
-      },
-      {
-        $addFields: {
-          teacher: { $arrayElemAt: ["$teacher", 0] },
-        },
-      },
-      {
-        $addFields: {
-          teacherName: "$teacher.name",
-          teacherEducation: "$teacher.education",
-        },
-      },
-    ];
+    const teacher = await collections.teachers.findOne({
+      _id: new ObjectId(id),
+      isActive: true,
+    });
 
-    const subjects = await collections.subjects.aggregate(pipeline).toArray();
-    const subject = subjects[0];
-
-    if (!subject) {
+    if (!teacher) {
       return NextResponse.json(
-        { success: false, message: "Mata pelajaran tidak ditemukan" },
+        { success: false, message: "Guru tidak ditemukan" },
         { status: 404 }
       );
     }
 
     return NextResponse.json({
       success: true,
-      data: subject,
+      data: teacher,
     });
   } catch (error) {
-    console.error("Error fetching subject:", error);
+    console.error("Error fetching teacher:", error);
     const errorResponse = handleDatabaseError(error);
     return NextResponse.json(
       { success: false, message: errorResponse.message },
@@ -119,7 +86,7 @@ export async function GET(
   }
 }
 
-// PUT - Update subject by ID
+// PUT - Update teacher by ID
 export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -145,14 +112,14 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { name, code, description, teacherId } = body;
+    const { name, username, phone, education, classes } = body;
 
     // Validation
-    if (!name || !code) {
+    if (!name || !username) {
       return NextResponse.json(
         {
           success: false,
-          message: "Nama dan kode mata pelajaran diperlukan",
+          message: "Nama dan username guru diperlukan",
         },
         { status: 400 }
       );
@@ -160,70 +127,58 @@ export async function PUT(
 
     const collections = await getCollections();
 
-    // Check if subject exists
-    const existingSubject = await collections.subjects.findOne({
+    // Check if teacher exists
+    const existingTeacher = await collections.teachers.findOne({
       _id: new ObjectId(id),
     });
-    if (!existingSubject) {
+    if (!existingTeacher) {
       return NextResponse.json(
-        { success: false, message: "Mata pelajaran tidak ditemukan" },
+        { success: false, message: "Guru tidak ditemukan" },
         { status: 404 }
       );
     }
 
-    // Check if code is used by another subject
-    const codeExists = await collections.subjects.findOne({
-      code,
+    // Check if username is used by another teacher
+    const usernameExists = await collections.teachers.findOne({
+      username,
       _id: { $ne: new ObjectId(id) },
     });
-    if (codeExists) {
+    if (usernameExists) {
       return NextResponse.json(
-        { success: false, message: "Kode mata pelajaran sudah digunakan" },
+        { success: false, message: "Username sudah digunakan" },
         { status: 400 }
       );
     }
 
-    // Validate teacherId if provided
-    if (teacherId) {
-      const teacher = await collections.teachers.findOne({
-        _id: new ObjectId(teacherId),
-      });
-      if (!teacher) {
-        return NextResponse.json(
-          { success: false, message: "Guru tidak ditemukan" },
-          { status: 400 }
-        );
-      }
-    }
-
-    // Update subject (align to seeder fields)
+    // Update teacher
     const updateData = {
       name,
-      code,
-      description: description || "",
-      teacherId: teacherId || "",
+      username,
+      phone: phone || "",
+      education: education || "",
+      classes: classes || [],
       updatedAt: new Date(),
     };
 
-    const result = await collections.subjects.updateOne(
+    const result = await collections.teachers.updateOne(
       { _id: new ObjectId(id) },
       { $set: updateData }
     );
 
     if (result.matchedCount === 0) {
       return NextResponse.json(
-        { success: false, message: "Mata pelajaran tidak ditemukan" },
+        { success: false, message: "Guru tidak ditemukan" },
         { status: 404 }
       );
     }
 
     return NextResponse.json({
       success: true,
-      message: "Mata pelajaran berhasil diperbarui",
+      message: "Guru berhasil diperbarui",
       data: { _id: id, ...updateData },
     });
   } catch (error) {
-    console.error("Error updating subject:", error);
+    console.error("Error updating teacher:", error);
     const errorResponse = handleDatabaseError(error);
     return NextResponse.json(
       { success: false, message: errorResponse.message },
@@ -232,7 +187,7 @@ export async function PUT(
   }
 }
 
-// DELETE - Delete subject by ID
+// DELETE - Delete teacher by ID
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -249,13 +204,6 @@ export async function DELETE(
 
     const { id } = params;
 
-    if (!id) {
-      return NextResponse.json(
-        { success: false, message: "ID mata pelajaran diperlukan" },
-        { status: 400 }
-      );
-    }
-
     // Validate ObjectId format
     if (!ObjectId.isValid(id)) {
       return NextResponse.json(
@@ -266,64 +214,65 @@ export async function DELETE(
 
     const collections = await getCollections();
 
-    // Check if subject exists
-    const existingSubject = await collections.subjects.findOne({
+    // Check if teacher exists
+    const existingTeacher = await collections.teachers.findOne({
       _id: new ObjectId(id),
     });
-    if (!existingSubject) {
+    if (!existingTeacher) {
       return NextResponse.json(
-        { success: false, message: "Mata pelajaran tidak ditemukan" },
+        { success: false, message: "Guru tidak ditemukan" },
         { status: 404 }
       );
     }
 
-    // Check if subject has grades
-    const gradesCount = await collections.grades.countDocuments({
-      subjectId: new ObjectId(id),
+    // Check if teacher is assigned to any subjects
+    const subjectsWithTeacher = await collections.subjects.countDocuments({
+      teacherId: id,
     });
-    if (gradesCount > 0) {
+    if (subjectsWithTeacher > 0) {
       return NextResponse.json(
         {
           success: false,
-          message: `Tidak dapat menghapus mata pelajaran karena masih memiliki ${gradesCount} nilai`,
+          message:
+            "Guru tidak dapat dihapus karena masih mengajar mata pelajaran",
         },
         { status: 400 }
       );
     }
 
-    // Check if subject has schedules (match by code like seeder)
-    const schedulesCount = await collections.schedules.countDocuments({
-      subject: existingSubject.code,
+    // Check if teacher is homeroom teacher for any class
+    const classesWithTeacher = await collections.classes.countDocuments({
+      homeroomTeacherId: id,
     });
-    if (schedulesCount > 0) {
+    if (classesWithTeacher > 0) {
       return NextResponse.json(
         {
           success: false,
-          message: `Tidak dapat menghapus mata pelajaran karena masih memiliki ${schedulesCount} jadwal`,
+          message: "Guru tidak dapat dihapus karena masih menjadi wali kelas",
         },
         { status: 400 }
       );
     }
 
-    // Soft delete (set isActive to false)
-    const result = await collections.subjects.updateOne(
+    // Soft delete teacher
+    const result = await collections.teachers.updateOne(
       { _id: new ObjectId(id) },
       { $set: { isActive: false, updatedAt: new Date() } }
     );
 
     if (result.matchedCount === 0) {
       return NextResponse.json(
-        { success: false, message: "Mata pelajaran tidak ditemukan" },
+        { success: false, message: "Guru tidak ditemukan" },
         { status: 404 }
       );
     }
 
     return NextResponse.json({
       success: true,
-      message: "Mata pelajaran berhasil dihapus",
+      message: "Guru berhasil dihapus",
     });
   } catch (error) {
-    console.error("Error deleting subject:", error);
+    console.error("Error deleting teacher:", error);
     const errorResponse = handleDatabaseError(error);
     return NextResponse.json(
       { success: false, message: errorResponse.message },
