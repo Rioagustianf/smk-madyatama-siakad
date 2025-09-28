@@ -34,12 +34,11 @@ export interface Admin extends User {
 
 // Academic types
 export interface Major {
-  id: string;
+  _id: string;
   name: string;
   code: string;
   description: string;
   image?: string;
-  subjects: string[];
   facilities: string[];
   careerProspects: string[];
   totalStudents: number;
@@ -99,7 +98,7 @@ export interface Grade {
 
 // Content types
 export interface Announcement {
-  id: string;
+  _id: string;
   title: string;
   content: string;
   excerpt?: string;

@@ -149,16 +149,28 @@ export const apiMethods = {
   majors: {
     list: (filters?: Record<string, any>) =>
       api.get(API_ENDPOINTS.MAJORS.LIST, { params: filters }),
+    get: (_id: string) => api.get(API_ENDPOINTS.MAJORS.UPDATE(_id)),
     create: (data: any) => api.post(API_ENDPOINTS.MAJORS.CREATE, data),
+    update: (_id: string, data: any) =>
+      api.put(API_ENDPOINTS.MAJORS.UPDATE(_id), data),
+    delete: (_id: string) => api.delete(API_ENDPOINTS.MAJORS.DELETE(_id)),
+  },
+
+  // Subjects
+  subjects: {
+    list: (filters?: Record<string, any>) =>
+      api.get(API_ENDPOINTS.SUBJECTS.LIST, { params: filters }),
+    create: (data: any) => api.post(API_ENDPOINTS.SUBJECTS.CREATE, data),
     update: (id: string, data: any) =>
-      api.put(API_ENDPOINTS.MAJORS.UPDATE(id), data),
-    delete: (id: string) => api.delete(API_ENDPOINTS.MAJORS.DELETE(id)),
+      api.put(API_ENDPOINTS.SUBJECTS.UPDATE(id), data),
+    delete: (id: string) => api.delete(API_ENDPOINTS.SUBJECTS.DELETE(id)),
   },
 
   // Schedules
   schedules: {
     list: (filters?: Record<string, any>) =>
       api.get(API_ENDPOINTS.SCHEDULES.LIST, { params: filters }),
+    get: (id: string) => api.get(API_ENDPOINTS.SCHEDULES.UPDATE(id)),
     create: (data: any) => api.post(API_ENDPOINTS.SCHEDULES.CREATE, data),
     update: (id: string, data: any) =>
       api.put(API_ENDPOINTS.SCHEDULES.UPDATE(id), data),
@@ -183,16 +195,19 @@ export const apiMethods = {
   announcements: {
     list: (filters?: Record<string, any>) =>
       api.get(API_ENDPOINTS.ANNOUNCEMENTS.LIST, { params: filters }),
+    get: (_id: string) => api.get(API_ENDPOINTS.ANNOUNCEMENTS.UPDATE(_id)),
     create: (data: any) => api.post(API_ENDPOINTS.ANNOUNCEMENTS.CREATE, data),
-    update: (id: string, data: any) =>
-      api.put(API_ENDPOINTS.ANNOUNCEMENTS.UPDATE(id), data),
-    delete: (id: string) => api.delete(API_ENDPOINTS.ANNOUNCEMENTS.DELETE(id)),
+    update: (_id: string, data: any) =>
+      api.put(API_ENDPOINTS.ANNOUNCEMENTS.UPDATE(_id), data),
+    delete: (_id: string) =>
+      api.delete(API_ENDPOINTS.ANNOUNCEMENTS.DELETE(_id)),
   },
 
   // Gallery
   gallery: {
     list: (filters?: Record<string, any>) =>
       api.get(API_ENDPOINTS.GALLERY.LIST, { params: filters }),
+    get: (id: string) => api.get(API_ENDPOINTS.GALLERY.UPDATE(id)),
     create: (data: any) => api.post(API_ENDPOINTS.GALLERY.CREATE, data),
     update: (id: string, data: any) =>
       api.put(API_ENDPOINTS.GALLERY.UPDATE(id), data),
@@ -213,6 +228,7 @@ export const apiMethods = {
   staff: {
     list: (filters?: Record<string, any>) =>
       api.get(API_ENDPOINTS.STAFF.LIST, { params: filters }),
+    get: (id: string) => api.get(API_ENDPOINTS.STAFF.UPDATE(id)),
     create: (data: any) => api.post(API_ENDPOINTS.STAFF.CREATE, data),
     update: (id: string, data: any) =>
       api.put(API_ENDPOINTS.STAFF.UPDATE(id), data),
@@ -227,6 +243,17 @@ export const apiMethods = {
     update: (id: string, data: any) =>
       api.put(API_ENDPOINTS.INTERNSHIPS.UPDATE(id), data),
     delete: (id: string) => api.delete(API_ENDPOINTS.INTERNSHIPS.DELETE(id)),
+  },
+
+  // News
+  news: {
+    list: (filters?: Record<string, any>) =>
+      api.get(API_ENDPOINTS.NEWS.LIST, { params: filters }),
+    get: (id: string) => api.get(API_ENDPOINTS.NEWS.UPDATE(id)),
+    create: (data: any) => api.post(API_ENDPOINTS.NEWS.CREATE, data),
+    update: (id: string, data: any) =>
+      api.put(API_ENDPOINTS.NEWS.UPDATE(id), data),
+    delete: (id: string) => api.delete(API_ENDPOINTS.NEWS.DELETE(id)),
   },
 
   // Profile

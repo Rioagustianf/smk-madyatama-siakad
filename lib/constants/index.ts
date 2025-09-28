@@ -164,10 +164,16 @@ export const API_ENDPOINTS = {
     DELETE: (id: string) => `/api/courses/${id}`,
   },
   MAJORS: {
-    LIST: "/api/majors",
-    CREATE: "/api/majors",
-    UPDATE: (id: string) => `/api/majors/${id}`,
-    DELETE: (id: string) => `/api/majors/${id}`,
+    LIST: "/api/academic/majors",
+    CREATE: "/api/academic/majors",
+    UPDATE: (id: string) => `/api/academic/majors/${id}`,
+    DELETE: (id: string) => `/api/academic/majors/${id}`,
+  },
+  SUBJECTS: {
+    LIST: "/api/academic/subjects",
+    CREATE: "/api/academic/subjects",
+    UPDATE: (id: string) => `/api/academic/subjects/${id}`,
+    DELETE: (id: string) => `/api/academic/subjects/${id}`,
   },
   SCHEDULES: {
     LIST: "/api/schedules",
@@ -218,6 +224,12 @@ export const API_ENDPOINTS = {
     CREATE: "/api/internships",
     UPDATE: (id: string) => `/api/internships/${id}`,
     DELETE: (id: string) => `/api/internships/${id}`,
+  },
+  NEWS: {
+    LIST: "/api/news",
+    CREATE: "/api/news",
+    UPDATE: (id: string) => `/api/news/${id}`,
+    DELETE: (id: string) => `/api/news/${id}`,
   },
   PROFILE: {
     GET: "/api/profile",

@@ -13,6 +13,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("http://localhost:3000"),
   title: `${school.name} - Sistem Informasi Akademik`,
   description: `Profil, program keahlian, fasilitas, dan informasi akademik ${school.name}.`,
   keywords:
@@ -25,7 +26,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "id_ID",
-    url: "https://example.com",
+    url: "http://localhost:3000",
     title: `${school.name} - Sistem Informasi Akademik`,
     description: `Profil, program keahlian, fasilitas, dan informasi akademik ${school.name}.`,
     siteName: school.name,

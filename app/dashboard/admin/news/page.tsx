@@ -59,9 +59,57 @@ const mockNews: News[] = [
 export default function AdminBeritaPage() {
   const [search, setSearch] = useState("");
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editingNews, setEditingNews] = useState<News | null>(null);
+  const [formData, setFormData] = useState({
+    title: "",
+    category: "",
+    content: "",
+  });
+
   const filtered = mockNews.filter((n) =>
     n.title.toLowerCase().includes(search.toLowerCase())
   );
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("Form submitted:", formData);
+    setIsAddOpen(false);
+    resetForm();
+  };
+
+  const handleEdit = (news: News) => {
+    // Blur the currently focused element to prevent aria-hidden issues
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+    setEditingNews(news);
+    setFormData({
+      title: news.title,
+      category: news.category,
+      content: "", // Mock data doesn't have content, but we'll add it
+    });
+    setIsAddOpen(false); // Close add dialog if open
+    setIsEditOpen(true);
+  };
+
+  const handleEditSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("Edit submitted:", formData);
+    setIsEditOpen(false);
+    resetForm();
+  };
+
+  const resetForm = () => {
+    setFormData({
+      title: "",
+      category: "",
+      content: "",
+    });
+    setEditingNews(null);
+    setIsAddOpen(false);
+    setIsEditOpen(false);
+  };
 
   return (
     <div className="min-h-screen bg-muted/30 p-6">
@@ -97,15 +145,35 @@ export default function AdminBeritaPage() {
                       Masukkan informasi berita
                     </DialogDescription>
                   </DialogHeader>
-                  <form className="space-y-4">
-                    <Input placeholder="Judul" required />
-                    <Input placeholder="Kategori (umum/akademik)" />
-                    <Textarea placeholder="Isi berita" rows={6} />
+                  <form onSubmit={handleSubmit} className="space-y-4">
+                    <Input
+                      placeholder="Judul"
+                      value={formData.title}
+                      onChange={(e) =>
+                        setFormData({ ...formData, title: e.target.value })
+                      }
+                      required
+                    />
+                    <Input
+                      placeholder="Kategori (umum/akademik)"
+                      value={formData.category}
+                      onChange={(e) =>
+                        setFormData({ ...formData, category: e.target.value })
+                      }
+                    />
+                    <Textarea
+                      placeholder="Isi berita"
+                      value={formData.content}
+                      onChange={(e) =>
+                        setFormData({ ...formData, content: e.target.value })
+                      }
+                      rows={6}
+                    />
                     <DialogFooter>
                       <Button
                         type="button"
                         variant="outline"
-                        onClick={() => setIsAddOpen(false)}
+                        onClick={resetForm}
                       >
                         Batal
                       </Button>
@@ -144,7 +212,10 @@ export default function AdminBeritaPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem className="gap-2">
+                        <DropdownMenuItem
+                          className="gap-2"
+                          onClick={() => handleEdit(n)}
+                        >
                           <Edit className="h-4 w-4" />
                           Edit
                         </DropdownMenuItem>
@@ -160,6 +231,58 @@ export default function AdminBeritaPage() {
             </TableBody>
           </Table>
         </AdminTableCard>
+
+        {/* Edit Dialog */}
+        <Dialog
+          open={isEditOpen}
+          onOpenChange={(open) => {
+            setIsEditOpen(open);
+            if (!open) {
+              resetForm();
+            }
+          }}
+        >
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Newspaper className="h-5 w-5" />
+                Edit Berita
+              </DialogTitle>
+              <DialogDescription>Edit informasi berita</DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleEditSubmit} className="space-y-4">
+              <Input
+                placeholder="Judul"
+                value={formData.title}
+                onChange={(e) =>
+                  setFormData({ ...formData, title: e.target.value })
+                }
+                required
+              />
+              <Input
+                placeholder="Kategori (umum/akademik)"
+                value={formData.category}
+                onChange={(e) =>
+                  setFormData({ ...formData, category: e.target.value })
+                }
+              />
+              <Textarea
+                placeholder="Isi berita"
+                value={formData.content}
+                onChange={(e) =>
+                  setFormData({ ...formData, content: e.target.value })
+                }
+                rows={6}
+              />
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={resetForm}>
+                  Batal
+                </Button>
+                <Button type="submit">Update Berita</Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

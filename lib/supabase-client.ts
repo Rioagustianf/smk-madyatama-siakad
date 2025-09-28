@@ -80,7 +80,7 @@ export const fileUpload = {
   // Upload image with validation
   uploadImage: async (
     file: File,
-    bucket: string = "images",
+    bucket: string = "madyatama",
     path: string = "uploads"
   ) => {
     // Validate file type

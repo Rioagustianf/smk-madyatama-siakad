@@ -1,7 +1,8 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiMethods, queryKeys } from "@/lib/api-client";
+import { apiMethods } from "@/lib/api-client";
+import { queryKeys } from "@/lib/query-client";
 import { useToast } from "@/lib/contexts/toast-context";
 import { SearchFilters, PaginatedResponse } from "@/lib/types";
 
@@ -66,17 +67,18 @@ export const useCreateMutation = <T, D>(
 
 export const useUpdateMutation = <T, D>(
   key: string[],
-  apiMethod: (id: string, data: D) => Promise<T>,
+  apiMethod: (_id: string, data: D) => Promise<T>,
   options?: any
 ) => {
   const queryClient = useQueryClient();
   const { addToast } = useToast();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: D }) => apiMethod(id, data),
+    mutationFn: ({ _id, data }: { _id: string; data: D }) =>
+      apiMethod(_id, data),
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: key });
-      queryClient.invalidateQueries({ queryKey: [...key, variables.id] });
+      queryClient.invalidateQueries({ queryKey: [...key, variables._id] });
       addToast({
         type: "success",
         title: "Data berhasil diperbarui",
@@ -257,29 +259,122 @@ export const useDeleteCourse = () => {
   return useDeleteMutation(queryKeys.courses.all, apiMethods.courses.delete);
 };
 
-// Majors hooks
-export const useMajors = (filters?: SearchFilters) => {
+// Majors hooks - moved to use-majors.ts
+
+export const useMajor = (id: string) => {
+  return useQuery({
+    queryKey: ["majors", "detail", id],
+    queryFn: () => apiMethods.majors.get(id),
+    enabled: !!id,
+  });
+};
+
+export const useCreateMajor = () => {
+  const queryClient = useQueryClient();
+  const { addToast } = useToast();
+
+  return useMutation({
+    mutationFn: apiMethods.majors.create,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["majors"] });
+      addToast({
+        type: "success",
+        title: "Program keahlian berhasil ditambahkan",
+        description: "Data telah berhasil disimpan ke database.",
+      });
+    },
+    onError: (error: any) => {
+      addToast({
+        type: "error",
+        title: "Gagal menambahkan program keahlian",
+        description:
+          error?.response?.data?.message ||
+          "Terjadi kesalahan saat menyimpan data.",
+      });
+    },
+  });
+};
+
+export const useUpdateMajor = () => {
+  const queryClient = useQueryClient();
+  const { addToast } = useToast();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) =>
+      apiMethods.majors.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["majors"] });
+      addToast({
+        type: "success",
+        title: "Program keahlian berhasil diperbarui",
+        description: "Perubahan telah berhasil disimpan.",
+      });
+    },
+    onError: (error: any) => {
+      addToast({
+        type: "error",
+        title: "Gagal memperbarui program keahlian",
+        description:
+          error?.response?.data?.message ||
+          "Terjadi kesalahan saat memperbarui data.",
+      });
+    },
+  });
+};
+
+export const useDeleteMajor = () => {
+  const queryClient = useQueryClient();
+  const { addToast } = useToast();
+
+  return useMutation({
+    mutationFn: apiMethods.majors.delete,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["majors"] });
+      addToast({
+        type: "success",
+        title: "Program keahlian berhasil dihapus",
+        description: "Data telah berhasil dihapus dari database.",
+      });
+    },
+    onError: (error: any) => {
+      addToast({
+        type: "error",
+        title: "Gagal menghapus program keahlian",
+        description:
+          error?.response?.data?.message ||
+          "Terjadi kesalahan saat menghapus data.",
+      });
+    },
+  });
+};
+
+// Subjects hooks
+export const useSubjects = (filters?: SearchFilters) => {
   return useListQuery(
-    queryKeys.majors.lists(),
-    apiMethods.majors.list,
+    queryKeys.subjects.lists(),
+    apiMethods.subjects.list,
     filters
   );
 };
 
-export const useMajor = (id: string) => {
-  return useDetailQuery(queryKeys.majors.details(), apiMethods.majors.get, id);
+export const useSubject = (id: string) => {
+  return useDetailQuery(
+    queryKeys.subjects.details(),
+    apiMethods.subjects.get,
+    id
+  );
 };
 
-export const useCreateMajor = () => {
-  return useCreateMutation(queryKeys.majors.all, apiMethods.majors.create);
+export const useCreateSubject = () => {
+  return useCreateMutation(queryKeys.subjects.all, apiMethods.subjects.create);
 };
 
-export const useUpdateMajor = () => {
-  return useUpdateMutation(queryKeys.majors.all, apiMethods.majors.update);
+export const useUpdateSubject = () => {
+  return useUpdateMutation(queryKeys.subjects.all, apiMethods.subjects.update);
 };
 
-export const useDeleteMajor = () => {
-  return useDeleteMutation(queryKeys.majors.all, apiMethods.majors.delete);
+export const useDeleteSubject = () => {
+  return useDeleteMutation(queryKeys.subjects.all, apiMethods.subjects.delete);
 };
 
 // Schedules hooks
