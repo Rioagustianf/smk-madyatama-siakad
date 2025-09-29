@@ -123,6 +123,15 @@ export const apiMethods = {
       api.put(API_ENDPOINTS.CLASSES.UPDATE(id), data),
     delete: (id: string) => api.delete(API_ENDPOINTS.CLASSES.DELETE(id)),
   },
+  schedules: {
+    list: (filters?: Record<string, any>) =>
+      api.get(API_ENDPOINTS.SCHEDULES.LIST, { params: filters }),
+    get: (id: string) => api.get(`/api/schedules/${id}`),
+    create: (data: any) => api.post(API_ENDPOINTS.SCHEDULES.CREATE, data),
+    update: (id: string, data: any) =>
+      api.put(API_ENDPOINTS.SCHEDULES.UPDATE(id), data),
+    delete: (id: string) => api.delete(API_ENDPOINTS.SCHEDULES.DELETE(id)),
+  },
 
   // Students
   students: {

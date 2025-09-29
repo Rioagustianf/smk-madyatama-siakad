@@ -302,9 +302,24 @@ const classes = [
 const scheduleTKJ1 = [
   // Senin
   { day: "Senin", time: "07:00-07:40", subject: "UPACARA", class: "12 TKJ 1" },
-  { day: "Senin", time: "07:40-08:20", subject: "ASJ", class: "12 TKJ 1" },
-  { day: "Senin", time: "08:20-09:00", subject: "ASJ", class: "12 TKJ 1" },
-  { day: "Senin", time: "09:00-09:40", subject: "ASJ", class: "12 TKJ 1" },
+  {
+    day: "Senin",
+    time: "07:40-08:20",
+    subject: "Adminfrajar",
+    class: "12 TKJ 1",
+  },
+  {
+    day: "Senin",
+    time: "08:20-09:00",
+    subject: "Adminfrajar",
+    class: "12 TKJ 1",
+  },
+  {
+    day: "Senin",
+    time: "09:00-09:40",
+    subject: "Adminfrajar",
+    class: "12 TKJ 1",
+  },
   { day: "Senin", time: "10:10-10:50", subject: "Agama", class: "12 TKJ 1" },
   { day: "Senin", time: "10:50-11:30", subject: "Agama", class: "12 TKJ 1" },
   { day: "Senin", time: "11:30-12:10", subject: "ASJ", class: "12 TKJ 1" },
@@ -318,17 +333,42 @@ const scheduleTKJ1 = [
   { day: "Selasa", time: "09:00-09:40", subject: "ASJ", class: "12 TKJ 1" },
   { day: "Selasa", time: "10:10-10:50", subject: "PKN", class: "12 TKJ 1" },
   { day: "Selasa", time: "10:50-11:30", subject: "PKN", class: "12 TKJ 1" },
-  { day: "Selasa", time: "11:30-12:10", subject: "ASJ", class: "12 TKJ 1" },
-  { day: "Selasa", time: "12:40-13:20", subject: "ASJ", class: "12 TKJ 1" },
-  { day: "Selasa", time: "13:20-14:00", subject: "ASJ", class: "12 TKJ 1" },
+  {
+    day: "Selasa",
+    time: "11:30-12:10",
+    subject: "Adminfrajar",
+    class: "12 TKJ 1",
+  },
+  {
+    day: "Selasa",
+    time: "12:40-13:20",
+    subject: "Adminfrajar",
+    class: "12 TKJ 1",
+  },
+  {
+    day: "Selasa",
+    time: "13:20-14:00",
+    subject: "Adminfrajar",
+    class: "12 TKJ 1",
+  },
 
   // Rabu
-  { day: "Rabu", time: "07:00-07:40", subject: "TLJ", class: "12 TKJ 1" },
-  { day: "Rabu", time: "07:40-08:20", subject: "TLJ", class: "12 TKJ 1" },
-  { day: "Rabu", time: "08:20-09:00", subject: "TLJ", class: "12 TKJ 1" },
-  { day: "Rabu", time: "09:00-09:40", subject: "TLJ", class: "12 TKJ 1" },
-  { day: "Rabu", time: "10:10-10:50", subject: "ASJ", class: "12 TKJ 1" },
-  { day: "Rabu", time: "10:50-11:30", subject: "ASJ", class: "12 TKJ 1" },
+  { day: "Rabu", time: "07:00-07:40", subject: "Teklayjar", class: "12 TKJ 1" },
+  { day: "Rabu", time: "07:40-08:20", subject: "Teklayjar", class: "12 TKJ 1" },
+  { day: "Rabu", time: "08:20-09:00", subject: "Teklayjar", class: "12 TKJ 1" },
+  { day: "Rabu", time: "09:00-09:40", subject: "Teklayjar", class: "12 TKJ 1" },
+  {
+    day: "Rabu",
+    time: "10:10-10:50",
+    subject: "Adminfrajar",
+    class: "12 TKJ 1",
+  },
+  {
+    day: "Rabu",
+    time: "10:50-11:30",
+    subject: "Adminfrajar",
+    class: "12 TKJ 1",
+  },
   { day: "Rabu", time: "11:30-12:10", subject: "Agama", class: "12 TKJ 1" },
   { day: "Rabu", time: "12:40-13:20", subject: "PKK", class: "12 TKJ 1" },
   { day: "Rabu", time: "13:20-14:00", subject: "PKK", class: "12 TKJ 1" },
@@ -336,16 +376,36 @@ const scheduleTKJ1 = [
   // Kamis
   { day: "Kamis", time: "07:00-07:40", subject: "MTK", class: "12 TKJ 1" },
   { day: "Kamis", time: "07:40-08:20", subject: "MTK", class: "12 TKJ 1" },
-  { day: "Kamis", time: "08:20-09:00", subject: "TLJ", class: "12 TKJ 1" },
-  { day: "Kamis", time: "09:00-09:40", subject: "TLJ", class: "12 TKJ 1" },
+  {
+    day: "Kamis",
+    time: "08:20-09:00",
+    subject: "Teklayjar",
+    class: "12 TKJ 1",
+  },
+  {
+    day: "Kamis",
+    time: "09:00-09:40",
+    subject: "Teklayjar",
+    class: "12 TKJ 1",
+  },
   { day: "Kamis", time: "10:10-10:50", subject: "PKK", class: "12 TKJ 1" },
   { day: "Kamis", time: "10:50-11:30", subject: "PKK", class: "12 TKJ 1" },
   { day: "Kamis", time: "11:30-12:10", subject: "PKK", class: "12 TKJ 1" },
   { day: "Kamis", time: "12:10-12:50", subject: "PKK", class: "12 TKJ 1" },
 
   // Jumat
-  { day: "Jumat", time: "07:00-07:40", subject: "TLJ", class: "12 TKJ 1" },
-  { day: "Jumat", time: "07:40-08:20", subject: "TLJ", class: "12 TKJ 1" },
+  {
+    day: "Jumat",
+    time: "07:00-07:40",
+    subject: "Teklayjar",
+    class: "12 TKJ 1",
+  },
+  {
+    day: "Jumat",
+    time: "07:40-08:20",
+    subject: "Teklayjar",
+    class: "12 TKJ 1",
+  },
   { day: "Jumat", time: "08:20-09:00", subject: "MTK", class: "12 TKJ 1" },
   { day: "Jumat", time: "09:00-09:40", subject: "MTK", class: "12 TKJ 1" },
   {
@@ -378,7 +438,12 @@ const scheduleTKJ1 = [
   { day: "Sabtu", time: "09:00-09:40", subject: "ASJ", class: "12 TKJ 1" },
   { day: "Sabtu", time: "10:10-10:50", subject: "ASJ", class: "12 TKJ 1" },
   { day: "Sabtu", time: "10:50-11:30", subject: "ASJ", class: "12 TKJ 1" },
-  { day: "Sabtu", time: "11:30-12:10", subject: "ASJ", class: "12 TKJ 1" },
+  {
+    day: "Sabtu",
+    time: "11:30-12:10",
+    subject: "Adminfrajar",
+    class: "12 TKJ 1",
+  },
   {
     day: "Sabtu",
     time: "12:40-13:20",
@@ -426,9 +491,24 @@ const scheduleTKJ2 = [
   { day: "Rabu", time: "07:00-07:40", subject: "AIJ", class: "12 TKJ 2" },
   { day: "Rabu", time: "07:40-08:20", subject: "AIJ", class: "12 TKJ 2" },
   { day: "Rabu", time: "08:20-09:00", subject: "AIJ", class: "12 TKJ 2" },
-  { day: "Rabu", time: "09:00-09:40", subject: "Agama", class: "12 TKJ 2" },
-  { day: "Rabu", time: "10:10-10:50", subject: "Agama", class: "12 TKJ 2" },
-  { day: "Rabu", time: "10:50-11:30", subject: "Agama", class: "12 TKJ 2" },
+  {
+    day: "Rabu",
+    time: "09:00-09:40",
+    subject: "Agama Islam",
+    class: "12 TKJ 2",
+  },
+  {
+    day: "Rabu",
+    time: "10:10-10:50",
+    subject: "Agama Islam",
+    class: "12 TKJ 2",
+  },
+  {
+    day: "Rabu",
+    time: "10:50-11:30",
+    subject: "Agama Islam",
+    class: "12 TKJ 2",
+  },
   {
     day: "Rabu",
     time: "11:30-12:10",
@@ -672,7 +752,7 @@ export async function seedDatabase() {
       // Get TKJ major ID from database
       const majorId = majorIds["Teknik Komputer dan Jaringan"] || "";
 
-      {"_id":{"$oid":"68d91ceaa9cd52346d5b0b23"},"name":"12 TKJ 1","majorId":"68d91ceaa9cd52346d5b0ac0","homeroomTeacherId":"68d91ceaa9cd52346d5b0b11","isActive":true,"createdAt":{"$date":{"$numberLong":"1759059178557"}},"updatedAt":{"$date":{"$numberLong":"1759059178557"}}      return {
+      return {
         name: cls.name,
         majorId: majorId,
         homeroomTeacherId: homeroomTeacherId,
@@ -697,7 +777,6 @@ export async function seedDatabase() {
         subject: schedule.subject,
         class: schedule.class,
         teacher: getTeacherBySubject(schedule.subject),
-        room: "Lab Komputer",
         isActive: true,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -708,7 +787,6 @@ export async function seedDatabase() {
         subject: schedule.subject,
         class: schedule.class,
         teacher: getTeacherBySubject(schedule.subject),
-        room: "Lab Komputer",
         isActive: true,
         createdAt: new Date(),
         updatedAt: new Date(),

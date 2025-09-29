@@ -40,12 +40,6 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search") || "";
-    const classId = searchParams.get("classId") || "";
-    const teacherId = searchParams.get("teacherId") || "";
-    const day = searchParams.get("day") || "";
-    const semester = searchParams.get("semester");
-    const year = searchParams.get("year");
-    const isActive = searchParams.get("isActive");
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");
     const skip = (page - 1) * limit;
@@ -53,53 +47,75 @@ export async function GET(request: NextRequest) {
     const collections = await getCollections();
 
     // Build filter
-    const filter: any = {};
-    if (search) {
-      filter.$or = [
-        { subjectId: { $regex: search, $options: "i" } },
-        { teacherId: { $regex: search, $options: "i" } },
-        { classId: { $regex: search, $options: "i" } },
-        { room: { $regex: search, $options: "i" } },
-      ];
-    }
-    if (classId) {
-      filter.classId = classId;
-    }
-    if (teacherId) {
-      filter.teacherId = teacherId;
-    }
-    if (day) {
-      filter.day = day;
-    }
-    if (semester) {
-      filter.semester = parseInt(semester);
-    }
-    if (year) {
-      filter.year = parseInt(year);
-    }
-    if (isActive !== null && isActive !== undefined) {
-      filter.isActive = isActive === "true";
+    const filter: any = { isActive: true };
+
+    // Add specific filters
+    const classFilter = searchParams.get("class");
+    const teacherFilter = searchParams.get("teacher");
+
+    if (classFilter) {
+      filter.class = classFilter;
     }
 
-    // Get schedules with pagination
-    const [schedules, total] = await Promise.all([
-      collections.schedules
-        .find(filter)
-        .sort({ day: 1, startTime: 1 })
-        .skip(skip)
-        .limit(limit)
-        .toArray(),
-      collections.schedules.countDocuments(filter),
-    ]);
+    if (teacherFilter) {
+      filter.teacher = teacherFilter;
+    }
+
+    if (search) {
+      filter.$or = [
+        { day: { $regex: search, $options: "i" } },
+        { subject: { $regex: search, $options: "i" } },
+        { class: { $regex: search, $options: "i" } },
+        { teacher: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    // Get all schedules first for proper grouping
+    const allSchedules = await collections.schedules
+      .find(filter)
+      .sort({
+        class: 1,
+        day: 1,
+        time: 1,
+      })
+      .toArray();
+
+    // Group schedules by class
+    const groupedSchedules = allSchedules.reduce((acc, schedule) => {
+      const className = schedule.class;
+      if (!acc[className]) {
+        acc[className] = [];
+      }
+      acc[className].push(schedule);
+      return acc;
+    }, {} as Record<string, any[]>);
+
+    // Convert grouped data to array format for pagination
+    const scheduleGroups = Object.entries(groupedSchedules).map(
+      ([className, schedules]) => ({
+        className,
+        schedules,
+        totalSchedules: schedules.length,
+      })
+    );
+
+    // Apply pagination to groups
+    const totalGroups = scheduleGroups.length;
+    const paginatedGroups = scheduleGroups.slice(skip, skip + limit);
+
+    // Flatten schedules for response
+    const schedules = paginatedGroups.flatMap((group) => group.schedules);
+    const total = allSchedules.length;
 
     return NextResponse.json({
       success: true,
       data: schedules,
+      groupedData: paginatedGroups,
       pagination: {
         page,
         limit,
         total,
-        totalPages: Math.ceil(total / limit),
+        totalPages: Math.ceil(totalGroups / limit),
       },
     });
   } catch (error) {
@@ -125,33 +141,14 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const {
-      subjectId,
-      teacherId,
-      classId,
-      day,
-      startTime,
-      endTime,
-      room,
-      semester,
-      year,
-      isActive,
-    } = body;
+    const { day, time, subject, class: className, teacher } = body;
 
     // Validation
-    if (
-      !subjectId ||
-      !teacherId ||
-      !classId ||
-      !day ||
-      !startTime ||
-      !endTime ||
-      !room
-    ) {
+    if (!day || !time || !subject || !className) {
       return NextResponse.json(
         {
           success: false,
-          message: "Semua field jadwal diperlukan",
+          message: "Hari, waktu, mata pelajaran, dan kelas diperlukan",
         },
         { status: 400 }
       );
@@ -159,59 +156,14 @@ export async function POST(request: NextRequest) {
 
     const collections = await getCollections();
 
-    // Check for time conflicts
-    const conflictingSchedule = await collections.schedules.findOne({
-      $and: [
-        { classId },
-        { day },
-        { isActive: true },
-        {
-          $or: [
-            {
-              $and: [
-                { startTime: { $lte: startTime } },
-                { endTime: { $gt: startTime } },
-              ],
-            },
-            {
-              $and: [
-                { startTime: { $lt: endTime } },
-                { endTime: { $gte: endTime } },
-              ],
-            },
-            {
-              $and: [
-                { startTime: { $gte: startTime } },
-                { endTime: { $lte: endTime } },
-              ],
-            },
-          ],
-        },
-      ],
-    });
-
-    if (conflictingSchedule) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Jadwal bertabrakan dengan jadwal yang sudah ada",
-        },
-        { status: 400 }
-      );
-    }
-
     // Create new schedule
     const newSchedule = {
-      subjectId,
-      teacherId,
-      classId,
       day,
-      startTime,
-      endTime,
-      room,
-      semester: semester || 1,
-      year: year || new Date().getFullYear(),
-      isActive: isActive !== undefined ? isActive : true,
+      time,
+      subject,
+      class: className,
+      teacher: teacher || "",
+      isActive: true,
       createdAt: new Date(),
       updatedAt: new Date(),
     };

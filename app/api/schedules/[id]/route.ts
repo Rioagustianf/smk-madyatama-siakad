@@ -62,6 +62,7 @@ export async function GET(
 
     const schedule = await collections.schedules.findOne({
       _id: new ObjectId(id),
+      isActive: true,
     });
 
     if (!schedule) {
@@ -71,16 +72,9 @@ export async function GET(
       );
     }
 
-    // Transform _id to id for frontend consistency
-    const transformedSchedule = {
-      ...schedule,
-      id: schedule._id.toString(),
-      _id: undefined, // Remove _id to avoid confusion
-    };
-
     return NextResponse.json({
       success: true,
-      data: transformedSchedule,
+      data: schedule,
     });
   } catch (error) {
     console.error("Error fetching schedule:", error);
@@ -118,33 +112,14 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const {
-      subjectId,
-      teacherId,
-      classId,
-      day,
-      startTime,
-      endTime,
-      room,
-      semester,
-      year,
-      isActive,
-    } = body;
+    const { day, time, subject, class: className, teacher } = body;
 
     // Validation
-    if (
-      !subjectId ||
-      !teacherId ||
-      !classId ||
-      !day ||
-      !startTime ||
-      !endTime ||
-      !room
-    ) {
+    if (!day || !time || !subject || !className) {
       return NextResponse.json(
         {
           success: false,
-          message: "Semua field jadwal diperlukan",
+          message: "Hari, waktu, mata pelajaran, dan kelas diperlukan",
         },
         { status: 400 }
       );
@@ -163,60 +138,13 @@ export async function PUT(
       );
     }
 
-    // Check for time conflicts (excluding current schedule)
-    const conflictingSchedule = await collections.schedules.findOne({
-      $and: [
-        { _id: { $ne: new ObjectId(id) } },
-        { classId },
-        { day },
-        { isActive: true },
-        {
-          $or: [
-            {
-              $and: [
-                { startTime: { $lte: startTime } },
-                { endTime: { $gt: startTime } },
-              ],
-            },
-            {
-              $and: [
-                { startTime: { $lt: endTime } },
-                { endTime: { $gte: endTime } },
-              ],
-            },
-            {
-              $and: [
-                { startTime: { $gte: startTime } },
-                { endTime: { $lte: endTime } },
-              ],
-            },
-          ],
-        },
-      ],
-    });
-
-    if (conflictingSchedule) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Jadwal bertabrakan dengan jadwal yang sudah ada",
-        },
-        { status: 400 }
-      );
-    }
-
     // Update schedule
     const updateData = {
-      subjectId,
-      teacherId,
-      classId,
       day,
-      startTime,
-      endTime,
-      room,
-      semester: semester || 1,
-      year: year || new Date().getFullYear(),
-      isActive: isActive !== undefined ? isActive : true,
+      time,
+      subject,
+      class: className,
+      teacher: teacher || "",
       updatedAt: new Date(),
     };
 
@@ -235,7 +163,7 @@ export async function PUT(
     return NextResponse.json({
       success: true,
       message: "Jadwal berhasil diperbarui",
-      data: { id, ...updateData },
+      data: { _id: id, ...updateData },
     });
   } catch (error) {
     console.error("Error updating schedule:", error);
@@ -264,13 +192,6 @@ export async function DELETE(
 
     const { id } = params;
 
-    if (!id) {
-      return NextResponse.json(
-        { success: false, message: "ID jadwal diperlukan" },
-        { status: 400 }
-      );
-    }
-
     // Validate ObjectId format
     if (!ObjectId.isValid(id)) {
       return NextResponse.json(
@@ -292,12 +213,13 @@ export async function DELETE(
       );
     }
 
-    // Hard delete (permanently remove from database)
-    const result = await collections.schedules.deleteOne({
-      _id: new ObjectId(id),
-    });
+    // Soft delete schedule
+    const result = await collections.schedules.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: { isActive: false, updatedAt: new Date() } }
+    );
 
-    if (result.deletedCount === 0) {
+    if (result.matchedCount === 0) {
       return NextResponse.json(
         { success: false, message: "Jadwal tidak ditemukan" },
         { status: 404 }
