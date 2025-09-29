@@ -7,153 +7,145 @@ import { PageHeader } from "@/components/molecules/PageHeader/PageHeader";
 import { Typography } from "@/components/atoms/Typography/Typography";
 import { Button } from "@/components/atoms/Button/Button";
 import { BookOpen, Briefcase, GraduationCap } from "lucide-react";
-import { school } from "@/lib/school";
+import { useMajors } from "@/lib/hooks/use-majors";
+import tkj from "@/public/tkj.jpeg";
 
-const PROGRAM_DETAILS: Record<
-  string,
-  {
-    image: string;
-    description: string;
-    subjects: string[];
-    facilities: string[];
-    careers: string[];
-  }
-> = {
-  tkj: {
-    image: "https://images.pexels.com/photos/1181675/pexels-photo-1181675.jpeg",
-    description:
-      "Teknik Komputer dan Jaringan berfokus pada instalasi, administrasi jaringan, serta keamanan jaringan berbasis praktik industri.",
-    subjects: [
-      "Administrasi Sistem Jaringan",
-      "Keamanan Jaringan",
-      "Teknologi Jaringan Nirkabel",
-      "Cloud & Virtualisasi",
-    ],
-    facilities: ["Lab Jaringan", "Lab Server", "Internet Dedicated"],
-    careers: ["Network Engineer", "System Administrator", "IT Support"],
-  },
-  perhotelan: {
-    image: "https://images.pexels.com/photos/338504/pexels-photo-338504.jpeg",
-    description:
-      "Akomodasi Perhotelan membekali siswa dengan keterampilan front office, housekeeping, dan layanan perhotelan modern.",
-    subjects: [
-      "Front Office",
-      "Housekeeping",
-      "Food & Beverage Service",
-      "English For Hospitality",
-    ],
-    facilities: ["Mockup Front Office", "Room Practice", "Laundry"],
-    careers: ["Front Office Staff", "Room Attendant", "Guest Relation"],
-  },
-};
+function fromSlug(slug: string): string {
+  return slug.replace(/-/g, " ").toUpperCase();
+}
 
 export default function MajorDetailPage() {
   const params = useParams<{ slug: string }>();
   const slug = (params?.slug || "").toLowerCase();
+  const { data, isLoading, error } = useMajors();
+  const majors = data?.data || [];
 
-  const programMeta = useMemo(
-    () => school.programs.find((p) => p.slug.toLowerCase() === slug),
-    [slug]
-  );
-  const details = PROGRAM_DETAILS[slug];
+  const major = useMemo(() => {
+    // Match by code (converted from slug) or by normalized name
+    const codeGuess = fromSlug(slug);
+    const byCode = majors.find(
+      (m: any) => (m.code || "").toLowerCase() === codeGuess.toLowerCase()
+    );
+    if (byCode) return byCode;
+    const normalized = slug.replace(/-/g, " ");
+    return majors.find(
+      (m: any) => (m.name || "").toLowerCase() === normalized.toLowerCase()
+    );
+  }, [majors, slug]);
 
   return (
     <div>
       <PageHeader
-        title={programMeta?.name || "Program Keahlian"}
-        subtitle={`Informasi lengkap program keahlian ${
-          programMeta?.name || ""
-        } di ${school.name}`}
+        title={major?.name || "Program Keahlian"}
+        subtitle={major?.description || "Informasi lengkap program keahlian"}
         breadcrumbs={[
           { label: "Akademik", href: "/academic" },
           { label: "Program Keahlian", href: "/academic/majors" },
-          { label: programMeta?.name || "Detail" },
+          { label: major?.name || "Detail" },
         ]}
-        backgroundImage={details?.image}
+        backgroundImage={tkj.src}
       />
 
       <section className="section-padding bg-white">
         <div className="container-custom">
-          {programMeta && details ? (
+          {isLoading ? (
+            <div className="text-center py-20 text-muted-foreground">
+              Memuat detail program...
+            </div>
+          ) : error ? (
+            <div className="text-center py-20 text-red-600">
+              Gagal memuat data program
+            </div>
+          ) : major ? (
             <div className="grid lg:grid-cols-3 gap-10">
               {/* Overview */}
               <div className="lg:col-span-2">
                 <div className="relative w-full aspect-video rounded-2xl overflow-hidden mb-6">
                   <Image
-                    src={details.image}
-                    alt={programMeta.name}
+                    src={major.image || "/placeholder.svg"}
+                    alt={major.name}
                     fill
                     className="object-cover"
                   />
                 </div>
                 <Typography variant="h2" className="mb-4">
-                  {programMeta.name}
+                  {major.name}
                 </Typography>
                 <Typography variant="body1" color="muted" className="mb-8">
-                  {details.description}
+                  {major.description}
                 </Typography>
 
                 {/* Subjects */}
-                <div className="mb-8">
-                  <div className="flex items-center mb-3">
-                    <BookOpen className="w-5 h-5 text-primary-600 mr-2" />
-                    <Typography variant="subtitle2">
-                      Mata Pelajaran Utama
-                    </Typography>
+                {Array.isArray(major.subjects) && major.subjects.length > 0 && (
+                  <div className="mb-8">
+                    <div className="flex items-center mb-3">
+                      <BookOpen className="w-5 h-5 text-primary-600 mr-2" />
+                      <Typography variant="subtitle2">
+                        Mata Pelajaran Utama
+                      </Typography>
+                    </div>
+                    <ul className="grid sm:grid-cols-2 gap-2">
+                      {major.subjects.map((s: string) => (
+                        <li
+                          key={s}
+                          className="rounded-lg border border-primary-100 p-3"
+                        >
+                          <Typography variant="body2" color="muted">
+                            {s}
+                          </Typography>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                  <ul className="grid sm:grid-cols-2 gap-2">
-                    {details.subjects.map((s) => (
-                      <li
-                        key={s}
-                        className="rounded-lg border border-primary-100 p-3"
-                      >
-                        <Typography variant="body2" color="muted">
-                          {s}
-                        </Typography>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+                )}
 
                 {/* Facilities */}
-                <div className="mb-8">
-                  <div className="flex items-center mb-3">
-                    <GraduationCap className="w-5 h-5 text-primary-600 mr-2" />
-                    <Typography variant="subtitle2">Fasilitas</Typography>
-                  </div>
-                  <ul className="grid sm:grid-cols-2 gap-2">
-                    {details.facilities.map((f) => (
-                      <li
-                        key={f}
-                        className="rounded-lg border border-primary-100 p-3"
-                      >
-                        <Typography variant="body2" color="muted">
-                          {f}
-                        </Typography>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+                {Array.isArray(major.facilities) &&
+                  major.facilities.length > 0 && (
+                    <div className="mb-8">
+                      <div className="flex items-center mb-3">
+                        <GraduationCap className="w-5 h-5 text-primary-600 mr-2" />
+                        <Typography variant="subtitle2">Fasilitas</Typography>
+                      </div>
+                      <ul className="grid sm:grid-cols-2 gap-2">
+                        {major.facilities.map((f: string) => (
+                          <li
+                            key={f}
+                            className="rounded-lg border border-primary-100 p-3"
+                          >
+                            <Typography variant="body2" color="muted">
+                              {f}
+                            </Typography>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
 
                 {/* Career Prospects */}
-                <div>
-                  <div className="flex items-center mb-3">
-                    <Briefcase className="w-5 h-5 text-primary-600 mr-2" />
-                    <Typography variant="subtitle2">Prospek Karier</Typography>
-                  </div>
-                  <ul className="grid sm:grid-cols-2 gap-2">
-                    {details.careers.map((c) => (
-                      <li
-                        key={c}
-                        className="rounded-lg border border-primary-100 p-3"
-                      >
-                        <Typography variant="body2" color="muted">
-                          {c}
+                {Array.isArray(major.careerProspects) &&
+                  major.careerProspects.length > 0 && (
+                    <div>
+                      <div className="flex items-center mb-3">
+                        <Briefcase className="w-5 h-5 text-primary-600 mr-2" />
+                        <Typography variant="subtitle2">
+                          Prospek Karier
                         </Typography>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+                      </div>
+                      <ul className="grid sm:grid-cols-2 gap-2">
+                        {major.careerProspects.map((c: string) => (
+                          <li
+                            key={c}
+                            className="rounded-lg border border-primary-100 p-3"
+                          >
+                            <Typography variant="body2" color="muted">
+                              {c}
+                            </Typography>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
               </div>
 
               {/* Sidebar */}
@@ -187,8 +179,4 @@ export default function MajorDetailPage() {
       </section>
     </div>
   );
-}
-
-export function generateStaticParams() {
-  return school.programs.map((p) => ({ slug: p.slug }));
 }

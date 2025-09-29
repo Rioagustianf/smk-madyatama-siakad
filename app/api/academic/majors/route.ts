@@ -67,9 +67,30 @@ export async function GET(request: NextRequest) {
       collections.majors.countDocuments(filter),
     ]);
 
+    // Compute student counts per major by matching student.major to major.name
+    const majorNames = majors.map((m: any) => m.name);
+    const counts = await collections.students
+      .aggregate([
+        { $match: { major: { $in: majorNames } } },
+        { $group: { _id: "$major", count: { $sum: 1 } } },
+      ])
+      .toArray();
+    const countMap = counts.reduce((acc: Record<string, number>, item: any) => {
+      acc[item._id] = item.count;
+      return acc;
+    }, {} as Record<string, number>);
+
+    const majorsWithCounts = majors.map((m: any) => ({
+      ...m,
+      totalStudents:
+        typeof countMap[m.name] === "number"
+          ? countMap[m.name]
+          : m.totalStudents ?? 0,
+    }));
+
     return NextResponse.json({
       success: true,
-      data: majors,
+      data: majorsWithCounts,
       pagination: {
         page,
         limit,
