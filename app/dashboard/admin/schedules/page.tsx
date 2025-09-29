@@ -217,6 +217,7 @@ export default function AdminSchedulesPage() {
                 <TabsContent key={group.className} value={group.className}>
                   <ScheduleTable
                     schedules={group.schedules}
+                    showActions={true}
                     onEdit={handleEdit}
                     onDelete={handleDelete}
                     onDeleteConfirm={handleDeleteConfirm}

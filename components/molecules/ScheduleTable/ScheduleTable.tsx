@@ -126,12 +126,36 @@ function ScheduleTable({
         const schedule = daySchedules[slot];
 
         if (schedule) {
-          // Subject cell with class info
+          // Subject cell with class info and optional actions
           scheduleRow.push(
             <TableCell key={`${day}-${slot}-subject`} className="text-left">
               <div className="font-medium">{schedule.subject}</div>
               {schedule.class && (
                 <div className="text-xs text-gray-600">{schedule.class}</div>
+              )}
+              {!readOnly && showActions && (
+                <div className="mt-1 flex items-center gap-1">
+                  {onEdit && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onEdit(schedule)}
+                      className="h-7 px-2 text-primary-700"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  )}
+                  {onDelete && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onDelete(schedule)}
+                      className="h-7 px-2 text-red-600"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
               )}
             </TableCell>
           );
@@ -199,12 +223,36 @@ function ScheduleTable({
         const schedule = daySchedules[slot];
 
         if (schedule) {
-          // Subject cell with class info
+          // Subject cell with class info and optional actions
           scheduleRow.push(
             <TableCell key={`${day}-${slot}-subject`} className="text-left">
               <div className="font-medium">{schedule.subject}</div>
               {schedule.class && (
                 <div className="text-xs text-gray-600">{schedule.class}</div>
+              )}
+              {!readOnly && showActions && (
+                <div className="mt-1 flex items-center gap-1">
+                  {onEdit && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onEdit(schedule)}
+                      className="h-7 px-2 text-primary-700"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  )}
+                  {onDelete && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onDelete(schedule)}
+                      className="h-7 px-2 text-red-600"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
               )}
             </TableCell>
           );
