@@ -14,6 +14,7 @@ interface ImageUploadProps {
   label?: string;
   placeholder?: string;
   disabled?: boolean;
+  maxSizeMB?: number;
 }
 
 export function ImageUpload({
@@ -22,6 +23,7 @@ export function ImageUpload({
   label = "Gambar",
   placeholder = "Pilih gambar atau masukkan URL",
   disabled = false,
+  maxSizeMB = 5,
 }: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(value || null);
@@ -33,6 +35,22 @@ export function ImageUpload({
   ) => {
     const file = event.target.files?.[0];
     if (!file) return;
+
+    // Validate size (default 5 MB)
+    const maxBytes = maxSizeMB * 1024 * 1024;
+    if (file.size > maxBytes) {
+      addToast({
+        type: "error",
+        title: "Ukuran gambar terlalu besar",
+        description: `Maksimal ${maxSizeMB}MB. File saat ini ${(
+          file.size /
+          (1024 * 1024)
+        ).toFixed(2)}MB`,
+      });
+      // reset input value to allow re-selecting same file
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
 
     try {
       setIsUploading(true);
@@ -168,6 +186,9 @@ export function ImageUpload({
           placeholder={placeholder}
           disabled={disabled}
         />
+        <p className="text-xs text-muted-foreground">
+          • Maksimal ukuran file {maxSizeMB}MB • Format umum: JPG, PNG, WEBP
+        </p>
       </div>
     </div>
   );

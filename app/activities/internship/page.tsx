@@ -4,28 +4,33 @@ import React from "react";
 import { motion } from "framer-motion";
 import { PageHeader } from "@/components/molecules/PageHeader";
 import { Typography } from "@/components/atoms/Typography/Typography";
-
-const partners = [
-  { name: "PT Teknologi Nusantara", field: "Software & Networking" },
-  { name: "CV Kreatif Media", field: "Desain & Multimedia" },
-  { name: "Bank Pendidikan", field: "Keuangan & Perbankan" },
-];
-
-const schedules = [
-  { program: "RPL", period: "Jan - Mar 2025", notes: "Batch 1" },
-  { program: "TKJ", period: "Feb - Apr 2025", notes: "Batch 1" },
-  { program: "MM", period: "Mar - Mei 2025", notes: "Batch 1" },
-  { program: "AKL", period: "Apr - Jun 2025", notes: "Batch 1" },
-];
+import {
+  useInternshipPartners,
+  useInternshipSchedules,
+} from "@/lib/hooks/use-activities";
+import bgHeaderInternship from "@/public/assets/p5.jpeg";
 
 export default function InternshipPage() {
+  const {
+    data: partnersData,
+    isLoading: isPartnersLoading,
+    error: partnersError,
+  } = useInternshipPartners();
+  const {
+    data: schedulesData,
+    isLoading: isSchedulesLoading,
+    error: schedulesError,
+  } = useInternshipSchedules();
+  const partners = partnersData?.data || [];
+  const schedules = schedulesData?.data || [];
+
   return (
     <div>
       <PageHeader
         title="DUDI & Prakerin"
         subtitle="Kemitraan dunia usaha dan industri serta jadwal program prakerin"
         breadcrumbs={[{ label: "DUDI & Prakerin" }]}
-        backgroundImage="https://images.pexels.com/photos/3184360/pexels-photo-3184360.jpeg"
+        backgroundImage={bgHeaderInternship}
       />
 
       <section className="section-padding bg-white">
@@ -37,21 +42,31 @@ export default function InternshipPage() {
                 Mitra DUDI
               </Typography>
               <div className="space-y-4">
-                {partners.map((p, i) => (
-                  <motion.div
-                    key={p.name}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.5, delay: i * 0.05 }}
-                    className="rounded-xl border border-primary-100 p-4"
-                  >
-                    <Typography variant="subtitle2">{p.name}</Typography>
-                    <Typography variant="caption" color="muted">
-                      {p.field}
-                    </Typography>
-                  </motion.div>
-                ))}
+                {isPartnersLoading && (
+                  <div className="text-muted-foreground">Memuat mitra...</div>
+                )}
+                {partnersError && (
+                  <div className="text-red-600">Gagal memuat mitra</div>
+                )}
+                {!isPartnersLoading &&
+                  !partnersError &&
+                  partners.map((p: any, i: number) => (
+                    <motion.div
+                      key={p._id || p.name}
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.5, delay: i * 0.05 }}
+                      className="rounded-xl border border-primary-100 p-4"
+                    >
+                      <Typography variant="subtitle2">
+                        {p.name || "-"}
+                      </Typography>
+                      <Typography variant="caption" color="muted">
+                        {p.field || ""}
+                      </Typography>
+                    </motion.div>
+                  ))}
               </div>
             </div>
 
@@ -66,26 +81,42 @@ export default function InternshipPage() {
                   <div className="p-3">Periode</div>
                   <div className="p-3">Keterangan</div>
                 </div>
-                {schedules.map((s, i) => (
-                  <div
-                    key={i}
-                    className={`grid grid-cols-3 ${
-                      i % 2 ? "bg-white" : "bg-primary-50/30"
-                    }`}
-                  >
-                    <div className="p-3">
-                      <Typography variant="body2">{s.program}</Typography>
-                    </div>
-                    <div className="p-3">
-                      <Typography variant="body2">{s.period}</Typography>
-                    </div>
-                    <div className="p-3">
-                      <Typography variant="body2" color="muted">
-                        {s.notes}
-                      </Typography>
-                    </div>
+                {isSchedulesLoading && (
+                  <div className="p-3 text-center text-muted-foreground">
+                    Memuat jadwal...
                   </div>
-                ))}
+                )}
+                {schedulesError && (
+                  <div className="p-3 text-center text-red-600">
+                    Gagal memuat jadwal
+                  </div>
+                )}
+                {!isSchedulesLoading &&
+                  !schedulesError &&
+                  schedules.map((s: any, i: number) => (
+                    <div
+                      key={i}
+                      className={`grid grid-cols-3 ${
+                        i % 2 ? "bg-white" : "bg-primary-50/30"
+                      }`}
+                    >
+                      <div className="p-3">
+                        <Typography variant="body2">
+                          {s.program || "-"}
+                        </Typography>
+                      </div>
+                      <div className="p-3">
+                        <Typography variant="body2">
+                          {s.period || "-"}
+                        </Typography>
+                      </div>
+                      <div className="p-3">
+                        <Typography variant="body2" color="muted">
+                          {s.notes || ""}
+                        </Typography>
+                      </div>
+                    </div>
+                  ))}
               </div>
             </div>
           </div>

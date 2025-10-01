@@ -6,6 +6,7 @@ import { Edit, Trash2, GraduationCap, BookOpen } from "lucide-react";
 import { DeleteConfirmation } from "../DeleteConfirmation/DeleteConfirmation";
 import { MajorForm } from "../MajorForm/MajorForm";
 import { SubjectForm } from "../SubjectForm/SubjectForm";
+import { GalleryForm, GalleryFormData } from "../GalleryForm/GalleryForm";
 import {
   Dialog,
   DialogContent,
@@ -42,14 +43,14 @@ interface ActionButtonsProps {
   onEdit: () => void;
   onDelete: () => void;
   itemName: string;
-  formData: MajorFormData | SubjectFormData;
+  formData: MajorFormData | SubjectFormData | GalleryFormData;
   onInputChange: (field: string, value: string | string[]) => void;
   onSubmit: (e: React.FormEvent) => void;
   isLoading: boolean;
   onCancel: () => void;
   isEditDialogOpen: boolean;
   onEditDialogChange: (open: boolean) => void;
-  formType?: "major" | "subject";
+  formType?: "major" | "subject" | "gallery";
   teachers?: Teacher[];
 }
 
@@ -69,6 +70,7 @@ export function ActionButtons({
 }: ActionButtonsProps) {
   const isSubject = formType === "subject";
   const isMajor = formType === "major";
+  const isGallery = formType === "gallery";
 
   return (
     <div className="flex items-center gap-2">
@@ -78,6 +80,9 @@ export function ActionButtons({
             variant="ghost"
             size="sm"
             onClick={async () => {
+              if (document.activeElement instanceof HTMLElement) {
+                document.activeElement.blur();
+              }
               await debugLog("Edit button clicked", { itemName });
               onEdit();
             }}
@@ -94,11 +99,17 @@ export function ActionButtons({
               ) : (
                 <GraduationCap className="h-5 w-5" />
               )}
-              {isSubject ? "Edit Mata Pelajaran" : "Edit Program Keahlian"}
+              {isSubject
+                ? "Edit Mata Pelajaran"
+                : isGallery
+                ? "Edit Galeri"
+                : "Edit Program Keahlian"}
             </DialogTitle>
             <DialogDescription>
               {isSubject
                 ? "Perbarui informasi mata pelajaran"
+                : isGallery
+                ? "Perbarui informasi galeri"
                 : "Perbarui informasi program keahlian"}
             </DialogDescription>
           </DialogHeader>
@@ -111,6 +122,15 @@ export function ActionButtons({
               submitText="Perbarui"
               onCancel={onCancel}
               teachers={teachers}
+            />
+          ) : isGallery ? (
+            <GalleryForm
+              formData={formData as GalleryFormData}
+              onInputChange={onInputChange}
+              onSubmit={onSubmit}
+              isLoading={isLoading}
+              submitText="Perbarui"
+              onCancel={onCancel}
             />
           ) : (
             <MajorForm

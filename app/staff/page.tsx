@@ -5,6 +5,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { PageHeader } from "@/components/molecules/PageHeader";
 import { Typography } from "@/components/atoms/Typography/Typography";
+import bgHeaderStaff from "@/public/assets/bg-header-login-guru.jpeg";
 
 const headmaster = {
   name: "Drs. Bambang Setiawan",
@@ -27,7 +28,7 @@ export default function StaffPage() {
         title="Kepala Sekolah & Tenaga Pendidik"
         subtitle="Informasi pimpinan, tenaga pendidik, dan staf SMK Madyatama"
         breadcrumbs={[{ label: "Kepala Sekolah & Tenaga Pendidik" }]}
-        backgroundImage="https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg"
+        backgroundImage={bgHeaderStaff}
       />
 
       {/* Headmaster */}

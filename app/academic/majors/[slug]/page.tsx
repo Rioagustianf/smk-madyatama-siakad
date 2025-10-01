@@ -8,7 +8,7 @@ import { Typography } from "@/components/atoms/Typography/Typography";
 import { Button } from "@/components/atoms/Button/Button";
 import { BookOpen, Briefcase, GraduationCap } from "lucide-react";
 import { useMajors } from "@/lib/hooks/use-majors";
-import tkj from "@/public/tkj.jpeg";
+// Using public assets by path to avoid type issues across environments
 
 function fromSlug(slug: string): string {
   return slug.replace(/-/g, " ").toUpperCase();
@@ -33,6 +33,19 @@ export default function MajorDetailPage() {
     );
   }, [majors, slug]);
 
+  const headerImage = useMemo(() => {
+    const s = slug.toLowerCase();
+    if (s.includes("tkj") || (major?.code || "").toLowerCase() === "tkj")
+      return "/assets/tkj.JPG";
+    if (
+      s.includes("perhotel") ||
+      (major?.name || "").toLowerCase().includes("perhotel") ||
+      (major?.code || "").toLowerCase().includes("ph")
+    )
+      return "/assets/perhotelan.JPG";
+    return undefined as unknown as string;
+  }, [slug, major]);
+
   return (
     <div>
       <PageHeader
@@ -43,7 +56,7 @@ export default function MajorDetailPage() {
           { label: "Program Keahlian", href: "/academic/majors" },
           { label: major?.name || "Detail" },
         ]}
-        backgroundImage={tkj.src}
+        backgroundImage={headerImage || major?.image || undefined}
       />
 
       <section className="section-padding bg-white">

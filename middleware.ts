@@ -28,20 +28,9 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Check authentication for profile page
-  if (pathname.startsWith("/profile")) {
-    const token = request.cookies.get("auth_token")?.value;
-
-    if (!token) {
-      return NextResponse.redirect(new URL("/student/login", request.url));
-    }
-
-    return NextResponse.next();
-  }
-
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/profile"],
+  matcher: ["/dashboard/:path*"],
 };

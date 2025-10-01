@@ -4,6 +4,14 @@ import React from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { ImageUpload } from "@/components/molecules/ImageUpload/ImageUpload";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export interface GalleryFormData {
   title: string;
@@ -47,44 +55,65 @@ export function GalleryForm({
         onChange={(e) => onInputChange("description", e.target.value)}
         rows={3}
       />
-      <div className="grid md:grid-cols-2 gap-3">
-        <Input
-          placeholder="URL Media"
-          value={formData.url}
-          onChange={(e) => onInputChange("url", e.target.value)}
-          required
-        />
-        <Input
-          placeholder="URL Thumbnail (opsional)"
-          value={formData.thumbnail}
-          onChange={(e) => onInputChange("thumbnail", e.target.value)}
-        />
-      </div>
-      <div className="grid md:grid-cols-2 gap-3">
-        <Input
-          placeholder="Kategori"
-          value={formData.category}
-          onChange={(e) => onInputChange("category", e.target.value)}
-        />
-        <Input
-          placeholder="Tipe (image/video)"
-          value={formData.type}
-          onChange={(e) => onInputChange("type", e.target.value as any)}
-        />
-      </div>
-      <Input
-        placeholder="Tag (pisahkan dengan koma)"
-        value={formData.tags.join(", ")}
-        onChange={(e) =>
-          onInputChange(
-            "tags",
-            e.target.value
-              .split(",")
-              .map((s) => s.trim())
-              .filter(Boolean)
-          )
-        }
+      <ImageUpload
+        value={formData.url}
+        onChange={(val) => onInputChange("url", val)}
+        label="Gambar/Media"
+        placeholder="Pilih atau masukkan URL gambar"
       />
+      <Input
+        placeholder="URL Thumbnail (opsional)"
+        value={formData.thumbnail}
+        onChange={(e) => onInputChange("thumbnail", e.target.value)}
+      />
+      <div className="grid md:grid-cols-2 gap-3">
+        <Input
+          placeholder="Tag (pisahkan dengan koma)"
+          value={formData.tags.join(", ")}
+          onChange={(e) =>
+            onInputChange(
+              "tags",
+              e.target.value
+                .split(",")
+                .map((s) => s.trim())
+                .filter(Boolean)
+            )
+          }
+        />
+        <div className="grid md:grid-cols-2 gap-3">
+          <div>
+            <Select
+              value={formData.type}
+              onValueChange={(val) => onInputChange("type", val as any)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Pilih tipe media" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="image">Foto</SelectItem>
+                <SelectItem value="video">Video</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Select
+              value={formData.category}
+              onValueChange={(val) => onInputChange("category", val)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Pilih kategori" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="academic">Akademik</SelectItem>
+                <SelectItem value="extracurricular">Ekstrakurikuler</SelectItem>
+                <SelectItem value="achievement">Prestasi</SelectItem>
+                <SelectItem value="facility">Fasilitas</SelectItem>
+                <SelectItem value="competition">Kompetisi</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </div>
       <div className="flex items-center space-x-2">
         <input
           type="checkbox"

@@ -21,6 +21,12 @@ import {
   Globe,
 } from "lucide-react";
 import { school } from "@/lib/school";
+import { useQuery } from "@tanstack/react-query";
+import { apiMethods } from "@/lib/api-client";
+import { useTeachers } from "@/lib/hooks/use-teachers";
+import { useMajors } from "@/lib/hooks/use-majors";
+import { useProfile } from "@/lib/hooks/use-profile";
+import bgHeaderProfile from "@/public/assets/lobi.jpeg";
 
 const facilities = [
   {
@@ -52,37 +58,70 @@ const facilities = [
   },
 ];
 
-const stats = [
-  {
-    number: "1200+",
-    label: "Total Siswa",
-    icon: <Users className="w-8 h-8" />,
-  },
-  {
-    number: "85+",
-    label: "Tenaga Pendidik",
-    icon: <BookOpen className="w-8 h-8" />,
-  },
-  {
-    number: "4",
-    label: "Program Keahlian",
-    icon: <Award className="w-8 h-8" />,
-  },
-  {
-    number: "25+",
-    label: "Tahun Berpengalaman",
-    icon: <Star className="w-8 h-8" />,
-  },
-];
+function useCount(queryFn: () => Promise<any>, key: string) {
+  return useQuery({
+    queryKey: ["count", key],
+    queryFn: async () => {
+      const res: any = await queryFn();
+      // prefer pagination.total if exists, else length
+      const total =
+        res?.pagination?.total ??
+        (Array.isArray(res?.data) ? res.data.length : 0);
+      return total as number;
+    },
+  });
+}
+
+function useDynamicStats() {
+  // Total siswa: akumulasi totalStudents dari endpoint jurusan (akademik)
+  const { data: majorsResp, isLoading: majorsLoading } = useMajors({
+    page: 1,
+    limit: 1000,
+  } as any);
+  const majorsArr: any[] = (majorsResp as any)?.data || [];
+  const students = {
+    data: majorsArr.reduce(
+      (acc: number, m: any) =>
+        acc + (typeof m.totalStudents === "number" ? m.totalStudents : 0),
+      0
+    ),
+    isLoading: majorsLoading,
+  } as const;
+  // Prefer staff API (role: teacher). Fallback to teachers API if needed.
+  // Teachers: prefer teachers collection directly
+  const teachersQ = useTeachers({ page: 1, limit: 1 });
+  const teachers = {
+    data:
+      ((teachersQ.data as any)?.pagination?.total ??
+        (Array.isArray((teachersQ.data as any)?.data)
+          ? (teachersQ.data as any).data.length
+          : 0)) ||
+      0,
+    isLoading: teachersQ.isLoading,
+  } as const;
+  const majors = useCount(
+    () => apiMethods.majors.list({ page: 1, limit: 1 }),
+    "majors"
+  );
+  return {
+    students: students.data ?? 0,
+    teachers: teachers.data ?? 0,
+    majors: majors.data ?? 0,
+    loading: students.isLoading || teachers.isLoading || majors.isLoading,
+  };
+}
 
 export default function ProfilePage() {
+  const statsDyn = useDynamicStats();
+  const { data: profileResp } = useProfile();
+  const profile: any = (profileResp as any)?.data || {};
   return (
     <div>
       <PageHeader
         title="Profil Sekolah"
         subtitle={`Mengenal lebih dekat ${school.name}: sejarah, visi misi, struktur organisasi, dan fasilitas unggulan`}
         breadcrumbs={[{ label: "Profil Sekolah" }]}
-        backgroundImage="https://images.pexels.com/photos/207691/pexels-photo-207691.jpeg"
+        backgroundImage={bgHeaderProfile}
       />
 
       {/* Sejarah Sekolah */}
@@ -104,22 +143,11 @@ export default function ProfilePage() {
               <Typography
                 variant="body1"
                 color="muted"
-                className="mb-6 leading-relaxed"
+                className="mb-8 leading-relaxed whitespace-pre-line"
               >
-                SMK Madyatama didirikan pada tahun 1998 dengan visi menjadi
-                lembaga pendidikan kejuruan terdepan yang menghasilkan lulusan
-                berkualitas dan siap kerja. Berawal dari sebuah sekolah dengan 3
-                program keahlian, kini berkembang menjadi institusi yang diakui
-                dan dipercaya masyarakat.
-              </Typography>
-              <Typography
-                variant="body1"
-                color="muted"
-                className="mb-8 leading-relaxed"
-              >
-                Dengan komitmen terhadap inovasi dan kualitas pendidikan, SMK
-                Madyatama terus mengembangkan kurikulum yang relevan dengan
-                kebutuhan industri dan teknologi terkini.
+                {profile.history ||
+                  `SMK Madyatama didirikan dengan visi menjadi
+lembaga pendidikan kejuruan terdepan yang menghasilkan lulusan berkualitas dan siap kerja.`}
               </Typography>
               <Button variant="gradient" size="lg">
                 Pelajari Lebih Lanjut
@@ -135,7 +163,10 @@ export default function ProfilePage() {
             >
               <div className="relative h-96 rounded-2xl overflow-hidden shadow-2xl">
                 <Image
-                  src="https://images.pexels.com/photos/207691/pexels-photo-207691.jpeg"
+                  src={
+                    profile.historyImage ||
+                    "https://images.pexels.com/photos/207691/pexels-photo-207691.jpeg"
+                  }
                   alt="Sejarah SMK SIAKAD"
                   fill
                   className="object-cover"
@@ -193,12 +224,10 @@ export default function ProfilePage() {
               <Typography
                 variant="body1"
                 color="muted"
-                className="leading-relaxed"
+                className="leading-relaxed whitespace-pre-line"
               >
-                Menjadi Sekolah Menengah Kejuruan yang unggul, inovatif, dan
-                berkarakter, menghasilkan lulusan yang kompeten, berjiwa
-                entrepreneur, dan siap bersaing di era global dengan tetap
-                menjunjung tinggi nilai-nilai Pancasila.
+                {profile.vision ||
+                  "Menjadi Sekolah Menengah Kejuruan yang unggul, inovatif, dan berkarakter."}
               </Typography>
             </motion.div>
 
@@ -219,13 +248,16 @@ export default function ProfilePage() {
                 </Typography>
               </div>
               <ul className="space-y-3">
-                {[
-                  "Menyelenggarakan pendidikan kejuruan yang berkualitas dan relevan",
-                  "Mengembangkan kurikulum yang adaptif terhadap perkembangan teknologi",
-                  "Membangun kemitraan strategis dengan dunia usaha dan industri",
-                  "Membentuk karakter siswa yang berakhlak mulia dan berjiwa entrepreneur",
-                  "Menciptakan lingkungan belajar yang kondusif dan inovatif",
-                ].map((item, index) => (
+                {(profile.mission
+                  ? String(profile.mission)
+                      .split(/\r?\n/)
+                      .map((s: string) => s.trim())
+                      .filter(Boolean)
+                  : [
+                      "Menyelenggarakan pendidikan kejuruan yang berkualitas dan relevan",
+                      "Mengembangkan kurikulum yang adaptif terhadap perkembangan teknologi",
+                    ]
+                ).map((item: string, index: number) => (
                   <li key={index} className="flex items-start">
                     <Heart className="w-4 h-4 text-accent-500 mr-3 mt-1 flex-shrink-0" />
                     <Typography variant="body2" color="muted">
@@ -266,21 +298,35 @@ export default function ProfilePage() {
           </motion.div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[
-              { role: "Kepala Sekolah", name: "Drs. Bambang Setiawan" },
-              { role: "Wakil Kurikulum", name: "Siti Andayani, S.Kom" },
-              { role: "Wakil Kesiswaan", name: "Agus Priyanto, S.Pd" },
-              { role: "Wakil Sarpras", name: "Rina Amelia, S.Sn" },
-            ].map((person, idx) => (
+            {(Array.isArray(profile.organization) &&
+            profile.organization.length > 0
+              ? profile.organization
+              : [
+                  { role: "Kepala Sekolah", name: "—" },
+                  { role: "Wakil Kurikulum", name: "—" },
+                  { role: "Wakil Kesiswaan", name: "—" },
+                  { role: "Wakil Sarpras", name: "—" },
+                ]
+            ).map((person: any, idx: number) => (
               <motion.div
-                key={person.role}
+                key={`${person.role}-${idx}`}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: idx * 0.05 }}
                 className="bg-white rounded-2xl p-6 border border-primary-100 text-center shadow"
               >
-                <div className="w-20 h-20 rounded-full bg-primary-100 mx-auto mb-4" />
+                <div className="w-20 h-20 rounded-full bg-primary-100 mx-auto mb-4 overflow-hidden">
+                  {person.image ? (
+                    <Image
+                      src={person.image}
+                      alt={person.name}
+                      width={80}
+                      height={80}
+                      className="object-cover w-full h-full"
+                    />
+                  ) : null}
+                </div>
                 <Typography variant="subtitle2" className="mb-1">
                   {person.role}
                 </Typography>
@@ -311,8 +357,30 @@ export default function ProfilePage() {
             </Typography>
           </motion.div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-8">
+            {[
+              {
+                label: "Total Siswa",
+                icon: <Users className="w-8 h-8" />,
+                number: statsDyn.loading
+                  ? "…"
+                  : statsDyn.students.toLocaleString("id-ID"),
+              },
+              {
+                label: "Tenaga Pendidik",
+                icon: <BookOpen className="w-8 h-8" />,
+                number: statsDyn.loading
+                  ? "…"
+                  : statsDyn.teachers.toLocaleString("id-ID"),
+              },
+              {
+                label: "Program Keahlian",
+                icon: <Award className="w-8 h-8" />,
+                number: statsDyn.loading
+                  ? "…"
+                  : statsDyn.majors.toLocaleString("id-ID"),
+              },
+            ].map((stat, index) => (
               <motion.div
                 key={stat.label}
                 initial={{ opacity: 0, y: 30 }}
@@ -364,9 +432,12 @@ export default function ProfilePage() {
           </motion.div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {facilities.map((facility, index) => (
+            {(Array.isArray(profile.facilities) && profile.facilities.length > 0
+              ? profile.facilities
+              : facilities
+            ).map((facility: any, index: number) => (
               <motion.div
-                key={facility.name}
+                key={`${facility.name}-${index}`}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -382,9 +453,7 @@ export default function ProfilePage() {
                       className="object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                     <div className="absolute top-4 left-4">
-                      <div className="w-10 h-10 bg-white/90 backdrop-blur-sm rounded-lg flex items-center justify-center text-primary-600">
-                        {facility.icon}
-                      </div>
+                      <div className="w-10 h-10 bg-white/90 backdrop-blur-sm rounded-lg flex items-center justify-center text-primary-600" />
                     </div>
                   </div>
                   <div className="p-6">

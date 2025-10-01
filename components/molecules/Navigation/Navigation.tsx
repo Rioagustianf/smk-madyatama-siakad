@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import {
   Navbar,
   NavBody,
@@ -18,6 +19,7 @@ import { HoveredLink } from "@/components/ui/navbar-menu";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { school } from "@/lib/school";
+import logo from "@/public/assets/logo.png";
 
 export function Navigation() {
   const pathname = usePathname();
@@ -71,6 +73,14 @@ export function Navigation() {
             href="/"
             className={`relative z-20 mr-4 flex items-center space-x-2 px-2 py-1 text-sm font-medium ${brandTextClass}`}
           >
+            <Image
+              src={logo}
+              alt={`${school.name} logo`}
+              width={36}
+              height={36}
+              className="h-9 w-9 object-contain drop-shadow"
+              priority
+            />
             <span className="text-base font-semibold">{school.name}</span>
           </a>
           <div className="hidden md:flex items-center gap-1">
@@ -170,6 +180,14 @@ export function Navigation() {
               href="/"
               className={`relative z-20 mr-2 flex items-center space-x-2 px-2 py-1 text-sm font-medium ${brandTextClass}`}
             >
+              <Image
+                src={logo}
+                alt={`${school.name} logo`}
+                width={32}
+                height={32}
+                className="h-8 w-8 object-contain drop-shadow"
+                priority
+              />
               <span className="text-base font-semibold">{school.name}</span>
             </a>
             <MobileNavToggle

@@ -14,6 +14,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { useMajors } from "@/lib/hooks/use-majors";
+import bgHeaderMajors from "@/public/assets/bg-jurusan.png";
 
 // Util to build slug from code or name
 function toSlug(nameOrCode: string): string {
@@ -29,6 +30,12 @@ function toSlug(nameOrCode: string): string {
 export default function MajorsPage() {
   const { data, isLoading, error } = useMajors();
   const majors = data?.data || [];
+  const totalMajors = majors.length;
+  const totalStudents = majors.reduce(
+    (acc: number, m: any) =>
+      acc + (typeof m.totalStudents === "number" ? m.totalStudents : 0),
+    0
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -39,7 +46,7 @@ export default function MajorsPage() {
           { label: "Akademik", href: "/academic" },
           { label: "Program Keahlian" },
         ]}
-        backgroundImage="https://images.pexels.com/photos/159711/books-bookstore-book-reading-159711.jpeg"
+        backgroundImage={bgHeaderMajors}
       />
 
       <section className="py-20 px-4">
@@ -75,13 +82,17 @@ export default function MajorsPage() {
             className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16"
           >
             <div className="text-center">
-              <div className="text-3xl font-bold text-primary mb-2">4</div>
+              <div className="text-3xl font-bold text-primary mb-2">
+                {isLoading ? "…" : totalMajors.toLocaleString("id-ID")}
+              </div>
               <div className="text-sm text-muted-foreground">
                 Program Keahlian
               </div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-primary mb-2">650+</div>
+              <div className="text-3xl font-bold text-primary mb-2">
+                {isLoading ? "…" : totalStudents.toLocaleString("id-ID")}
+              </div>
               <div className="text-sm text-muted-foreground">Total Siswa</div>
             </div>
             <div className="text-center">
@@ -122,12 +133,13 @@ export default function MajorsPage() {
                 >
                   <div className="bg-card border border-border rounded-2xl overflow-hidden hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10">
                     {/* Card Header with Image */}
-                    <div className="relative h-48 overflow-hidden">
+                    <div className="relative aspect-[16/9] overflow-hidden">
                       <Image
                         src={major.image || "/placeholder.svg"}
                         alt={major.name}
                         fill
                         className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        style={{ objectPosition: "top" }}
                       />
                       <div
                         className={`absolute inset-0 bg-gradient-to-br from-primary/60 to-primary/30 opacity-80`}
@@ -244,22 +256,21 @@ export default function MajorsPage() {
             transition={{ duration: 0.6, delay: 0.8 }}
             className="text-center mt-16"
           >
-            <div className="bg-card border border-border rounded-2xl p-8">
-              <Typography variant="h3" className="text-2xl font-semibold mb-4">
+            <div className="bg-primary-900 border border-border rounded-2xl p-8">
+              <Typography
+                variant="h3"
+                className="text-2xl font-semibold mb-4 text-white"
+              >
                 Masih Bingung Memilih?
               </Typography>
               <Typography
                 variant="body1"
                 color="muted"
-                className="mb-6 max-w-2xl mx-auto"
+                className="mb-6 max-w-2xl mx-auto text-white"
               >
                 Tim konselor akademik kami siap membantu kamu menemukan program
                 keahlian yang tepat sesuai minat dan bakat
               </Typography>
-              <Button size="lg" className="bg-primary hover:bg-primary/90">
-                Konsultasi Gratis
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
             </div>
           </motion.div>
         </div>

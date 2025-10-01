@@ -35,11 +35,12 @@ async function verifyAdminToken(request: NextRequest) {
   }
 }
 
-// GET - Get all teachers
+// GET - List teachers with pagination and filters
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search") || "";
+    const isActive = searchParams.get("isActive");
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");
     const skip = (page - 1) * limit;
@@ -47,13 +48,16 @@ export async function GET(request: NextRequest) {
     const collections = await getCollections();
 
     // Build filter
-    const filter: any = { isActive: true };
+    const filter: any = {};
     if (search) {
       filter.$or = [
         { name: { $regex: search, $options: "i" } },
         { username: { $regex: search, $options: "i" } },
         { education: { $regex: search, $options: "i" } },
       ];
+    }
+    if (isActive !== null && isActive !== undefined) {
+      filter.isActive = isActive === "true";
     }
 
     // Get teachers with pagination
@@ -126,7 +130,6 @@ export async function POST(request: NextRequest) {
 
     // Create new teacher
     const newTeacher = {
-      id: username,
       name,
       username,
       phone: phone || "",
@@ -139,7 +142,10 @@ export async function POST(request: NextRequest) {
       updatedAt: new Date(),
     };
 
-    const result = await collections.teachers.insertOne(newTeacher);
+    const result = await collections.teachers.insertOne({
+      ...newTeacher,
+      id: username,
+    });
 
     return NextResponse.json({
       success: true,

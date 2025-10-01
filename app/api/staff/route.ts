@@ -42,6 +42,7 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get("search") || "";
     const department = searchParams.get("department") || "";
     const position = searchParams.get("position") || "";
+    const role = searchParams.get("role") || ""; // e.g., teacher
     const isActive = searchParams.get("isActive");
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");
@@ -64,6 +65,25 @@ export async function GET(request: NextRequest) {
     }
     if (position) {
       filter.position = position;
+    }
+    if (role) {
+      if (role.toLowerCase() === "teacher") {
+        // Match common variants for teachers in seeder: Guru/Teacher
+        filter.$or = [
+          ...(filter.$or || []),
+          { position: { $regex: "guru|teacher", $options: "i" } },
+          {
+            department: {
+              $regex: "guru|teacher|pengajar|akademik",
+              $options: "i",
+            },
+          },
+          { role: { $regex: "guru|teacher", $options: "i" } },
+        ];
+      } else {
+        // Generic role match if collection has role field
+        filter.role = { $regex: role, $options: "i" };
+      }
     }
     if (isActive !== null && isActive !== undefined) {
       filter.isActive = isActive === "true";

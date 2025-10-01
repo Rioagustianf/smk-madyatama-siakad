@@ -5,6 +5,8 @@ import { motion } from "framer-motion";
 import { Typography } from "@/components/atoms/Typography/Typography";
 import { Button } from "@/components/atoms/Button/Button";
 import { school } from "@/lib/school";
+import { useMajors } from "@/lib/hooks/use-majors";
+import { useAchievements } from "@/lib/hooks/use-activities";
 import {
   GraduationCap,
   Users,
@@ -85,8 +87,31 @@ const itemVariants = {
 };
 
 export const FeaturesSection: React.FC = () => {
+  const {
+    data: majorsData,
+    isLoading: isMajorsLoading,
+    error: majorsError,
+  } = useMajors();
+  const majors: any[] = majorsData?.data || [];
+
+  const {
+    data: achData,
+    isLoading: isAchLoading,
+    error: achError,
+  } = useAchievements({ limit: 5 });
+  const achievements: any[] = achData?.data || [];
+
+  const toSlug = (nameOrCode: string) =>
+    (nameOrCode || "")
+      .toString()
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-");
+
   return (
-    <section id="fitur" className="section-padding bg-white">
+    <section id="fitur" className="section-padding bg-white relative">
       <div className="container-custom space-y-20">
         {/* About & Quick Facts */}
         <motion.div
@@ -143,7 +168,7 @@ export const FeaturesSection: React.FC = () => {
                 Program
               </Typography>
               <Typography variant="h3" className="mb-0">
-                {school.programs.length}
+                {isMajorsLoading ? "…" : majors.length}
               </Typography>
               <Typography variant="caption" color="muted">
                 Keahlian
@@ -167,8 +192,8 @@ export const FeaturesSection: React.FC = () => {
         <motion.div
           variants={containerVariants}
           initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
+          animate="visible"
+          className="relative"
         >
           <div className="mb-8 text-center">
             <Typography variant="overline" color="primary" className="mb-2">
@@ -177,32 +202,48 @@ export const FeaturesSection: React.FC = () => {
             <Typography variant="h3">Pilih Keahlian Masa Depanmu</Typography>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {school.programs.map((p) => (
-              <motion.div
-                key={p.slug}
-                variants={itemVariants}
-                className="group"
-              >
-                <div className="bg-white rounded-2xl p-6 shadow hover:shadow-lg border border-primary-700 shadow-primary-500 h-full">
-                  <Typography
-                    variant="h5"
-                    className="mb-2 group-hover:text-primary-600 transition-colors"
-                  >
-                    {p.name}
-                  </Typography>
-                  <Typography variant="body2" color="muted" className="mb-4">
-                    Kurikulum aplikatif, praktik industri, dan pembimbing
-                    berpengalaman.
-                  </Typography>
-                  <Button variant="ghost" size="sm" asChild>
-                    <span className="flex items-center">
-                      <a href={`/academic/majors#${p.slug}`}>Lihat Kurikulum</a>
-                      <ArrowRight className="w-4 h-4 ml-1" />
-                    </span>
-                  </Button>
-                </div>
-              </motion.div>
-            ))}
+            {isMajorsLoading && (
+              <div className="col-span-3 text-center text-muted-foreground">
+                Memuat program keahlian…
+              </div>
+            )}
+            {majorsError && (
+              <div className="col-span-3 text-center text-red-600">
+                Gagal memuat program keahlian
+              </div>
+            )}
+            {!isMajorsLoading &&
+              !majorsError &&
+              majors.map((m) => (
+                <motion.div
+                  key={m._id}
+                  variants={itemVariants}
+                  className="group"
+                >
+                  <div className="bg-white rounded-2xl p-6 shadow hover:shadow-lg border border-primary-700 shadow-primary-500 h-full">
+                    <Typography
+                      variant="h5"
+                      className="mb-2 group-hover:text-primary-600 transition-colors"
+                    >
+                      {m.name}
+                    </Typography>
+                    <Typography variant="body2" color="muted" className="mb-4">
+                      {(m.description || "").slice(0, 120)}
+                      {(m.description || "").length > 120 ? "…" : ""}
+                    </Typography>
+                    <Button variant="ghost" size="sm" asChild>
+                      <span className="flex items-center">
+                        <a
+                          href={`/academic/majors/${toSlug(m.code || m.name)}`}
+                        >
+                          Lihat Kurikulum
+                        </a>
+                        <ArrowRight className="w-4 h-4 ml-1" />
+                      </span>
+                    </Button>
+                  </div>
+                </motion.div>
+              ))}
           </div>
         </motion.div>
 
@@ -212,6 +253,7 @@ export const FeaturesSection: React.FC = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
+          className="relative"
         >
           <div className="mb-6 text-center">
             <Typography variant="overline" color="primary" className="mb-2">
@@ -247,19 +289,34 @@ export const FeaturesSection: React.FC = () => {
               Kebanggaan Sekolah
             </Typography>
             <div className="space-y-4">
-              {school.achievements.map((a, i) => (
-                <div
-                  key={i}
-                  className="rounded-xl border border-primary-700 shadow-primary-500 p-4"
-                >
-                  <Typography variant="subtitle2" className="mb-1">
-                    {a.title}
-                  </Typography>
-                  <Typography variant="caption" color="muted">
-                    Tingkat {a.level} • Peringkat {a.rank}
-                  </Typography>
+              {isAchLoading && (
+                <div className="text-muted-foreground">Memuat prestasi…</div>
+              )}
+              {achError && (
+                <div className="text-red-600">Gagal memuat prestasi</div>
+              )}
+              {!isAchLoading && !achError && achievements.length === 0 && (
+                <div className="text-muted-foreground">
+                  Belum ada data prestasi
                 </div>
-              ))}
+              )}
+              {!isAchLoading &&
+                !achError &&
+                achievements.map((a: any, i: number) => (
+                  <div
+                    key={a._id || i}
+                    className="rounded-xl border border-primary-700 shadow-primary-500 p-4"
+                  >
+                    <Typography variant="subtitle2" className="mb-1">
+                      {a.title}
+                    </Typography>
+                    <Typography variant="caption" color="muted">
+                      {(a.category || "").trim()}
+                      {a.category && a.year ? " • " : ""}
+                      {(a.year || "").toString()}
+                    </Typography>
+                  </div>
+                ))}
             </div>
           </div>
           <div>

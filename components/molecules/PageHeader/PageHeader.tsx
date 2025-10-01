@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import Image from "next/image";
+import Image, { type StaticImageData } from "next/image";
 import { motion } from "framer-motion";
 import { Typography } from "@/components/atoms/Typography/Typography";
 
@@ -14,7 +14,7 @@ type PageHeaderProps = {
   title: string;
   subtitle?: string;
   breadcrumbs?: BreadcrumbItem[];
-  backgroundImage?: string;
+  backgroundImage?: string | StaticImageData;
 };
 
 export function PageHeader({

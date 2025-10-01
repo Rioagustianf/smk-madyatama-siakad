@@ -232,14 +232,49 @@ export const apiMethods = {
     delete: (id: string) => api.delete(API_ENDPOINTS.GALLERY.DELETE(id)),
   },
 
-  // Activities
+  // Activities (unified)
   activities: {
-    list: (filters?: Record<string, any>) =>
-      api.get(API_ENDPOINTS.ACTIVITIES.LIST, { params: filters }),
-    create: (data: any) => api.post(API_ENDPOINTS.ACTIVITIES.CREATE, data),
-    update: (id: string, data: any) =>
-      api.put(API_ENDPOINTS.ACTIVITIES.UPDATE(id), data),
-    delete: (id: string) => api.delete(API_ENDPOINTS.ACTIVITIES.DELETE(id)),
+    achievements: {
+      list: (filters?: Record<string, any>) =>
+        api.get("/api/activities/achievements", { params: filters }),
+      get: (id: string) => api.get(`/api/activities/achievements/${id}`),
+      create: (data: any) => api.post("/api/activities/achievements", data),
+      update: (id: string, data: any) =>
+        api.put(`/api/activities/achievements/${id}`, data),
+      delete: (id: string) => api.delete(`/api/activities/achievements/${id}`),
+    },
+    extracurricular: {
+      list: (filters?: Record<string, any>) =>
+        api.get("/api/activities/extracurricular", { params: filters }),
+      get: (id: string) => api.get(`/api/activities/extracurricular/${id}`),
+      create: (data: any) => api.post("/api/activities/extracurricular", data),
+      update: (id: string, data: any) =>
+        api.put(`/api/activities/extracurricular/${id}`, data),
+      delete: (id: string) =>
+        api.delete(`/api/activities/extracurricular/${id}`),
+    },
+    internship: {
+      partners: {
+        list: (filters?: Record<string, any>) =>
+          api.get("/api/activities/internship/partners", { params: filters }),
+        create: (data: any) =>
+          api.post("/api/activities/internship/partners", data),
+        update: (id: string, data: any) =>
+          api.put(`/api/activities/internship/partners/${id}`, data),
+        delete: (id: string) =>
+          api.delete(`/api/activities/internship/partners/${id}`),
+      },
+      schedules: {
+        list: (filters?: Record<string, any>) =>
+          api.get("/api/activities/internship/schedules", { params: filters }),
+        create: (data: any) =>
+          api.post("/api/activities/internship/schedules", data),
+        update: (id: string, data: any) =>
+          api.put(`/api/activities/internship/schedules/${id}`, data),
+        delete: (id: string) =>
+          api.delete(`/api/activities/internship/schedules/${id}`),
+      },
+    },
   },
 
   // Staff

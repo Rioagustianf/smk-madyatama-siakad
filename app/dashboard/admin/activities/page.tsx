@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -41,23 +41,168 @@ import {
   Trash2,
 } from "lucide-react";
 import { AdminTableCard } from "@/components/molecules/AdminTable/AdminTableCard";
-
-type Activity = {
-  id: number;
-  title: string;
-  category: "ekstrakurikuler" | "prestasi";
-};
-const mockActivities: Activity[] = [
-  { id: 1, title: "Juara 1 Lomba Web", category: "prestasi" },
-  { id: 2, title: "Klub Robotik", category: "ekstrakurikuler" },
-];
+import { DeleteConfirmation } from "@/components/molecules/DeleteConfirmation/DeleteConfirmation";
+import { AchievementForm } from "@/components/molecules/AchievementForm/AchievementForm";
+import { ExtracurricularForm } from "@/components/molecules/ExtracurricularForm/ExtracurricularForm";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  useAchievements,
+  useCreateAchievement,
+  useUpdateAchievement,
+  useDeleteAchievement,
+  useExtracurriculars,
+  useCreateExtracurricular,
+  useUpdateExtracurricular,
+  useDeleteExtracurricular,
+} from "@/lib/hooks/use-activities";
 
 export default function AdminActivitiesPage() {
   const [search, setSearch] = useState("");
+  const [activeTab, setActiveTab] = useState<
+    "achievements" | "extracurriculars"
+  >("achievements");
   const [isAddOpen, setIsAddOpen] = useState(false);
-  const filtered = mockActivities.filter((a) =>
-    a.title.toLowerCase().includes(search.toLowerCase())
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  // Achievement form state
+  const [achTitle, setAchTitle] = useState("");
+  const [achCategory, setAchCategory] = useState("");
+  const [achYear, setAchYear] = useState("");
+  const [achDesc, setAchDesc] = useState("");
+
+  // Extracurricular form state
+  const [exName, setExName] = useState("");
+  const [exDesc, setExDesc] = useState("");
+
+  // Queries
+  const { data: achievementsData, isLoading: isAchLoading } = useAchievements(
+    search ? { search } : undefined
   );
+  const achievements = achievementsData?.data || [];
+
+  const { data: extracurricularsData, isLoading: isExLoading } =
+    useExtracurriculars(search ? { search } : undefined);
+  const extracurriculars = extracurricularsData?.data || [];
+
+  // Mutations
+  const createAchievement = useCreateAchievement();
+  const updateAchievement = useUpdateAchievement();
+  const deleteAchievement = useDeleteAchievement();
+
+  const createExtracurricular = useCreateExtracurricular();
+  const updateExtracurricular = useUpdateExtracurricular();
+  const deleteExtracurricular = useDeleteExtracurricular();
+
+  const isBusy = useMemo(() => {
+    return (
+      createAchievement.isPending ||
+      updateAchievement.isPending ||
+      deleteAchievement.isPending ||
+      createExtracurricular.isPending ||
+      updateExtracurricular.isPending ||
+      deleteExtracurricular.isPending
+    );
+  }, [
+    createAchievement.isPending,
+    updateAchievement.isPending,
+    deleteAchievement.isPending,
+    createExtracurricular.isPending,
+    updateExtracurricular.isPending,
+    deleteExtracurricular.isPending,
+  ]);
+
+  const resetForms = () => {
+    setAchTitle("");
+    setAchCategory("");
+    setAchYear("");
+    setAchDesc("");
+    setExName("");
+    setExDesc("");
+    setSelectedId(null);
+  };
+
+  const openAdd = () => {
+    resetForms();
+    setIsEditOpen(false);
+    setIsAddOpen(true);
+  };
+
+  const openEditAchievement = (item: any) => {
+    setSelectedId(item._id);
+    setAchTitle(item.title || "");
+    setAchCategory(item.category || "");
+    setAchYear(item.year || "");
+    setAchDesc(item.description || "");
+    setIsAddOpen(false);
+    setIsEditOpen(true);
+    setActiveTab("achievements");
+  };
+
+  const openEditExtracurricular = (item: any) => {
+    setSelectedId(item._id);
+    setExName(item.name || "");
+    setExDesc(item.description || "");
+    setIsAddOpen(false);
+    setIsEditOpen(true);
+    setActiveTab("extracurriculars");
+  };
+
+  const onSubmitAdd = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (activeTab === "achievements") {
+      await createAchievement.mutateAsync({
+        title: achTitle,
+        category: achCategory,
+        year: achYear,
+        description: achDesc,
+      });
+    } else {
+      await createExtracurricular.mutateAsync({
+        name: exName,
+        description: exDesc,
+      });
+    }
+    setIsAddOpen(false);
+    resetForms();
+  };
+
+  const onSubmitEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedId) return;
+    if (activeTab === "achievements") {
+      await updateAchievement.mutateAsync({
+        id: selectedId,
+        data: {
+          title: achTitle,
+          category: achCategory,
+          year: achYear,
+          description: achDesc,
+        },
+      });
+    } else {
+      await updateExtracurricular.mutateAsync({
+        id: selectedId,
+        data: {
+          name: exName,
+          description: exDesc,
+        },
+      });
+    }
+    setIsEditOpen(false);
+    resetForms();
+  };
+
+  const onDelete = async (
+    item: any,
+    category: "achievements" | "extracurriculars"
+  ) => {
+    if (category === "achievements") {
+      await deleteAchievement.mutateAsync(item._id);
+    } else {
+      await deleteExtracurricular.mutateAsync(item._id);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-muted/30 p-6">
@@ -83,7 +228,7 @@ export default function AdminActivitiesPage() {
             </div>
             <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
               <DialogTrigger asChild>
-                <Button className="gap-2">
+                <Button className="gap-2" onClick={openAdd} disabled={isBusy}>
                   <Plus className="h-4 w-4" />
                   Tambah
                 </Button>
@@ -98,28 +243,118 @@ export default function AdminActivitiesPage() {
                     Masukkan informasi kegiatan
                   </DialogDescription>
                 </DialogHeader>
-                <form className="space-y-4">
-                  <Input placeholder="Judul" required />
-                  <Input placeholder="Kategori (ekstrakurikuler/prestasi)" />
-                  <DialogFooter>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setIsAddOpen(false)}
-                    >
-                      Batal
-                    </Button>
-                    <Button type="submit">Simpan</Button>
-                  </DialogFooter>
-                </form>
+                <Tabs
+                  value={activeTab}
+                  onValueChange={(v) => setActiveTab(v as any)}
+                >
+                  <TabsList className="grid grid-cols-2 w-full">
+                    <TabsTrigger value="achievements">Prestasi</TabsTrigger>
+                    <TabsTrigger value="extracurriculars">
+                      Ekstrakurikuler
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
+                {activeTab === "achievements" ? (
+                  <AchievementForm
+                    formData={{
+                      title: achTitle,
+                      category: achCategory,
+                      year: achYear,
+                      description: achDesc,
+                    }}
+                    onInputChange={(field, value) => {
+                      if (field === "title") setAchTitle(value);
+                      if (field === "category") setAchCategory(value);
+                      if (field === "year") setAchYear(value);
+                      if (field === "description") setAchDesc(value);
+                    }}
+                    onSubmit={onSubmitAdd}
+                    isLoading={isBusy}
+                    submitText="Simpan"
+                    onCancel={() => setIsAddOpen(false)}
+                  />
+                ) : (
+                  <ExtracurricularForm
+                    formData={{ name: exName, description: exDesc }}
+                    onInputChange={(field, value) => {
+                      if (field === "name") setExName(value);
+                      if (field === "description") setExDesc(value);
+                    }}
+                    onSubmit={onSubmitAdd}
+                    isLoading={isBusy}
+                    submitText="Simpan"
+                    onCancel={() => setIsAddOpen(false)}
+                  />
+                )}
+              </DialogContent>
+            </Dialog>
+            <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <Edit className="h-5 w-5" />
+                    Edit Kegiatan
+                  </DialogTitle>
+                </DialogHeader>
+                <Tabs value={activeTab}>
+                  <TabsList className="grid grid-cols-2 w-full">
+                    <TabsTrigger value="achievements">Prestasi</TabsTrigger>
+                    <TabsTrigger value="extracurriculars">
+                      Ekstrakurikuler
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
+                {activeTab === "achievements" ? (
+                  <AchievementForm
+                    formData={{
+                      title: achTitle,
+                      category: achCategory,
+                      year: achYear,
+                      description: achDesc,
+                    }}
+                    onInputChange={(field, value) => {
+                      if (field === "title") setAchTitle(value);
+                      if (field === "category") setAchCategory(value);
+                      if (field === "year") setAchYear(value);
+                      if (field === "description") setAchDesc(value);
+                    }}
+                    onSubmit={onSubmitEdit}
+                    isLoading={isBusy}
+                    submitText="Simpan Perubahan"
+                    onCancel={() => setIsEditOpen(false)}
+                  />
+                ) : (
+                  <ExtracurricularForm
+                    formData={{ name: exName, description: exDesc }}
+                    onInputChange={(field, value) => {
+                      if (field === "name") setExName(value);
+                      if (field === "description") setExDesc(value);
+                    }}
+                    onSubmit={onSubmitEdit}
+                    isLoading={isBusy}
+                    submitText="Simpan Perubahan"
+                    onCancel={() => setIsEditOpen(false)}
+                  />
+                )}
               </DialogContent>
             </Dialog>
           </div>
         </div>
 
-        <AdminTableCard
-          title="Daftar Kegiatan"
-          description="Kelola daftar kegiatan"
+        <Tabs
+          value={activeTab}
+          onValueChange={(v) => setActiveTab(v as any)}
+          className="w-full"
+        >
+          <TabsList>
+            <TabsTrigger value="achievements">Prestasi</TabsTrigger>
+            <TabsTrigger value="extracurriculars">Ekstrakurikuler</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="achievements">
+            <AdminTableCard
+              title="Daftar Prestasi"
+              description="Kelola data prestasi"
         >
           <div className="rounded-md border">
             <Table className="bg-white">
@@ -127,39 +362,155 @@ export default function AdminActivitiesPage() {
                 <TableRow className="bg-primary-900 hover:bg-primary-900">
                   <TableHead className="text-white">Judul</TableHead>
                   <TableHead className="text-white">Kategori</TableHead>
+                      <TableHead className="text-white">Tahun</TableHead>
                   <TableHead className="w-20 text-white">Aksi</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map((a) => (
-                  <TableRow key={a.id} className="hover:bg-muted/50">
-                    <TableCell className="font-medium">{a.title}</TableCell>
-                    <TableCell>{a.category}</TableCell>
+                    {isAchLoading ? (
+                      <TableRow>
+                        <TableCell colSpan={4}>Memuat...</TableCell>
+                      </TableRow>
+                    ) : achievements.length === 0 ? (
+                      <TableRow>
+                        <TableCell
+                          colSpan={4}
+                          className="text-center text-muted-foreground"
+                        >
+                          Belum ada data
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      achievements.map((a: any) => (
+                        <TableRow key={a._id} className="hover:bg-muted/50">
+                          <TableCell className="font-medium">
+                            {a.title}
+                          </TableCell>
+                          <TableCell>{a.category || "-"}</TableCell>
+                          <TableCell>{a.year || "-"}</TableCell>
                     <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="h-4 w-4" />
+                            <div className="flex items-center gap-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  if (
+                                    document.activeElement instanceof
+                                    HTMLElement
+                                  ) {
+                                    document.activeElement.blur();
+                                  }
+                                  openEditAchievement(a);
+                                }}
+                              >
+                                <Edit className="h-4 w-4 mr-1" />
+                                Edit
+                              </Button>
+                              <DeleteConfirmation
+                                onConfirm={() => onDelete(a, "achievements")}
+                                itemName={a.title}
+                                trigger={
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="text-destructive hover:text-destructive"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
                           </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem className="gap-2">
-                            <Edit className="h-4 w-4" />
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem className="gap-2 text-destructive">
+                                }
+                              />
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </AdminTableCard>
+          </TabsContent>
+
+          <TabsContent value="extracurriculars">
+            <AdminTableCard
+              title="Daftar Ekstrakurikuler"
+              description="Kelola data ekstrakurikuler"
+            >
+              <div className="rounded-md border">
+                <Table className="bg-white">
+                  <TableHeader className="rounded-md">
+                    <TableRow className="bg-primary-900 hover:bg-primary-900">
+                      <TableHead className="text-white">Nama</TableHead>
+                      <TableHead className="text-white">Deskripsi</TableHead>
+                      <TableHead className="w-20 text-white">Aksi</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {isExLoading ? (
+                      <TableRow>
+                        <TableCell colSpan={3}>Memuat...</TableCell>
+                      </TableRow>
+                    ) : extracurriculars.length === 0 ? (
+                      <TableRow>
+                        <TableCell
+                          colSpan={3}
+                          className="text-center text-muted-foreground"
+                        >
+                          Belum ada data
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      extracurriculars.map((x: any) => (
+                        <TableRow key={x._id} className="hover:bg-muted/50">
+                          <TableCell className="font-medium">
+                            {x.name}
+                          </TableCell>
+                          <TableCell className="max-w-[500px] truncate">
+                            {x.description || "-"}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  if (
+                                    document.activeElement instanceof
+                                    HTMLElement
+                                  ) {
+                                    document.activeElement.blur();
+                                  }
+                                  openEditExtracurricular(x);
+                                }}
+                              >
+                                <Edit className="h-4 w-4 mr-1" />
+                                Edit
+                              </Button>
+                              <DeleteConfirmation
+                                onConfirm={() =>
+                                  onDelete(x, "extracurriculars")
+                                }
+                                itemName={x.name}
+                                trigger={
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="text-destructive hover:text-destructive"
+                                  >
                             <Trash2 className="h-4 w-4" />
-                            Hapus
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                                  </Button>
+                                }
+                              />
+                            </div>
                     </TableCell>
                   </TableRow>
-                ))}
+                      ))
+                    )}
               </TableBody>
             </Table>
           </div>
         </AdminTableCard>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

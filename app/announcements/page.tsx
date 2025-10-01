@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/molecules/PageHeader/PageHeader";
 import { Typography } from "@/components/atoms/Typography/Typography";
 import { Button } from "@/components/atoms/Button/Button";
 import { Search, Filter, Calendar, Bell } from "lucide-react";
+import bgHeaderAnnouncements from "@/public/assets/bg-pengumuman.jpeg";
 
 // Data contoh sesuai kebutuhan client
 const announcements = [
@@ -118,7 +119,7 @@ export default function AnnouncementsPage() {
         title="Pengumuman"
         subtitle="Informasi terkini dan pengumuman penting dari SMK SIAKAD"
         breadcrumbs={[{ label: "Pengumuman" }]}
-        backgroundImage="https://images.pexels.com/photos/159844/cellular-education-classroom-159844.jpeg"
+        backgroundImage={bgHeaderAnnouncements}
       />
 
       <section className="section-padding bg-gray-50">
@@ -139,7 +140,7 @@ export default function AnnouncementsPage() {
                   placeholder="Cari pengumuman..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
+                  className="w-full pl-10 pr-4 py-3 border border-primary-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
                 />
               </div>
 
@@ -149,7 +150,7 @@ export default function AnnouncementsPage() {
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="pl-10 pr-8 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all appearance-none bg-white min-w-48"
+                  className="pl-10 pr-8 py-3 border border-primary-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all appearance-none bg-white min-w-48"
                 >
                   {categories.map((category) => (
                     <option key={category.value} value={category.value}>

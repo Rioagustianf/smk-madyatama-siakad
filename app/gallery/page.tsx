@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { PageHeader } from "@/components/molecules/PageHeader/PageHeader";
@@ -16,110 +16,11 @@ import {
   Filter,
   Grid3X3,
   List,
+  Loader2,
 } from "lucide-react";
+import { useGalleryList } from "@/lib/hooks/use-gallery";
 
-// Mock data - in real app, this would come from API
-const galleryItems = [
-  {
-    id: "1",
-    title: "Upacara Bendera Hari Senin",
-    description:
-      "Kegiatan rutin upacara bendera yang dilaksanakan setiap hari Senin",
-    type: "image" as const,
-    url: "https://images.pexels.com/photos/207691/pexels-photo-207691.jpeg",
-    thumbnail:
-      "https://images.pexels.com/photos/207691/pexels-photo-207691.jpeg",
-    category: "academic",
-    date: new Date("2024-01-15"),
-    views: 245,
-  },
-  {
-    id: "2",
-    title: "Praktik Lab Komputer TKJ",
-    description: "Siswa TKJ sedang melakukan praktik konfigurasi jaringan",
-    type: "image" as const,
-    url: "https://images.pexels.com/photos/159711/books-bookstore-book-reading-159711.jpeg",
-    thumbnail:
-      "https://images.pexels.com/photos/159711/books-bookstore-book-reading-159711.jpeg",
-    category: "academic",
-    date: new Date("2024-01-12"),
-    views: 189,
-  },
-  {
-    id: "3",
-    title: "Workshop Programming RPL",
-    description: "Video dokumentasi workshop pengembangan aplikasi mobile",
-    type: "video" as const,
-    url: "https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4",
-    thumbnail:
-      "https://images.pexels.com/photos/574071/pexels-photo-574071.jpeg",
-    category: "academic",
-    date: new Date("2024-01-10"),
-    views: 312,
-  },
-  {
-    id: "4",
-    title: "Lomba Desain Grafis",
-    description:
-      "Kompetisi desain grafis antar siswa program keahlian Multimedia",
-    type: "image" as const,
-    url: "https://images.pexels.com/photos/196644/pexels-photo-196644.jpeg",
-    thumbnail:
-      "https://images.pexels.com/photos/196644/pexels-photo-196644.jpeg",
-    category: "competition",
-    date: new Date("2024-01-08"),
-    views: 156,
-  },
-  {
-    id: "5",
-    title: "Ekstrakurikuler Paskibra",
-    description:
-      "Latihan rutin ekstrakurikuler Paskibra (Pasukan Pengibar Bendera)",
-    type: "image" as const,
-    url: "https://images.pexels.com/photos/1595391/pexels-photo-1595391.jpeg",
-    thumbnail:
-      "https://images.pexels.com/photos/1595391/pexels-photo-1595391.jpeg",
-    category: "extracurricular",
-    date: new Date("2024-01-05"),
-    views: 203,
-  },
-  {
-    id: "6",
-    title: "Fasilitas Perpustakaan",
-    description: "Suasana perpustakaan sekolah yang nyaman untuk belajar",
-    type: "image" as const,
-    url: "https://images.pexels.com/photos/159844/cellular-education-classroom-159844.jpeg",
-    thumbnail:
-      "https://images.pexels.com/photos/159844/cellular-education-classroom-159844.jpeg",
-    category: "facility",
-    date: new Date("2024-01-03"),
-    views: 178,
-  },
-  {
-    id: "7",
-    title: "Prestasi Juara Nasional",
-    description: "Dokumentasi penerimaan penghargaan juara nasional lomba IT",
-    type: "video" as const,
-    url: "https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4",
-    thumbnail:
-      "https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg",
-    category: "achievement",
-    date: new Date("2024-01-01"),
-    views: 445,
-  },
-  {
-    id: "8",
-    title: "Kunjungan Industri",
-    description: "Siswa berkunjung ke perusahaan teknologi terkemuka",
-    type: "image" as const,
-    url: "https://images.pexels.com/photos/3184360/pexels-photo-3184360.jpeg",
-    thumbnail:
-      "https://images.pexels.com/photos/3184360/pexels-photo-3184360.jpeg",
-    category: "academic",
-    date: new Date("2023-12-28"),
-    views: 267,
-  },
-];
+// Using API data, categories defined below
 
 const categories = [
   { value: "all", label: "Semua Kategori" },
@@ -138,22 +39,18 @@ const viewModes = [
 export default function GalleryPage() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [viewMode, setViewMode] = useState("grid");
-  const [selectedItem, setSelectedItem] = useState<
-    (typeof galleryItems)[0] | null
-  >(null);
-  const [filteredItems, setFilteredItems] = useState(galleryItems);
+  const [selectedItem, setSelectedItem] = useState<any | null>(null);
 
-  React.useEffect(() => {
-    let filtered = galleryItems;
+  const { data, isLoading, error } = useGalleryList({
+    category: selectedCategory === "all" ? undefined : selectedCategory,
+    page: 1,
+    limit: 48,
+    isPublished: true,
+  } as any);
 
-    if (selectedCategory !== "all") {
-      filtered = filtered.filter((item) => item.category === selectedCategory);
-    }
+  const items = useMemo(() => (data as any)?.data || [], [data]);
 
-    setFilteredItems(filtered);
-  }, [selectedCategory]);
-
-  const openModal = (item: (typeof galleryItems)[0]) => {
+  const openModal = (item: any) => {
     setSelectedItem(item);
   };
 
@@ -228,7 +125,7 @@ export default function GalleryPage() {
             className="flex items-center justify-between mb-8"
           >
             <Typography variant="body1" color="muted">
-              Menampilkan {filteredItems.length} item
+              Menampilkan {items.length} item
               {selectedCategory !== "all" &&
                 ` dalam kategori "${
                   categories.find((c) => c.value === selectedCategory)?.label
@@ -239,14 +136,14 @@ export default function GalleryPage() {
               <div className="flex items-center space-x-1">
                 <Camera className="w-4 h-4" />
                 <span>
-                  {filteredItems.filter((item) => item.type === "image").length}{" "}
+                  {items.filter((item: any) => item.type === "image").length}{" "}
                   Foto
                 </span>
               </div>
               <div className="flex items-center space-x-1">
                 <Video className="w-4 h-4" />
                 <span>
-                  {filteredItems.filter((item) => item.type === "video").length}{" "}
+                  {items.filter((item: any) => item.type === "video").length}{" "}
                   Video
                 </span>
               </div>
@@ -254,11 +151,19 @@ export default function GalleryPage() {
           </motion.div>
 
           {/* Gallery Grid/List */}
-          {viewMode === "grid" ? (
+          {isLoading ? (
+            <div className="flex items-center justify-center py-16">
+              <Loader2 className="w-8 h-8 animate-spin" />
+            </div>
+          ) : error ? (
+            <div className="text-center text-red-500 py-16">
+              Gagal memuat galeri
+            </div>
+          ) : viewMode === "grid" ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredItems.map((item, index) => (
+              {items.map((item: any, index: number) => (
                 <motion.div
-                  key={item.id}
+                  key={item._id || item.id}
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: index * 0.1 }}
@@ -268,7 +173,7 @@ export default function GalleryPage() {
                   <div className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
                     <div className="relative aspect-square overflow-hidden">
                       <Image
-                        src={item.thumbnail}
+                        src={item.thumbnail || item.url}
                         alt={item.title}
                         fill
                         className="object-cover group-hover:scale-110 transition-transform duration-300"
@@ -320,7 +225,9 @@ export default function GalleryPage() {
                       </Typography>
                       <div className="flex items-center text-xs text-gray-500">
                         <Calendar className="w-3 h-3 mr-1" />
-                        {item.date.toLocaleDateString("id-ID")}
+                        {item.createdAt
+                          ? new Date(item.createdAt).toLocaleDateString("id-ID")
+                          : "-"}
                       </div>
                     </div>
                   </div>
@@ -329,9 +236,9 @@ export default function GalleryPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              {filteredItems.map((item, index) => (
+              {items.map((item: any, index: number) => (
                 <motion.div
-                  key={item.id}
+                  key={item._id || item.id}
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: index * 0.05 }}
@@ -341,7 +248,7 @@ export default function GalleryPage() {
                   <div className="flex">
                     <div className="relative w-48 h-32 flex-shrink-0">
                       <Image
-                        src={item.thumbnail}
+                        src={item.thumbnail || item.url}
                         alt={item.title}
                         fill
                         className="object-cover"
@@ -385,11 +292,20 @@ export default function GalleryPage() {
                       <div className="flex items-center justify-between text-sm text-gray-500">
                         <div className="flex items-center space-x-1">
                           <Calendar className="w-4 h-4" />
-                          <span>{item.date.toLocaleDateString("id-ID")}</span>
+                          <span>
+                            {item.createdAt
+                              ? new Date(item.createdAt).toLocaleDateString(
+                                  "id-ID"
+                                )
+                              : "-"}
+                          </span>
                         </div>
                         <div className="flex items-center space-x-1">
                           <Eye className="w-4 h-4" />
-                          <span>{item.views} views</span>
+                          <span>
+                            {typeof item.views === "number" ? item.views : 0}{" "}
+                            views
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -482,11 +398,22 @@ export default function GalleryPage() {
                 <div className="flex items-center justify-between text-sm text-gray-500">
                   <div className="flex items-center space-x-1">
                     <Calendar className="w-4 h-4" />
-                    <span>{selectedItem.date.toLocaleDateString("id-ID")}</span>
+                    <span>
+                      {selectedItem?.createdAt
+                        ? new Date(selectedItem.createdAt).toLocaleDateString(
+                            "id-ID"
+                          )
+                        : "-"}
+                    </span>
                   </div>
                   <div className="flex items-center space-x-1">
                     <Eye className="w-4 h-4" />
-                    <span>{selectedItem.views} views</span>
+                    <span>
+                      {typeof selectedItem?.views === "number"
+                        ? selectedItem.views
+                        : 0}{" "}
+                      views
+                    </span>
                   </div>
                 </div>
               </div>

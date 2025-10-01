@@ -54,7 +54,7 @@ export const school: SchoolData = {
     postal_code: "",
   },
   contact: {
-    phone: "0711-516797 (ditemukan di dokumen lama)",
+    phone: "0711-516797",
     email: "smkmadyatamabisa@gmail.com",
     instagram: "https://www.instagram.com/smk.madyatama/",
     facebook: "https://www.facebook.com/TKJSmkMadyatamaPalembang/",
