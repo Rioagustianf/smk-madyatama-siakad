@@ -47,6 +47,7 @@ export const getCollections = async () => {
     activities: database.collection("activities"),
     staff: database.collection("staff"),
     internships: database.collection("internships"),
+    internshipSchedules: database.collection("internshipSchedules"),
     news: database.collection("news"),
     profile: database.collection("profile"),
   };

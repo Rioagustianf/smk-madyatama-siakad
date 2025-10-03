@@ -86,7 +86,7 @@ export function GalleryForm({
               value={formData.type}
               onValueChange={(val) => onInputChange("type", val as any)}
             >
-              <SelectTrigger>
+              <SelectTrigger className="border border-primary-600">
                 <SelectValue placeholder="Pilih tipe media" />
               </SelectTrigger>
               <SelectContent>
@@ -100,7 +100,7 @@ export function GalleryForm({
               value={formData.category}
               onValueChange={(val) => onInputChange("category", val)}
             >
-              <SelectTrigger>
+              <SelectTrigger className="border border-primary-600">
                 <SelectValue placeholder="Pilih kategori" />
               </SelectTrigger>
               <SelectContent>
@@ -128,11 +128,20 @@ export function GalleryForm({
       </div>
       <div className="flex justify-end gap-2">
         {onCancel && (
-          <Button type="button" variant="outline" onClick={onCancel}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+            className="border border-primary-600"
+          >
             Batal
           </Button>
         )}
-        <Button type="submit" disabled={isLoading}>
+        <Button
+          type="submit"
+          className="bg-primary-950 text-white hover:bg-primary-900"
+          disabled={isLoading}
+        >
           {submitText}
         </Button>
       </div>

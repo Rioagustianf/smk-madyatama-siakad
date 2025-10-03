@@ -27,36 +27,7 @@ import { useTeachers } from "@/lib/hooks/use-teachers";
 import { useMajors } from "@/lib/hooks/use-majors";
 import { useProfile } from "@/lib/hooks/use-profile";
 import bgHeaderProfile from "@/public/assets/lobi.jpeg";
-
-const facilities = [
-  {
-    name: "Laboratorium Komputer",
-    description: "Lab komputer modern dengan 40 unit PC terbaru",
-    image:
-      "https://images.pexels.com/photos/159711/books-bookstore-book-reading-159711.jpeg",
-    icon: <BookOpen className="w-6 h-6" />,
-  },
-  {
-    name: "Workshop Praktik",
-    description: "Ruang praktik dengan peralatan industri standar",
-    image:
-      "https://images.pexels.com/photos/159844/cellular-education-classroom-159844.jpeg",
-    icon: <Building2 className="w-6 h-6" />,
-  },
-  {
-    name: "Perpustakaan Digital",
-    description: "Koleksi buku digital dan fisik lebih dari 5000 judul",
-    image:
-      "https://images.pexels.com/photos/159711/books-bookstore-book-reading-159711.jpeg",
-    icon: <BookOpen className="w-6 h-6" />,
-  },
-  {
-    name: "Aula Serbaguna",
-    description: "Ruang pertemuan dan acara dengan kapasitas 500 orang",
-    image: "https://images.pexels.com/photos/207691/pexels-photo-207691.jpeg",
-    icon: <Users className="w-6 h-6" />,
-  },
-];
+import bgProfile from "@/public/assets/madamdepan.jpeg";
 
 function useCount(queryFn: () => Promise<any>, key: string) {
   return useQuery({
@@ -254,8 +225,8 @@ lembaga pendidikan kejuruan terdepan yang menghasilkan lulusan berkualitas dan s
                       .map((s: string) => s.trim())
                       .filter(Boolean)
                   : [
-                      "Menyelenggarakan pendidikan kejuruan yang berkualitas dan relevan",
-                      "Mengembangkan kurikulum yang adaptif terhadap perkembangan teknologi",
+                  "Menyelenggarakan pendidikan kejuruan yang berkualitas dan relevan",
+                  "Mengembangkan kurikulum yang adaptif terhadap perkembangan teknologi",
                     ]
                 ).map((item: string, index: number) => (
                   <li key={index} className="flex items-start">
@@ -434,7 +405,7 @@ lembaga pendidikan kejuruan terdepan yang menghasilkan lulusan berkualitas dan s
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {(Array.isArray(profile.facilities) && profile.facilities.length > 0
               ? profile.facilities
-              : facilities
+              : []
             ).map((facility: any, index: number) => (
               <motion.div
                 key={`${facility.name}-${index}`}
@@ -582,7 +553,7 @@ lembaga pendidikan kejuruan terdepan yang menghasilkan lulusan berkualitas dan s
             >
               <div className="relative h-96 rounded-2xl overflow-hidden shadow-2xl">
                 <Image
-                  src="https://images.pexels.com/photos/207691/pexels-photo-207691.jpeg"
+                  src={bgProfile}
                   alt="Gedung SMK SIAKAD"
                   fill
                   className="object-cover"

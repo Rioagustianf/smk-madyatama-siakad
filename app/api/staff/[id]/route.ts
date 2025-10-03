@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCollections, handleDatabaseError } from "@/lib/database/mongodb";
 import { ObjectId } from "mongodb";
 import jwt from "jsonwebtoken";
+import { storage } from "@/lib/supabase-client";
 
 const JWT_SECRET =
   process.env.JWT_SECRET || "your-secret-key-change-in-production";
@@ -120,24 +121,22 @@ export async function PUT(
     const body = await request.json();
     const {
       name,
+      role,
       position,
-      department,
-      email,
-      phone,
       image,
       bio,
-      education,
-      experience,
-      certifications,
+      subject,
+      quote,
+      order,
       isActive,
     } = body;
 
-    // Validation
-    if (!name || !position || !department) {
+    // Validation (minimal)
+    if (!name || !position) {
       return NextResponse.json(
         {
           success: false,
-          message: "Nama, posisi, dan departemen diperlukan",
+          message: "Nama dan jabatan diperlukan",
         },
         { status: 400 }
       );
@@ -156,33 +155,30 @@ export async function PUT(
       );
     }
 
-    // Check if email is used by another staff
-    if (email) {
-      const emailExists = await collections.staff.findOne({
-        email,
-        _id: { $ne: new ObjectId(id) },
-      });
-      if (emailExists) {
-        return NextResponse.json(
-          { success: false, message: "Email sudah digunakan" },
-          { status: 400 }
-        );
+    // If image changed and old image was a Supabase public URL, delete the old file
+    try {
+      if (existingStaff.image && image && existingStaff.image !== image) {
+        const parsed = storage.parsePublicUrl(existingStaff.image);
+        if (parsed) {
+          await storage.deleteFile(parsed.bucket, parsed.path);
+        }
       }
+    } catch (e) {
+      console.warn("Warning: failed to delete old staff image:", e);
     }
 
-    // Update staff
+    // Update staff with minimal schema
     const updateData = {
       name,
+      role: role || existingStaff.role || "staff",
       position,
-      department,
-      email: email || "",
-      phone: phone || "",
       image: image || "",
       bio: bio || "",
-      education: education || "",
-      experience: experience || 0,
-      certifications: certifications || [],
-      isActive: isActive !== undefined ? isActive : true,
+      subject: subject || "",
+      quote: quote || "",
+      order: typeof order === "number" ? order : existingStaff.order ?? 0,
+      isActive:
+        isActive !== undefined ? isActive : existingStaff.isActive ?? true,
       updatedAt: new Date(),
     };
 
@@ -201,7 +197,7 @@ export async function PUT(
     return NextResponse.json({
       success: true,
       message: "Staf berhasil diperbarui",
-      data: { id, ...updateData },
+      data: { _id: id, ...updateData },
     });
   } catch (error) {
     console.error("Error updating staff:", error);
@@ -256,6 +252,18 @@ export async function DELETE(
         { success: false, message: "Staf tidak ditemukan" },
         { status: 404 }
       );
+    }
+
+    // Try deleting image from Supabase Storage if present
+    try {
+      if (existingStaff.image) {
+        const parsed = storage.parsePublicUrl(existingStaff.image);
+        if (parsed) {
+          await storage.deleteFile(parsed.bucket, parsed.path);
+        }
+      }
+    } catch (e) {
+      console.warn("Warning: failed to delete staff image from storage:", e);
     }
 
     // Hard delete (permanently remove from database)

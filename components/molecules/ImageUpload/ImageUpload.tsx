@@ -136,7 +136,7 @@ export function ImageUpload({
           variant="outline"
           onClick={handleUploadClick}
           disabled={disabled || isUploading}
-          className="flex-1"
+          className="flex-1 border border-primary-600"
         >
           {isUploading ? (
             <>

@@ -352,7 +352,7 @@ export default function AdminActivitiesPage() {
           </TabsList>
 
           <TabsContent value="achievements">
-            <AdminTableCard
+        <AdminTableCard
               title="Daftar Prestasi"
               description="Kelola data prestasi"
         >

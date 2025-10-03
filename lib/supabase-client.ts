@@ -47,6 +47,25 @@ export const storage = {
     }
   },
 
+  // Parse bucket and path from a public URL like
+  // https://<project>.supabase.co/storage/v1/object/public/<bucket>/<path>
+  parsePublicUrl: (
+    publicUrl: string
+  ): { bucket: string; path: string } | null => {
+    try {
+      const url = new URL(publicUrl);
+      const idx = url.pathname.indexOf("/object/public/");
+      if (idx === -1) return null;
+      const suffix = url.pathname.substring(idx + "/object/public/".length);
+      const [bucket, ...rest] = suffix.split("/");
+      const path = rest.join("/");
+      if (!bucket || !path) return null;
+      return { bucket, path };
+    } catch {
+      return null;
+    }
+  },
+
   // List files in bucket
   listFiles: async (bucket: string, path?: string) => {
     const { data, error } = await supabase.storage.from(bucket).list(path);

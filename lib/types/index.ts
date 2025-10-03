@@ -72,15 +72,7 @@ export interface Class {
 export interface Course extends Subject {}
 
 // Class types
-export interface Class {
-  _id: string;
-  name: string; // "12 TKJ 1", "12 TKJ 2"
-  majorId: string; // Reference to Major._id
-  homeroomTeacherId: string; // Reference to Teacher._id (wali kelas)
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
+// Remove duplicate; Class defined above with optional majorId to avoid conflicts
 
 // Staff types
 export interface Staff {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import { fileUpload } from "@/lib/supabase-client";
 import { useToast } from "@/lib/contexts/toast-context";
 

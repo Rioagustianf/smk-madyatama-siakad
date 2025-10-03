@@ -248,7 +248,7 @@ export default function AdminProfilePage() {
                     }}
                     className="border border-primary-600"
                   />
-                  <div>
+              <div>
                     <ImageUpload
                       label="Foto (opsional)"
                       value={o.image || ""}
@@ -375,7 +375,7 @@ export default function AdminProfilePage() {
                 onChange={(e) => update("contact.youtube", e.target.value)}
                 className="border border-primary-600"
               />
-            </div>
+              </div>
           </CardContent>
         </Card>
 

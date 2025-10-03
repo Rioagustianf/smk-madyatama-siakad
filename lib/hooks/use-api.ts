@@ -8,7 +8,7 @@ import { SearchFilters, PaginatedResponse } from "@/lib/types";
 
 // Generic CRUD hooks
 export const useListQuery = <T>(
-  key: string[],
+  key: readonly string[],
   apiMethod: (filters?: Record<string, any>) => Promise<PaginatedResponse<T>>,
   filters?: SearchFilters,
   options?: any
@@ -21,7 +21,7 @@ export const useListQuery = <T>(
 };
 
 export const useDetailQuery = <T>(
-  key: string[],
+  key: readonly string[],
   apiMethod: (id: string) => Promise<T>,
   id: string,
   options?: any
@@ -35,7 +35,7 @@ export const useDetailQuery = <T>(
 };
 
 export const useCreateMutation = <T, D>(
-  key: string[],
+  key: readonly string[],
   apiMethod: (data: D) => Promise<T>,
   options?: any
 ) => {
@@ -66,7 +66,7 @@ export const useCreateMutation = <T, D>(
 };
 
 export const useUpdateMutation = <T, D>(
-  key: string[],
+  key: readonly string[],
   apiMethod: (_id: string, data: D) => Promise<T>,
   options?: any
 ) => {
@@ -99,7 +99,7 @@ export const useUpdateMutation = <T, D>(
 };
 
 export const useDeleteMutation = <T>(
-  key: string[],
+  key: readonly string[],
   apiMethod: (id: string) => Promise<T>,
   options?: any
 ) => {
@@ -205,7 +205,8 @@ export const useStudents = (filters?: SearchFilters) => {
 export const useStudent = (id: string) => {
   return useDetailQuery(
     queryKeys.students.details(),
-    apiMethods.students.get,
+    (id: string) =>
+      apiMethods.students.list({ id }).then((r: any) => r?.data?.[0] ?? null),
     id
   );
 };
@@ -242,7 +243,8 @@ export const useCourses = (filters?: SearchFilters) => {
 export const useCourse = (id: string) => {
   return useDetailQuery(
     queryKeys.courses.details(),
-    apiMethods.courses.get,
+    (id: string) =>
+      apiMethods.courses.list({ id }).then((r: any) => r?.data?.[0] ?? null),
     id
   );
 };
@@ -360,7 +362,8 @@ export const useSubjects = (filters?: SearchFilters) => {
 export const useSubject = (id: string) => {
   return useDetailQuery(
     queryKeys.subjects.details(),
-    apiMethods.subjects.get,
+    (id: string) =>
+      apiMethods.subjects.list({ id }).then((r: any) => r?.data?.[0] ?? null),
     id
   );
 };
@@ -441,7 +444,12 @@ export const useGrades = (filters?: SearchFilters) => {
 };
 
 export const useGrade = (id: string) => {
-  return useDetailQuery(queryKeys.grades.details(), apiMethods.grades.get, id);
+  return useDetailQuery(
+    queryKeys.grades.details(),
+    (id: string) =>
+      apiMethods.grades.list({ id }).then((r: any) => r?.data?.[0] ?? null),
+    id
+  );
 };
 
 export const useCreateGrade = () => {
@@ -594,7 +602,10 @@ export const useInternships = (filters?: SearchFilters) => {
 export const useInternship = (id: string) => {
   return useDetailQuery(
     queryKeys.internships.details(),
-    apiMethods.internships.get,
+    (id: string) =>
+      apiMethods.internships
+        .list({ id })
+        .then((r: any) => r?.data?.[0] ?? null),
     id
   );
 };

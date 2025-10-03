@@ -40,9 +40,9 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search") || "";
-    const department = searchParams.get("department") || "";
     const position = searchParams.get("position") || "";
     const role = searchParams.get("role") || ""; // e.g., teacher
+    const level = searchParams.get("level") || ""; // organizational level
     const isActive = searchParams.get("isActive");
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");
@@ -50,46 +50,27 @@ export async function GET(request: NextRequest) {
 
     const collections = await getCollections();
 
-    // Build filter
+    // Build filter (minimal fields)
     const filter: any = {};
     if (search) {
       filter.$or = [
         { name: { $regex: search, $options: "i" } },
         { position: { $regex: search, $options: "i" } },
-        { department: { $regex: search, $options: "i" } },
-        { email: { $regex: search, $options: "i" } },
       ];
-    }
-    if (department) {
-      filter.department = department;
     }
     if (position) {
       filter.position = position;
     }
     if (role) {
-      if (role.toLowerCase() === "teacher") {
-        // Match common variants for teachers in seeder: Guru/Teacher
-        filter.$or = [
-          ...(filter.$or || []),
-          { position: { $regex: "guru|teacher", $options: "i" } },
-          {
-            department: {
-              $regex: "guru|teacher|pengajar|akademik",
-              $options: "i",
-            },
-          },
-          { role: { $regex: "guru|teacher", $options: "i" } },
-        ];
-      } else {
-        // Generic role match if collection has role field
-        filter.role = { $regex: role, $options: "i" };
-      }
+      filter.role = { $regex: role, $options: "i" };
+    }
+    if (level) {
+      filter.level = { $regex: level, $options: "i" };
     }
     if (isActive !== null && isActive !== undefined) {
       filter.isActive = isActive === "true";
     }
 
-    // Get staff with pagination
     const [staff, total] = await Promise.all([
       collections.staff
         .find(filter)
@@ -135,24 +116,23 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const {
       name,
+      role,
       position,
-      department,
-      email,
-      phone,
       image,
       bio,
-      education,
-      experience,
-      certifications,
+      subject,
+      quote,
+      order,
       isActive,
+      level,
     } = body;
 
-    // Validation
-    if (!name || !position || !department) {
+    // Validation (minimal)
+    if (!name || !position) {
       return NextResponse.json(
         {
           success: false,
-          message: "Nama, posisi, dan departemen diperlukan",
+          message: "Nama dan jabatan diperlukan",
         },
         { status: 400 }
       );
@@ -160,29 +140,16 @@ export async function POST(request: NextRequest) {
 
     const collections = await getCollections();
 
-    // Check if email already exists
-    if (email) {
-      const existingStaff = await collections.staff.findOne({ email });
-      if (existingStaff) {
-        return NextResponse.json(
-          { success: false, message: "Email sudah digunakan" },
-          { status: 400 }
-        );
-      }
-    }
-
-    // Create new staff
     const newStaff = {
       name,
+      role: role || "staff",
       position,
-      department,
-      email: email || "",
-      phone: phone || "",
       image: image || "",
       bio: bio || "",
-      education: education || "",
-      experience: experience || 0,
-      certifications: certifications || [],
+      subject: subject || "",
+      quote: quote || "",
+      order: typeof order === "number" ? order : 0,
+      level: level || "",
       isActive: isActive !== undefined ? isActive : true,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -193,7 +160,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: "Staf berhasil ditambahkan",
-      data: { id: result.insertedId, ...newStaff },
+      data: { _id: result.insertedId, ...newStaff },
     });
   } catch (error) {
     console.error("Error creating staff:", error);

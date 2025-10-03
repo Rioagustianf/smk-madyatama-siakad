@@ -176,7 +176,10 @@ export default function AdminGaleriPage() {
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="gap-2">
+                <Button
+                  variant="outline"
+                  className="gap-2 border border-primary-600"
+                >
                   <Filter className="h-4 w-4" />
                   {selectedCategory === "semua"
                     ? "Semua Kategori"
@@ -202,7 +205,7 @@ export default function AdminGaleriPage() {
 
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="gap-2">
+                <Button className="gap-2 bg-primary-950 text-white hover:bg-primary-900">
                   <Plus className="h-4 w-4" />
                   Tambah Foto
                 </Button>

@@ -187,12 +187,7 @@ export const API_ENDPOINTS = {
     UPDATE: (id: string) => `/api/academic/subjects/${id}`,
     DELETE: (id: string) => `/api/academic/subjects/${id}`,
   },
-  SCHEDULES: {
-    LIST: "/api/schedules",
-    CREATE: "/api/schedules",
-    UPDATE: (id: string) => `/api/schedules/${id}`,
-    DELETE: (id: string) => `/api/schedules/${id}`,
-  },
+  // -- duplicate removed --
   EXAMS: {
     LIST: "/api/exams",
     CREATE: "/api/exams",

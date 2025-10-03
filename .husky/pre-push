@@ -1,0 +1,29 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "Running pre-push checks..."
+
+# Fail fast on errors
+set -e
+
+# Ensure correct node version hint is present
+node -e "const p=require('./package.json'); console.log('Node engine:', (p.engines&&p.engines.node)||'not set')"
+
+# Install deps if node_modules missing (CI-less local env)
+if [ ! -d node_modules ]; then
+  echo "node_modules not found, installing..."
+  npm ci || npm install
+fi
+
+npm run lint
+npm run typecheck
+
+# Quick dependency sanity check (unmet/invalid peer deps cause non-zero exit)
+npm run check:deps || (echo "Dependency issues detected. Fix before pushing." && exit 1)
+
+# Optional: build to catch build-time issues before push
+echo "Running production build check (can be slow)..."
+npm run build
+
+echo "Pre-push checks passed."
+

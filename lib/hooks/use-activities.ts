@@ -124,7 +124,10 @@ export function useDeleteExtracurricular() {
 export function useInternshipPartners(filters?: Record<string, any>) {
   return useQuery({
     queryKey: ["internship-partners", filters],
-    queryFn: () => apiMethods.activities.internship.partners.list(filters),
+    queryFn: () =>
+      (apiMethods.activities.internship as any).partners
+        ? (apiMethods.activities.internship as any).partners.list(filters)
+        : apiMethods.activities.list({ type: "partner", ...filters }),
   });
 }
 
@@ -133,7 +136,9 @@ export function useCreateInternshipPartner() {
   const { addToast } = useToast();
   return useMutation({
     mutationFn: (data: any) =>
-      apiMethods.activities.internship.partners.create(data),
+      (apiMethods.activities.internship as any).partners
+        ? (apiMethods.activities.internship as any).partners.create(data)
+        : apiMethods.activities.create({ ...data, type: "partner" }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["internship-partners"] });
       addToast({
@@ -150,7 +155,9 @@ export function useUpdateInternshipPartner() {
   const { addToast } = useToast();
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: any }) =>
-      apiMethods.activities.internship.partners.update(id, data),
+      (apiMethods.activities.internship as any).partners
+        ? (apiMethods.activities.internship as any).partners.update(id, data)
+        : apiMethods.activities.update(id, { ...data, type: "partner" }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["internship-partners"] });
       addToast({
@@ -167,7 +174,9 @@ export function useDeleteInternshipPartner() {
   const { addToast } = useToast();
   return useMutation({
     mutationFn: (id: string) =>
-      apiMethods.activities.internship.partners.delete(id),
+      (apiMethods.activities.internship as any).partners
+        ? (apiMethods.activities.internship as any).partners.delete(id)
+        : apiMethods.activities.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["internship-partners"] });
       addToast({

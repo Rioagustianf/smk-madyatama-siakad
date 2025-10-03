@@ -1,125 +1,58 @@
-"use client";
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiMethods } from "@/lib/api-client";
-import { useToast } from "@/lib/contexts/toast-context";
-import { SearchFilters, Announcement } from "@/lib/types";
 
-export const useAnnouncements = (filters?: SearchFilters) => {
+export function useAnnouncements(params?: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  category?: string;
+  priority?: string;
+  isPublished?: boolean;
+}) {
   return useQuery({
-    queryKey: ["announcements", filters],
-    queryFn: () => apiMethods.announcements.list(filters),
+    queryKey: ["announcements", params],
+    queryFn: () => apiMethods.announcements.list(params || {}),
   });
-};
+}
 
-export const useAnnouncement = (id: string) => {
+export function useAnnouncement(id: string) {
   return useQuery({
-    queryKey: ["announcements", "detail", id],
+    queryKey: ["announcements", id],
     queryFn: () => apiMethods.announcements.get(id),
     enabled: !!id,
   });
-};
+}
 
-export const useCreateAnnouncement = () => {
+export function useCreateAnnouncement() {
   const queryClient = useQueryClient();
-  const { addToast } = useToast();
 
   return useMutation({
     mutationFn: apiMethods.announcements.create,
-    onSuccess: (response) => {
-      queryClient.setQueryData(["announcements"], (oldData: any) => {
-        if (!oldData) return oldData;
-        return { ...oldData, data: [response.data, ...(oldData.data || [])] };
-      });
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["announcements"] });
-
-      addToast({
-        type: "success",
-        title: "Pengumuman berhasil ditambahkan",
-        description: "Data telah berhasil disimpan ke database.",
-      });
-    },
-    onError: (error: any) => {
-      addToast({
-        type: "error",
-        title: "Gagal menambahkan pengumuman",
-        description:
-          error?.response?.data?.message ||
-          "Terjadi kesalahan saat menyimpan data.",
-      });
     },
   });
-};
+}
 
-export const useUpdateAnnouncement = () => {
+export function useUpdateAnnouncement() {
   const queryClient = useQueryClient();
-  const { addToast } = useToast();
 
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: any }) =>
       apiMethods.announcements.update(id, data),
-    onSuccess: (response, variables) => {
-      queryClient.setQueryData(["announcements"], (oldData: any) => {
-        if (!oldData) return oldData;
-        return {
-          ...oldData,
-          data: (oldData.data || []).map((a: Announcement) =>
-            (a as any)._id === variables.id
-              ? { ...(a as any), ...response.data }
-              : a
-          ),
-        };
-      });
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["announcements"] });
-
-      addToast({
-        type: "success",
-        title: "Pengumuman berhasil diperbarui",
-        description: "Perubahan telah berhasil disimpan.",
-      });
-    },
-    onError: (error: any) => {
-      addToast({
-        type: "error",
-        title: "Gagal memperbarui pengumuman",
-        description:
-          error?.response?.data?.message ||
-          "Terjadi kesalahan saat memperbarui data.",
-      });
     },
   });
-};
+}
 
-export const useDeleteAnnouncement = () => {
+export function useDeleteAnnouncement() {
   const queryClient = useQueryClient();
-  const { addToast } = useToast();
 
   return useMutation({
     mutationFn: apiMethods.announcements.delete,
-    onSuccess: (_, id: string) => {
-      queryClient.setQueryData(["announcements"], (oldData: any) => {
-        if (!oldData) return oldData;
-        return {
-          ...oldData,
-          data: (oldData.data || []).filter((a: any) => (a as any)._id !== id),
-        };
-      });
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["announcements"] });
-
-      addToast({
-        type: "success",
-        title: "Pengumuman berhasil dihapus",
-        description: "Data telah berhasil dihapus dari database.",
-      });
-    },
-    onError: (error: any) => {
-      addToast({
-        type: "error",
-        title: "Gagal menghapus pengumuman",
-        description:
-          error?.response?.data?.message ||
-          "Terjadi kesalahan saat menghapus data.",
-      });
     },
   });
-};
+}

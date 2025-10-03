@@ -124,112 +124,112 @@ export default function MajorsPage() {
             {!isLoading &&
               !error &&
               majors.map((major: any, index: number) => (
-                <motion.div
+              <motion.div
                   key={major._id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
-                  className="group"
-                >
-                  <div className="bg-card border border-border rounded-2xl overflow-hidden hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10">
-                    {/* Card Header with Image */}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                className="group"
+              >
+                <div className="bg-card border border-border rounded-2xl overflow-hidden hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10">
+                  {/* Card Header with Image */}
                     <div className="relative aspect-[16/9] overflow-hidden">
-                      <Image
-                        src={major.image || "/placeholder.svg"}
-                        alt={major.name}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    <Image
+                      src={major.image || "/placeholder.svg"}
+                      alt={major.name}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
                         style={{ objectPosition: "top" }}
-                      />
-                      <div
+                    />
+                    <div
                         className={`absolute inset-0 bg-gradient-to-br from-primary/60 to-primary/30 opacity-80`}
-                      />
-                      <div className="absolute inset-0 bg-black/20" />
+                    />
+                    <div className="absolute inset-0 bg-black/20" />
 
-                      {/* Floating Info */}
-                      <div className="absolute top-4 left-4 flex items-center space-x-2">
-                        <div className="bg-white/20 backdrop-blur-sm rounded-lg px-3 py-1">
-                          <span className="text-white text-sm font-medium">
-                            {major.code}
-                          </span>
-                        </div>
-                        <div className="bg-white/20 backdrop-blur-sm rounded-lg px-3 py-1 flex items-center space-x-1">
-                          <Star className="w-3 h-3 text-yellow-300" />
-                          <span className="text-white text-sm">
-                            {major.accreditation || "A"}
-                          </span>
-                        </div>
+                    {/* Floating Info */}
+                    <div className="absolute top-4 left-4 flex items-center space-x-2">
+                      <div className="bg-white/20 backdrop-blur-sm rounded-lg px-3 py-1">
+                        <span className="text-white text-sm font-medium">
+                          {major.code}
+                        </span>
                       </div>
-
-                      {/* No static icon; keep clean header */}
+                      <div className="bg-white/20 backdrop-blur-sm rounded-lg px-3 py-1 flex items-center space-x-1">
+                        <Star className="w-3 h-3 text-yellow-300" />
+                        <span className="text-white text-sm">
+                            {major.accreditation || "A"}
+                        </span>
+                      </div>
                     </div>
 
-                    {/* Card Content */}
-                    <div className="p-6">
-                      <div className="flex items-start justify-between mb-4">
-                        <div>
-                          <Typography
-                            variant="h3"
-                            className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors"
-                          >
-                            {major.name}
-                          </Typography>
-                          <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                            <div className="flex items-center space-x-1">
-                              <Users className="w-4 h-4" />
+                      {/* No static icon; keep clean header */}
+                  </div>
+
+                  {/* Card Content */}
+                  <div className="p-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <div>
+                        <Typography
+                          variant="h3"
+                          className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors"
+                        >
+                          {major.name}
+                        </Typography>
+                        <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                          <div className="flex items-center space-x-1">
+                            <Users className="w-4 h-4" />
                               <span>{major.totalStudents || 0} siswa</span>
-                            </div>
                           </div>
                         </div>
                       </div>
+                    </div>
 
-                      <Typography
-                        variant="body2"
-                        color="muted"
-                        className="mb-6 text-pretty leading-relaxed"
-                      >
-                        {major.description}
-                      </Typography>
+                    <Typography
+                      variant="body2"
+                      color="muted"
+                      className="mb-6 text-pretty leading-relaxed"
+                    >
+                      {major.description}
+                    </Typography>
 
-                      {/* Key Subjects */}
+                    {/* Key Subjects */}
                       {Array.isArray(major.subjects) &&
                         major.subjects.length > 0 && (
-                          <div className="mb-6">
-                            <div className="flex items-center mb-3">
-                              <BookOpen className="w-4 h-4 text-primary mr-2" />
-                              <Typography
-                                variant="subtitle2"
-                                className="text-sm font-medium"
-                              >
-                                Mata Pelajaran Utama
-                              </Typography>
-                            </div>
-                            <div className="flex flex-wrap gap-2">
+                    <div className="mb-6">
+                      <div className="flex items-center mb-3">
+                        <BookOpen className="w-4 h-4 text-primary mr-2" />
+                        <Typography
+                          variant="subtitle2"
+                          className="text-sm font-medium"
+                        >
+                          Mata Pelajaran Utama
+                        </Typography>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
                               {major.subjects
                                 .slice(0, 3)
                                 .map((subject: string, idx: number) => (
-                                  <span
-                                    key={idx}
-                                    className="px-2 py-1 bg-secondary rounded-md text-xs text-secondary-foreground"
-                                  >
-                                    {subject}
-                                  </span>
-                                ))}
-                              {major.subjects.length > 3 && (
-                                <span className="px-2 py-1 bg-primary/10 text-primary rounded-md text-xs">
-                                  +{major.subjects.length - 3} lainnya
-                                </span>
-                              )}
-                            </div>
-                          </div>
+                          <span
+                            key={idx}
+                            className="px-2 py-1 bg-secondary rounded-md text-xs text-secondary-foreground"
+                          >
+                            {subject}
+                          </span>
+                        ))}
+                        {major.subjects.length > 3 && (
+                          <span className="px-2 py-1 bg-primary/10 text-primary rounded-md text-xs">
+                            +{major.subjects.length - 3} lainnya
+                          </span>
+                        )}
+                      </div>
+                    </div>
                         )}
 
-                      {/* CTA Button */}
-                      <Button
-                        variant="outline"
+                    {/* CTA Button */}
+                    <Button
+                      variant="outline"
                         className="w-full bg-primary-950 group/btn hover:bg-primary hover:text-primary-foreground"
-                        asChild
-                      >
+                      asChild
+                    >
                         <Link
                           href={`/academic/majors/${toSlug(
                             major.code || major.name
@@ -241,12 +241,12 @@ export default function MajorsPage() {
                             </span>
                             <ChevronRight className="w-4 text-white h-4 ml-2 transition-transform group-hover/btn:translate-x-1" />
                           </div>
-                        </Link>
-                      </Button>
-                    </div>
+                      </Link>
+                    </Button>
                   </div>
-                </motion.div>
-              ))}
+                </div>
+              </motion.div>
+            ))}
           </div>
 
           {/* Bottom CTA */}

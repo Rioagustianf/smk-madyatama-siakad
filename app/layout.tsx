@@ -15,6 +15,9 @@ const inter = Inter({
 export const metadata: Metadata = {
   metadataBase: new URL("http://localhost:3000"),
   title: `${school.name} - Sistem Informasi Akademik`,
+  icons: {
+    icon: "/favicon.ico",
+  },
   description: `Profil, program keahlian, fasilitas, dan informasi akademik ${school.name}.`,
   keywords:
     "SMK, SIAKAD, sistem informasi akademik, sekolah menengah kejuruan, pendidikan",
@@ -30,11 +33,25 @@ export const metadata: Metadata = {
     title: `${school.name} - Sistem Informasi Akademik`,
     description: `Profil, program keahlian, fasilitas, dan informasi akademik ${school.name}.`,
     siteName: school.name,
+    images: [
+      {
+        url: "/favicon.ico",
+        width: 1200,
+        height: 630,
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: `${school.name} - Sistem Informasi Akademik`,
     description: `Profil, program keahlian, fasilitas, dan informasi akademik ${school.name}.`,
+    images: [
+      {
+        url: "/favicon.ico",
+        width: 1200,
+        height: 630,
+      },
+    ],
   },
 };
 

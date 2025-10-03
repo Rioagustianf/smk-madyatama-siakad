@@ -27,24 +27,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Users,
-  MoreHorizontal,
-  Edit,
-  Trash2,
-  Plus,
-  Search,
-  Loader2,
-} from "lucide-react";
+import { Users, Edit, Trash2, Plus, Search, Loader2 } from "lucide-react";
 import { AdminHeader } from "@/components/molecules/AdminPage/AdminHeader";
 import { AdminTableCard } from "@/components/molecules/AdminTable/AdminTableCard";
 import { StaffForm } from "@/components/molecules/StaffForm/StaffForm";
+import type { StaffFormData } from "@/components/molecules/StaffForm/StaffForm";
 import {
   useStaffList,
   useCreateStaff,
@@ -56,32 +43,30 @@ type Staff = {
   _id: string;
   name: string;
   position: string;
-  department: string;
-  email?: string;
-  phone?: string;
+  role?: string;
   image?: string;
   bio?: string;
   isActive: boolean;
   createdAt: string | Date;
+  order?: number;
 };
 
 export default function AdminStaffPage() {
   const [search, setSearch] = useState("");
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [editingStaff, setEditingStaff] = useState<Staff | null>(null);
-  const [formData, setFormData] = useState({
+  const [deletingStaff, setDeletingStaff] = useState<Staff | null>(null);
+  const [formData, setFormData] = useState<StaffFormData>({
     name: "",
+    role: "teacher",
     position: "",
-    department: "",
-    email: "",
-    phone: "",
     image: "",
     bio: "",
-    education: "",
-    experience: 0,
-    certifications: [] as string[],
     isActive: true,
+    subject: "",
+    quote: "",
   });
 
   const { data, isLoading, error } = useStaffList({
@@ -130,26 +115,45 @@ export default function AdminStaffPage() {
                   </DialogHeader>
                   <StaffForm
                     formData={formData}
-                    onInputChange={(field, value) =>
-                      setFormData({ ...formData, [field]: value })
-                    }
+                    onInputChange={(field, value) => {
+                      const next = { ...formData, [field]: value } as any;
+                      if (field === "role" && !formData.position) {
+                        if (value === "headmaster")
+                          next.position = "Kepala Sekolah";
+                        if (value === "teacher") next.position = "Guru";
+                        if (value === "admin")
+                          next.position = "Staf Administrasi";
+                      }
+                      setFormData(next);
+                    }}
                     onSubmit={async (e) => {
                       e.preventDefault();
+                      // Headmaster uniqueness rule
+                      if (formData.role === "headmaster" && formData.isActive) {
+                        const existing = (staffList as any[]).some(
+                          (s) =>
+                            (s.role || "").toLowerCase() === "headmaster" &&
+                            s.isActive
+                        );
+                        if (existing) {
+                          alert(
+                            "Sudah ada Kepala Sekolah aktif. Nonaktifkan yang lama terlebih dahulu."
+                          );
+                          return;
+                        }
+                      }
                       await createMutation.mutateAsync(formData as any);
                       setIsAddOpen(false);
                       setFormData({
                         name: "",
+                        role: "teacher",
                         position: "",
-                        department: "",
-                        email: "",
-                        phone: "",
                         image: "",
                         bio: "",
-                        education: "",
-                        experience: 0,
-                        certifications: [],
                         isActive: true,
-                      });
+                        subject: "",
+                        quote: "",
+                      } as StaffFormData);
                     }}
                     isLoading={createMutation.isPending}
                     submitText="Simpan"
@@ -187,15 +191,16 @@ export default function AdminStaffPage() {
               <TableHeader>
                 <TableRow className="bg-primary-900 hover:bg-primary-900">
                   <TableHead className="text-white">Nama</TableHead>
+                  <TableHead className="text-white">Peran</TableHead>
                   <TableHead className="text-white">Jabatan</TableHead>
-                  <TableHead className="w-20 text-white">Aksi</TableHead>
+                  <TableHead className="w-24 text-white">Aksi</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {staffList.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={3}
+                      colSpan={5}
                       className="text-center py-8 text-muted-foreground"
                     >
                       Tidak ada data staf
@@ -205,59 +210,67 @@ export default function AdminStaffPage() {
                   staffList.map((s) => (
                     <TableRow key={s._id} className="hover:bg-muted/50">
                       <TableCell className="font-medium">{s.name}</TableCell>
+                      <TableCell>{(s as any).role || "-"}</TableCell>
                       <TableCell>{s.position}</TableCell>
                       <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                              className="gap-2"
-                              onClick={() => {
-                                try {
-                                  if (
-                                    typeof document !== "undefined" &&
-                                    document.activeElement instanceof
-                                      HTMLElement
-                                  ) {
-                                    document.activeElement.blur();
-                                  }
-                                } catch {}
-                                setIsAddOpen(false);
-                                setEditingStaff(s);
-                                setFormData({
-                                  name: s.name,
-                                  position: s.position,
-                                  department: s.department || "",
-                                  email: s.email || "",
-                                  phone: s.phone || "",
-                                  image: s.image || "",
-                                  bio: s.bio || "",
-                                  education: "",
-                                  experience: 0,
-                                  certifications: [],
-                                  isActive: s.isActive,
-                                });
-                                setIsEditOpen(true);
-                              }}
-                            >
-                              <Edit className="h-4 w-4" />
-                              Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              className="gap-2 text-destructive"
-                              onClick={async () => {
-                                await deleteMutation.mutateAsync(s._id);
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                              Hapus
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              try {
+                                if (
+                                  typeof document !== "undefined" &&
+                                  document.activeElement instanceof HTMLElement
+                                ) {
+                                  document.activeElement.blur();
+                                }
+                              } catch {}
+                              setIsAddOpen(false);
+                              setEditingStaff(s);
+                              setFormData({
+                                name: s.name,
+                                role: (s as any).role || "teacher",
+                                position: s.position,
+                                image: s.image || "",
+                                bio: s.bio || "",
+                                isActive: s.isActive,
+                                subject: (s as any).subject || "",
+                                quote: (s as any).quote || "",
+                              } as StaffFormData);
+                              setIsEditOpen(true);
+                            }}
+                            className="h-8 w-8 p-0 hover:bg-blue-50 mr-3"
+                            title="Edit staf"
+                          >
+                            <Edit className="h-4 w-4" />
+                            Edit
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              try {
+                                if (
+                                  typeof document !== "undefined" &&
+                                  document.activeElement instanceof HTMLElement
+                                ) {
+                                  document.activeElement.blur();
+                                }
+                              } catch {}
+                              setDeletingStaff(s);
+                              setIsDeleteOpen(true);
+                            }}
+                            className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            title="Hapus staf"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))
@@ -266,6 +279,8 @@ export default function AdminStaffPage() {
             </Table>
           )}
         </AdminTableCard>
+
+        {/* Edit Dialog */}
         <Dialog
           open={isEditOpen}
           onOpenChange={(open) => {
@@ -283,17 +298,14 @@ export default function AdminStaffPage() {
               setEditingStaff(null);
               setFormData({
                 name: "",
+                role: "teacher",
                 position: "",
-                department: "",
-                email: "",
-                phone: "",
                 image: "",
                 bio: "",
-                education: "",
-                experience: 0,
-                certifications: [],
                 isActive: true,
-              });
+                subject: "",
+                quote: "",
+              } as StaffFormData);
             }
             setIsEditOpen(open);
           }}
@@ -308,12 +320,32 @@ export default function AdminStaffPage() {
             </DialogHeader>
             <StaffForm
               formData={formData as any}
-              onInputChange={(field, value) =>
-                setFormData({ ...formData, [field]: value })
-              }
+              onInputChange={(field, value) => {
+                const next = { ...formData, [field]: value } as any;
+                if (field === "role" && !formData.position) {
+                  if (value === "headmaster") next.position = "Kepala Sekolah";
+                  if (value === "teacher") next.position = "Guru";
+                  if (value === "admin") next.position = "Staf Administrasi";
+                }
+                setFormData(next);
+              }}
               onSubmit={async (e) => {
                 e.preventDefault();
                 if (!editingStaff) return;
+                if (formData.role === "headmaster" && formData.isActive) {
+                  const existing = (staffList as any[]).some(
+                    (s) =>
+                      (s.role || "").toLowerCase() === "headmaster" &&
+                      s.isActive &&
+                      s._id !== editingStaff._id
+                  );
+                  if (existing) {
+                    alert(
+                      "Sudah ada Kepala Sekolah aktif. Nonaktifkan yang lama terlebih dahulu."
+                    );
+                    return;
+                  }
+                }
                 await updateMutation.mutateAsync({
                   id: editingStaff._id,
                   data: formData,
@@ -325,6 +357,42 @@ export default function AdminStaffPage() {
               submitText="Simpan Perubahan"
               onCancel={() => setIsEditOpen(false)}
             />
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Dialog */}
+        <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Hapus Staf</DialogTitle>
+            </DialogHeader>
+            <div className="py-4">
+              <p className="text-sm text-gray-600">
+                Apakah Anda yakin ingin menghapus "{deletingStaff?.name}"?
+                Tindakan ini tidak dapat dibatalkan.
+              </p>
+            </div>
+            <div className="flex justify-end space-x-4">
+              <Button
+                variant="outline"
+                onClick={() => setIsDeleteOpen(false)}
+                disabled={deleteMutation.isPending}
+              >
+                Batal
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={async () => {
+                  if (!deletingStaff) return;
+                  await deleteMutation.mutateAsync(deletingStaff._id);
+                  setIsDeleteOpen(false);
+                  setDeletingStaff(null);
+                }}
+                disabled={deleteMutation.isPending}
+              >
+                {deleteMutation.isPending ? "Menghapus..." : "Hapus"}
+              </Button>
+            </div>
           </DialogContent>
         </Dialog>
       </div>

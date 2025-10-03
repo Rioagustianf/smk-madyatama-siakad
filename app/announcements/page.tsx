@@ -6,76 +6,35 @@ import { PageHeader } from "@/components/molecules/PageHeader/PageHeader";
 import { Typography } from "@/components/atoms/Typography/Typography";
 import { Button } from "@/components/atoms/Button/Button";
 import { Search, Filter, Calendar, Bell } from "lucide-react";
+import { useAnnouncements } from "@/lib/hooks/use-announcements";
 import bgHeaderAnnouncements from "@/public/assets/bg-pengumuman.jpeg";
 
-// Data contoh sesuai kebutuhan client
-const announcements = [
-  {
-    id: "1",
-    title: "Jadwal Ujian Tengah Semester Ganjil 2024/2025",
-    excerpt:
-      "Jadwal ujian tengah semester untuk semua program keahlian telah ditetapkan. Siswa diharapkan mempersiapkan diri dengan baik.",
-    image:
-      "https://images.pexels.com/photos/159844/cellular-education-classroom-159844.jpeg",
-    category: "exam" as const,
-    priority: "high" as const,
-    publishedAt: new Date("2024-01-15"),
-    href: "/announcements/1",
-  },
-  {
-    id: "2",
-    title: "Libur Semester Ganjil dan Jadwal Masuk Semester Genap",
-    excerpt:
-      "Libur semester dimulai tanggal 20 Desember 2024 dan masuk kembali pada 6 Januari 2025.",
-    image: "https://images.pexels.com/photos/1595391/pexels-photo-1595391.jpeg",
-    category: "general" as const,
-    priority: "medium" as const,
-    publishedAt: new Date("2024-01-12"),
-    href: "/announcements/2",
-  },
-  {
-    id: "3",
-    title: "Pembagian Rapor Semester Ganjil 2024/2025",
-    excerpt:
-      "Pembagian rapor dilaksanakan pada 19 Desember 2024 di masing-masing wali kelas.",
-    category: "academic" as const,
-    priority: "medium" as const,
-    publishedAt: new Date("2024-01-10"),
-    href: "/announcements/3",
-  },
-  {
-    id: "4",
-    title: "Pendaftaran Ekstrakurikuler Semester Genap 2024/2025",
-    excerpt:
-      "Dibuka pendaftaran untuk berbagai kegiatan ekstrakurikuler. Jangan lewatkan kesempatan untuk mengembangkan bakat dan minat.",
-    image: "https://images.pexels.com/photos/207691/pexels-photo-207691.jpeg",
-    category: "event" as const,
-    priority: "low" as const,
-    publishedAt: new Date("2024-01-08"),
-    href: "/announcements/4",
-  },
-  {
-    id: "5",
-    title: "Libur Semester dan Jadwal Masuk Semester Baru",
-    excerpt:
-      "Informasi mengenai jadwal libur semester dan persiapan untuk semester baru. Siswa diharapkan memperhatikan jadwal yang telah ditetapkan.",
-    category: "academic" as const,
-    priority: "high" as const,
-    publishedAt: new Date("2024-01-05"),
-    href: "/announcements/5",
-  },
-  {
-    id: "6",
-    title: "Kunjungan Industri Program Keahlian Multimedia",
-    excerpt:
-      "Siswa program keahlian Multimedia akan melaksanakan kunjungan industri ke beberapa perusahaan media dan advertising terkemuka.",
-    image: "https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg",
-    category: "academic" as const,
-    priority: "medium" as const,
-    publishedAt: new Date("2024-01-03"),
-    href: "/announcements/6",
-  },
-];
+interface Announcement {
+  _id: string;
+  title: string;
+  content: string;
+  excerpt?: string;
+  image?: string;
+  category: "academic" | "general" | "exam" | "event";
+  priority: "low" | "medium" | "high";
+  isPublished: boolean;
+  publishedAt?: string | Date | null;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}
+
+const categoryLabels = {
+  academic: "Akademik",
+  general: "Umum",
+  exam: "Ujian",
+  event: "Acara",
+};
+
+const priorityLabels = {
+  low: "Biasa",
+  medium: "Sedang",
+  high: "Penting",
+};
 
 const categories = [
   { value: "all", label: "Semua Kategori" },
@@ -88,30 +47,24 @@ const categories = [
 export default function AnnouncementsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [filteredAnnouncements, setFilteredAnnouncements] =
-    useState(announcements);
 
-  React.useEffect(() => {
-    let filtered = announcements;
+  const { data, isLoading } = useAnnouncements({
+    search: searchTerm,
+    category: selectedCategory === "all" ? undefined : selectedCategory,
+    isPublished: true,
+    page: 1,
+    limit: 50,
+  });
 
-    // Filter by category
-    if (selectedCategory !== "all") {
-      filtered = filtered.filter(
-        (announcement) => announcement.category === selectedCategory
-      );
-    }
+  const announcements: Announcement[] = (data as any)?.data || [];
 
-    // Filter by search term
-    if (searchTerm) {
-      filtered = filtered.filter(
-        (announcement) =>
-          announcement.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          announcement.excerpt.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    setFilteredAnnouncements(filtered);
-  }, [searchTerm, selectedCategory]);
+  const formatDate = (date: string | Date) => {
+    return new Date(date).toLocaleDateString("id-ID", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
 
   return (
     <div>
@@ -170,7 +123,9 @@ export default function AnnouncementsPage() {
             className="flex items-center justify-between mb-8"
           >
             <Typography variant="body1" color="muted">
-              Menampilkan {filteredAnnouncements.length} pengumuman
+              {isLoading
+                ? "Memuat..."
+                : `Menampilkan ${announcements.length} pengumuman`}
               {selectedCategory !== "all" &&
                 ` dalam kategori "${
                   categories.find((c) => c.value === selectedCategory)?.label
@@ -184,11 +139,11 @@ export default function AnnouncementsPage() {
           </motion.div>
 
           {/* Announcements Grid */}
-          {filteredAnnouncements.length > 0 ? (
+          {!isLoading && announcements.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-8">
-              {filteredAnnouncements.map((announcement, index) => (
+              {announcements.map((announcement, index) => (
                 <motion.div
-                  key={announcement.id}
+                  key={announcement._id}
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: index * 0.1 }}
@@ -212,11 +167,7 @@ export default function AnnouncementsPage() {
                                 : "bg-green-100 text-green-700"
                             }`}
                           >
-                            {announcement.priority === "high"
-                              ? "Penting"
-                              : announcement.priority === "medium"
-                              ? "Sedang"
-                              : "Biasa"}
+                            {priorityLabels[announcement.priority]}
                           </span>
                         </div>
                       </div>
@@ -235,16 +186,12 @@ export default function AnnouncementsPage() {
                               : "bg-gray-100 text-gray-700"
                           }`}
                         >
-                          {announcement.category === "academic"
-                            ? "Akademik"
-                            : announcement.category === "exam"
-                            ? "Ujian"
-                            : announcement.category === "event"
-                            ? "Acara"
-                            : "Umum"}
+                          {categoryLabels[announcement.category]}
                         </span>
                         <span className="text-xs text-gray-500">
-                          {announcement.publishedAt.toLocaleDateString("id-ID")}
+                          {formatDate(
+                            announcement.publishedAt || announcement.createdAt
+                          )}
                         </span>
                       </div>
 
@@ -257,16 +204,38 @@ export default function AnnouncementsPage() {
                       </p>
 
                       <Button
-                        variant="outline"
                         size="sm"
-                        className="w-full group-hover:bg-primary group-hover:text-white transition-colors bg-transparent"
+                        className="w-full bg-primary-950 hover:bg-primary-900 group-hover:text-white transition-colors"
                         asChild
                       >
-                        <a href={announcement.href}>Baca Selengkapnya</a>
+                        <a href={`/announcements/${announcement._id}`}>
+                          Baca Selengkapnya
+                        </a>
                       </Button>
                     </div>
                   </div>
                 </motion.div>
+              ))}
+            </div>
+          ) : isLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-8">
+              {[...Array(8)].map((_, index) => (
+                <div
+                  key={index}
+                  className="bg-white rounded-xl shadow-sm border border-gray-100 h-full animate-pulse"
+                >
+                  <div className="h-48 bg-gray-200 rounded-t-xl"></div>
+                  <div className="p-6 space-y-3">
+                    <div className="flex gap-2">
+                      <div className="h-5 bg-gray-200 rounded w-16"></div>
+                      <div className="h-5 bg-gray-200 rounded w-20"></div>
+                    </div>
+                    <div className="h-6 bg-gray-200 rounded w-full"></div>
+                    <div className="h-4 bg-gray-200 rounded w-full"></div>
+                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                    <div className="h-8 bg-gray-200 rounded w-full mt-4"></div>
+                  </div>
+                </div>
               ))}
             </div>
           ) : (
@@ -298,7 +267,7 @@ export default function AnnouncementsPage() {
           )}
 
           {/* Load More Button */}
-          {filteredAnnouncements.length > 0 && (
+          {!isLoading && announcements.length > 0 && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}

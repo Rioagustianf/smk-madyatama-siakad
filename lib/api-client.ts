@@ -174,26 +174,7 @@ export const apiMethods = {
     delete: (_id: string) => api.delete(API_ENDPOINTS.MAJORS.DELETE(_id)),
   },
 
-  // Subjects
-  subjects: {
-    list: (filters?: Record<string, any>) =>
-      api.get(API_ENDPOINTS.SUBJECTS.LIST, { params: filters }),
-    create: (data: any) => api.post(API_ENDPOINTS.SUBJECTS.CREATE, data),
-    update: (id: string, data: any) =>
-      api.put(API_ENDPOINTS.SUBJECTS.UPDATE(id), data),
-    delete: (id: string) => api.delete(API_ENDPOINTS.SUBJECTS.DELETE(id)),
-  },
-
-  // Schedules
-  schedules: {
-    list: (filters?: Record<string, any>) =>
-      api.get(API_ENDPOINTS.SCHEDULES.LIST, { params: filters }),
-    get: (id: string) => api.get(API_ENDPOINTS.SCHEDULES.UPDATE(id)),
-    create: (data: any) => api.post(API_ENDPOINTS.SCHEDULES.CREATE, data),
-    update: (id: string, data: any) =>
-      api.put(API_ENDPOINTS.SCHEDULES.UPDATE(id), data),
-    delete: (id: string) => api.delete(API_ENDPOINTS.SCHEDULES.DELETE(id)),
-  },
+  // -- duplicate schedules block removed --
 
   // Grades
   grades: {
@@ -209,17 +190,7 @@ export const apiMethods = {
       api.get(API_ENDPOINTS.GRADES.BY_TEACHER(teacherId)),
   },
 
-  // Announcements
-  announcements: {
-    list: (filters?: Record<string, any>) =>
-      api.get(API_ENDPOINTS.ANNOUNCEMENTS.LIST, { params: filters }),
-    get: (_id: string) => api.get(API_ENDPOINTS.ANNOUNCEMENTS.UPDATE(_id)),
-    create: (data: any) => api.post(API_ENDPOINTS.ANNOUNCEMENTS.CREATE, data),
-    update: (_id: string, data: any) =>
-      api.put(API_ENDPOINTS.ANNOUNCEMENTS.UPDATE(_id), data),
-    delete: (_id: string) =>
-      api.delete(API_ENDPOINTS.ANNOUNCEMENTS.DELETE(_id)),
-  },
+  // Announcements (deprecated duplicate removed below)
 
   // Gallery
   gallery: {
@@ -232,8 +203,15 @@ export const apiMethods = {
     delete: (id: string) => api.delete(API_ENDPOINTS.GALLERY.DELETE(id)),
   },
 
-  // Activities (unified)
+  // Activities (split per resource for hooks expectations)
   activities: {
+    list: (filters?: Record<string, any>) =>
+      api.get(API_ENDPOINTS.ACTIVITIES.LIST, { params: filters }),
+    get: (id: string) => api.get(`/api/activities/${id}`),
+    create: (data: any) => api.post(API_ENDPOINTS.ACTIVITIES.CREATE, data),
+    update: (id: string, data: any) =>
+      api.put(API_ENDPOINTS.ACTIVITIES.UPDATE(id), data),
+    delete: (id: string) => api.delete(API_ENDPOINTS.ACTIVITIES.DELETE(id)),
     achievements: {
       list: (filters?: Record<string, any>) =>
         api.get("/api/activities/achievements", { params: filters }),
@@ -254,16 +232,6 @@ export const apiMethods = {
         api.delete(`/api/activities/extracurricular/${id}`),
     },
     internship: {
-      partners: {
-        list: (filters?: Record<string, any>) =>
-          api.get("/api/activities/internship/partners", { params: filters }),
-        create: (data: any) =>
-          api.post("/api/activities/internship/partners", data),
-        update: (id: string, data: any) =>
-          api.put(`/api/activities/internship/partners/${id}`, data),
-        delete: (id: string) =>
-          api.delete(`/api/activities/internship/partners/${id}`),
-      },
       schedules: {
         list: (filters?: Record<string, any>) =>
           api.get("/api/activities/internship/schedules", { params: filters }),
@@ -313,6 +281,25 @@ export const apiMethods = {
   profile: {
     get: () => api.get(API_ENDPOINTS.PROFILE.GET),
     update: (data: any) => api.put(API_ENDPOINTS.PROFILE.UPDATE, data),
+  },
+
+  // Announcements (final canonical)
+  announcements: {
+    list: (params: any = {}) => {
+      const searchParams = new URLSearchParams();
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== "") {
+          searchParams.append(key, String(value));
+        }
+      });
+      const query = searchParams.toString();
+      return api.get(`/api/announcements${query ? `?${query}` : ""}`);
+    },
+    get: (id: string) => api.get(`/api/announcements/${id}`),
+    create: (data: any) => api.post("/api/announcements", data),
+    update: (id: string, data: any) =>
+      api.put(`/api/announcements/${id}`, data),
+    delete: (id: string) => api.delete(`/api/announcements/${id}`),
   },
 };
 
