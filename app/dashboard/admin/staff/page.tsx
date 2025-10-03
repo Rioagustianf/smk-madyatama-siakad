@@ -368,8 +368,8 @@ export default function AdminStaffPage() {
             </DialogHeader>
             <div className="py-4">
               <p className="text-sm text-gray-600">
-                Apakah Anda yakin ingin menghapus "{deletingStaff?.name}"?
-                Tindakan ini tidak dapat dibatalkan.
+                Apakah Anda yakin ingin menghapus &quot;{deletingStaff?.name}
+                &quot;? Tindakan ini tidak dapat dibatalkan.
               </p>
             </div>
             <div className="flex justify-end space-x-4">

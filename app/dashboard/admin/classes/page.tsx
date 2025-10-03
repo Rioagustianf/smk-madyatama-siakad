@@ -243,8 +243,8 @@ export default function AdminClassesPage() {
                           Belum ada data kelas
                         </p>
                         <p className="text-sm">
-                          Klik tombol "Tambah Kelas" untuk menambahkan kelas
-                          pertama
+                          Klik tombol &quot;Tambah Kelas&quot; untuk menambahkan
+                          kelas pertama
                         </p>
                       </div>
                     </TableCell>

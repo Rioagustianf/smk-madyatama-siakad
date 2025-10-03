@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Upload, X, Image as ImageIcon } from "lucide-react";
 import { fileUpload } from "@/lib/supabase-client";
 import { useToast } from "@/lib/contexts/toast-context";
+import Image from "next/image";
 
 interface ImageUploadProps {
   value: string;
@@ -111,7 +112,7 @@ export function ImageUpload({
       {/* Preview */}
       {preview && (
         <div className="relative w-full h-48 border rounded-lg overflow-hidden">
-          <img
+          <Image
             src={preview}
             alt="Preview"
             className="w-full h-full object-cover"

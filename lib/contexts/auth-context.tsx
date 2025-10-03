@@ -212,7 +212,7 @@ export const useAuth = (): AuthContextType => {
 export const withAuth = <P extends object>(
   Component: React.ComponentType<P>
 ): React.ComponentType<P> => {
-  return (props: P) => {
+  const Wrapped: React.FC<P> = (props: P) => {
     const { state } = useAuth();
 
     if (state.isLoading) {
@@ -233,4 +233,8 @@ export const withAuth = <P extends object>(
 
     return <Component {...props} />;
   };
+  Wrapped.displayName = `withAuth(${
+    Component.displayName || Component.name || "Component"
+  })`;
+  return Wrapped;
 };

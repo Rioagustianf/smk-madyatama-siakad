@@ -388,8 +388,8 @@ export default function AdminAnnouncementsPage() {
             </DialogHeader>
             <div className="py-4">
               <p className="text-sm text-gray-600">
-                Apakah Anda yakin ingin menghapus pengumuman "
-                {deletingAnnouncement?.title}"? Tindakan ini tidak dapat
+                Apakah Anda yakin ingin menghapus pengumuman &quot;
+                {deletingAnnouncement?.title}&quot;? Tindakan ini tidak dapat
                 dibatalkan.
               </p>
             </div>

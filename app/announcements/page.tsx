@@ -8,6 +8,7 @@ import { Button } from "@/components/atoms/Button/Button";
 import { Search, Filter, Calendar, Bell } from "lucide-react";
 import { useAnnouncements } from "@/lib/hooks/use-announcements";
 import bgHeaderAnnouncements from "@/public/assets/bg-pengumuman.jpeg";
+import Image from "next/image";
 
 interface Announcement {
   _id: string;
@@ -152,7 +153,7 @@ export default function AnnouncementsPage() {
                   <div className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 h-full flex flex-col group">
                     {announcement.image && (
                       <div className="relative h-48 overflow-hidden rounded-t-xl">
-                        <img
+                        <Image
                           src={announcement.image || "/placeholder.svg"}
                           alt={announcement.title}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"

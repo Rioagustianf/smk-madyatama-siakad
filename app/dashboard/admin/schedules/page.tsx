@@ -192,7 +192,8 @@ export default function AdminSchedulesPage() {
               <Calendar className="h-12 w-12 mb-4 text-gray-300" />
               <p className="text-lg font-medium">Belum ada jadwal</p>
               <p className="text-sm">
-                Klik tombol "Tambah Jadwal" untuk menambahkan jadwal pertama
+                Klik tombol &quot;Tambah Jadwal&quot; untuk menambahkan jadwal
+                pertama
               </p>
             </div>
           ) : (

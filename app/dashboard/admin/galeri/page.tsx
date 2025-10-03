@@ -48,6 +48,7 @@ import {
   useUpdateGallery,
   useDeleteGallery,
 } from "@/lib/hooks/use-gallery";
+import Image from "next/image";
 
 export default function AdminGaleriPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -326,7 +327,7 @@ export default function AdminGaleriPage() {
                     >
                       <TableCell>
                         <div className="relative h-12 w-12 overflow-hidden rounded-md border">
-                          <img
+                          <Image
                             src={
                               item.url || item.imageUrl || "/placeholder.svg"
                             }

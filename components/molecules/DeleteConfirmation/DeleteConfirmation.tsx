@@ -43,7 +43,8 @@ export function DeleteConfirmation({
         <AlertDialogHeader>
           <AlertDialogTitle>Konfirmasi Hapus Permanen</AlertDialogTitle>
           <AlertDialogDescription>
-            Apakah Anda yakin ingin menghapus "{itemName}" secara permanen?
+            Apakah Anda yakin ingin menghapus &quot;{itemName}&quot; secara
+            permanen?
             <br />
             <strong>
               Data akan dihapus selamanya dari database dan tidak dapat
