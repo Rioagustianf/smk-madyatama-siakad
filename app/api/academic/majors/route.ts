@@ -99,12 +99,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Error fetching majors:", error);
-    const errorResponse = handleDatabaseError(error);
-    return NextResponse.json(
-      { success: false, message: errorResponse.message },
-      { status: 500 }
-    );
+    return handleDatabaseError(error);
   }
 }
 
@@ -167,11 +162,6 @@ export async function POST(request: NextRequest) {
       data: { id: result.insertedId, ...newMajor },
     });
   } catch (error) {
-    console.error("Error creating major:", error);
-    const errorResponse = handleDatabaseError(error);
-    return NextResponse.json(
-      { success: false, message: errorResponse.message },
-      { status: 500 }
-    );
+    return handleDatabaseError(error);
   }
 }

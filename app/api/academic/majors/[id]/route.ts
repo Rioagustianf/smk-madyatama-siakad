@@ -84,11 +84,7 @@ export async function GET(
     });
   } catch (error) {
     console.error("Error fetching major:", error);
-    const errorResponse = handleDatabaseError(error);
-    return NextResponse.json(
-      { success: false, message: errorResponse.message },
-      { status: 500 }
-    );
+    return handleDatabaseError(error);
   }
 }
 
@@ -187,11 +183,7 @@ export async function PUT(
     });
   } catch (error) {
     console.error("Error updating major:", error);
-    const errorResponse = handleDatabaseError(error);
-    return NextResponse.json(
-      { success: false, message: errorResponse.message },
-      { status: 500 }
-    );
+    return handleDatabaseError(error);
   }
 }
 
@@ -272,10 +264,6 @@ export async function DELETE(
     });
   } catch (error) {
     console.error("Error deleting major:", error);
-    const errorResponse = handleDatabaseError(error);
-    return NextResponse.json(
-      { success: false, message: errorResponse.message },
-      { status: 500 }
-    );
+    return handleDatabaseError(error);
   }
 }

@@ -1,4 +1,5 @@
 import { MongoClient, Db, Collection } from "mongodb";
+import { NextResponse } from "next/server";
 import { User, Teacher, Student, Admin } from "@/lib/types";
 
 // MongoDB connection
@@ -179,32 +180,44 @@ export const closeDatabaseConnection = async () => {
 };
 
 // Error handling utilities
-export const handleDatabaseError = (error: any) => {
+export const handleDatabaseError = (error: any): any => {
   console.error("Database error:", error);
 
-  if (error.code === 11000) {
-    // Duplicate key error
-    const field = Object.keys(error.keyPattern)[0];
-    return {
+  if (error?.code === 11000) {
+    const field = Object.keys(error.keyPattern || {})[0] || "unknown";
+    const payload = {
+      success: false,
       message: `${field} sudah digunakan`,
       field,
       code: "DUPLICATE_KEY",
-    };
+    } as const;
+    const res = NextResponse.json(payload, { status: 409 });
+    (res as any).message = payload.message;
+    return res as any;
   }
 
-  if (error.name === "ValidationError") {
-    // Validation error
-    const errors = Object.values(error.errors).map((err: any) => err.message);
-    return {
+  if (error?.name === "ValidationError") {
+    const errors = Object.values(error.errors || {}).map(
+      (err: any) => err.message
+    );
+    const payload = {
+      success: false,
       message: errors.join(", "),
       code: "VALIDATION_ERROR",
-    };
+    } as const;
+    const res = NextResponse.json(payload, { status: 400 });
+    (res as any).message = payload.message;
+    return res as any;
   }
 
-  return {
+  const payload = {
+    success: false,
     message: "Terjadi kesalahan pada database",
     code: "DATABASE_ERROR",
-  };
+  } as const;
+  const res = NextResponse.json(payload, { status: 500 });
+  (res as any).message = payload.message;
+  return res as any;
 };
 
 // Pagination utilities

@@ -60,11 +60,7 @@ export async function PUT(
       message: "Jadwal prakerin diperbarui",
     });
   } catch (error) {
-    const err = handleDatabaseError(error);
-    return NextResponse.json(
-      { success: false, message: err.message },
-      { status: 500 }
-    );
+    return handleDatabaseError(error);
   }
 }
 
@@ -99,10 +95,6 @@ export async function DELETE(
       message: "Jadwal prakerin dihapus",
     });
   } catch (error) {
-    const err = handleDatabaseError(error);
-    return NextResponse.json(
-      { success: false, message: err.message },
-      { status: 500 }
-    );
+    return handleDatabaseError(error);
   }
 }

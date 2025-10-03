@@ -1,7 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Only use export for production builds, not for development
-  ...(process.env.NODE_ENV === "production" && { output: "export" }),
+  // Use default server output to support dynamic API routes
   eslint: {
     ignoreDuringBuilds: true,
   },
