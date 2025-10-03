@@ -180,7 +180,7 @@ export function Navigation() {
               className={`relative z-20 mr-2 flex items-center space-x-2 px-2 py-1 text-sm font-medium ${brandTextClass}`}
             >
               <Image
-                src={logo}
+                src="../../../public/assets/logo.png"
                 alt={`${school.name} logo`}
                 width={32}
                 height={32}
