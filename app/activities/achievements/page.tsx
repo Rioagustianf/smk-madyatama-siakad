@@ -20,7 +20,7 @@ export default function AchievementsPage() {
         title="Prestasi"
         subtitle={`Kumpulan prestasi akademik dan non-akademik`}
         breadcrumbs={[{ label: "Prestasi" }]}
-        backgroundImage="../../../public/assets/prestasi.png"
+        backgroundImage="/assets/prestasi.png"
       />
 
       <section className="section-padding bg-white">

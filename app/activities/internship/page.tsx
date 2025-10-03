@@ -29,7 +29,7 @@ export default function InternshipPage() {
         title="DUDI & Prakerin"
         subtitle="Kemitraan dunia usaha dan industri serta jadwal program prakerin"
         breadcrumbs={[{ label: "DUDI & Prakerin" }]}
-        backgroundImage="../../../public/assets/p5.jpeg"
+        backgroundImage="/assets/p5.jpeg"
       />
 
       <section className="section-padding bg-white">

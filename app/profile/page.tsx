@@ -90,7 +90,7 @@ export default function ProfilePage() {
         title="Profil Sekolah"
         subtitle={`Mengenal lebih dekat ${school.name}: sejarah, visi misi, struktur organisasi, dan fasilitas unggulan`}
         breadcrumbs={[{ label: "Profil Sekolah" }]}
-        backgroundImage="../../../public/assets/lobi.jpeg"
+        backgroundImage="/assets/lobi.jpeg"
       />
 
       {/* Sejarah Sekolah */}
@@ -551,7 +551,7 @@ lembaga pendidikan kejuruan terdepan yang menghasilkan lulusan berkualitas dan s
             >
               <div className="relative h-96 rounded-2xl overflow-hidden shadow-2xl">
                 <Image
-                  src="../../../public/assets/madamdepan.jpeg"
+                  src="/assets/madamdepan.jpeg"
                   alt="Gedung SMK SIAKAD"
                   fill
                   className="object-cover"

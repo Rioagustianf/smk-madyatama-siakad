@@ -44,7 +44,7 @@ export default function TeacherLoginPage() {
         title="Portal Guru & Admin"
         subtitle="Masuk untuk mengelola data akademik dan konten"
         breadcrumbs={[{ label: "Portal Internal" }]}
-        backgroundImage="../../../public/assets/bg-header-login-guru.jpeg"
+        backgroundImage="/assets/bg-header-login-guru.jpeg"
       />
 
       <section className="section-padding bg-white">

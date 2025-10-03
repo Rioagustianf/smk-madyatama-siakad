@@ -101,7 +101,7 @@ export default function StaffPage() {
         title="Kepala Sekolah & Tenaga Pendidik"
         subtitle="Informasi pimpinan, tenaga pendidik, dan staf SMK Madyatama"
         breadcrumbs={[{ label: "Kepala Sekolah & Tenaga Pendidik" }]}
-        backgroundImage="../../../public/assets/bg-header-login-guru.jpeg"
+        backgroundImage="/assets/bg-header-login-guru.jpeg"
       />
 
       {/* Headmaster */}

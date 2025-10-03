@@ -45,7 +45,7 @@ export default function MajorsPage() {
           { label: "Akademik", href: "/academic" },
           { label: "Program Keahlian" },
         ]}
-        backgroundImage="../../../public/assets/bg-jurusan.png"
+        backgroundImage="/assets/bg-jurusan.png"
       />
 
       <section className="py-20 px-4">

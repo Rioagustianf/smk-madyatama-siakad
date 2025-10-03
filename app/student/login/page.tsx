@@ -39,7 +39,7 @@ export default function StudentLoginPage() {
         title="Portal Siswa"
         subtitle="Masuk untuk mengakses informasi akademik Anda"
         breadcrumbs={[{ label: "Portal Siswa" }]}
-        backgroundImage="../../../public/assets/bg-header-login.jpeg"
+        backgroundImage="/assets/bg-header-login.jpeg"
       />
 
       <section className="section-padding bg-white">

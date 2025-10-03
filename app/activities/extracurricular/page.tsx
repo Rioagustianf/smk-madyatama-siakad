@@ -16,7 +16,7 @@ export default function ExtracurricularPage() {
         title="Ekstrakurikuler"
         subtitle="Informasi kegiatan pengembangan minat dan bakat di SMK Madyatama"
         breadcrumbs={[{ label: "Ekstrakurikuler" }]}
-        backgroundImage="../../../public/assets/bg-eskul.png"
+        backgroundImage="/assets/bg-eskul.png"
       />
 
       <section className="section-padding bg-white">

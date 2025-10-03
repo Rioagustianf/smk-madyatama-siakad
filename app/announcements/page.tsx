@@ -72,7 +72,7 @@ export default function AnnouncementsPage() {
         title="Pengumuman"
         subtitle="Informasi terkini dan pengumuman penting dari SMK SIAKAD"
         breadcrumbs={[{ label: "Pengumuman" }]}
-        backgroundImage="../../../public/assets/bg-pengumuman.jpeg"
+        backgroundImage="/assets/bg-pengumuman.jpeg"
       />
 
       <section className="section-padding bg-gray-50">
