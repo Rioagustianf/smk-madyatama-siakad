@@ -7,7 +7,21 @@ import { PageHeader } from "@/components/molecules/PageHeader/PageHeader";
 import { Typography } from "@/components/atoms/Typography/Typography";
 import bgHeaderStaff from "@/public/assets/bg-header-login-guru.jpeg";
 import { useStaffList } from "@/lib/hooks/use-staff";
-import { OrganizationChart } from "@/components/organisms/OrganizationChart/OrganizationChart";
+import dynamic from "next/dynamic";
+const OrganizationChart = dynamic<{
+  people: any[];
+  className?: string;
+}>(
+  () =>
+    import("@/components/organisms/OrganizationChart/OrganizationChart").then(
+      (m) =>
+        m.OrganizationChart as React.ComponentType<{
+          people: any[];
+          className?: string;
+        }>
+    ),
+  { ssr: false }
+);
 import { Tabs } from "@/components/ui/tabs";
 
 export default function StaffPage() {
