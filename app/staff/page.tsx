@@ -5,7 +5,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { PageHeader } from "@/components/molecules/PageHeader/PageHeader";
 import { Typography } from "@/components/atoms/Typography/Typography";
-import bgHeaderStaff from "@/public/assets/bg-header-login-guru.jpeg";
+
 import { useStaffList } from "@/lib/hooks/use-staff";
 import dynamic from "next/dynamic";
 const OrganizationChart = dynamic<{
@@ -101,7 +101,7 @@ export default function StaffPage() {
         title="Kepala Sekolah & Tenaga Pendidik"
         subtitle="Informasi pimpinan, tenaga pendidik, dan staf SMK Madyatama"
         breadcrumbs={[{ label: "Kepala Sekolah & Tenaga Pendidik" }]}
-        backgroundImage={bgHeaderStaff}
+        backgroundImage="../../../public/assets/bg-header-login-guru.jpeg"
       />
 
       {/* Headmaster */}

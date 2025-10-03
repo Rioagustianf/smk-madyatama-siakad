@@ -8,7 +8,6 @@ import {
   useInternshipPartners,
   useInternshipSchedules,
 } from "@/lib/hooks/use-activities";
-import bgHeaderInternship from "@/public/assets/p5.jpeg";
 
 export default function InternshipPage() {
   const {
@@ -30,7 +29,7 @@ export default function InternshipPage() {
         title="DUDI & Prakerin"
         subtitle="Kemitraan dunia usaha dan industri serta jadwal program prakerin"
         breadcrumbs={[{ label: "DUDI & Prakerin" }]}
-        backgroundImage={bgHeaderInternship}
+        backgroundImage="../../../public/assets/p5.jpeg"
       />
 
       <section className="section-padding bg-white">

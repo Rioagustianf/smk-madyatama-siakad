@@ -9,7 +9,6 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/contexts/auth-context";
 import { useLoginMutation } from "@/lib/hooks/use-auth";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import bgHeaderLoginGuru from "@/public/assets/bg-header-login-guru.jpeg";
 
 export default function TeacherLoginPage() {
   const router = useRouter();
@@ -45,7 +44,7 @@ export default function TeacherLoginPage() {
         title="Portal Guru & Admin"
         subtitle="Masuk untuk mengelola data akademik dan konten"
         breadcrumbs={[{ label: "Portal Internal" }]}
-        backgroundImage={bgHeaderLoginGuru}
+        backgroundImage="../../../public/assets/bg-header-login-guru.jpeg"
       />
 
       <section className="section-padding bg-white">

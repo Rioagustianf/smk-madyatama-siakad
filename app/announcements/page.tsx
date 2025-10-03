@@ -7,7 +7,6 @@ import { Typography } from "@/components/atoms/Typography/Typography";
 import { Button } from "@/components/atoms/Button/Button";
 import { Search, Filter, Calendar, Bell } from "lucide-react";
 import { useAnnouncements } from "@/lib/hooks/use-announcements";
-import bgHeaderAnnouncements from "@/public/assets/bg-pengumuman.jpeg";
 import Image from "next/image";
 
 interface Announcement {
@@ -73,7 +72,7 @@ export default function AnnouncementsPage() {
         title="Pengumuman"
         subtitle="Informasi terkini dan pengumuman penting dari SMK SIAKAD"
         breadcrumbs={[{ label: "Pengumuman" }]}
-        backgroundImage={bgHeaderAnnouncements}
+        backgroundImage="../../../public/assets/bg-pengumuman.jpeg"
       />
 
       <section className="section-padding bg-gray-50">

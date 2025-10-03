@@ -19,7 +19,7 @@ import { HoveredLink } from "@/components/ui/navbar-menu";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { school } from "@/lib/school";
-import logo from "@/public/assets/logo.png";
+import logo from "../../../public/assets/logo.png";
 
 export function Navigation() {
   const pathname = usePathname();

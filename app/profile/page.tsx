@@ -26,8 +26,6 @@ import { apiMethods } from "@/lib/api-client";
 import { useTeachers } from "@/lib/hooks/use-teachers";
 import { useMajors } from "@/lib/hooks/use-majors";
 import { useProfile } from "@/lib/hooks/use-profile";
-import bgHeaderProfile from "@/public/assets/lobi.jpeg";
-import bgProfile from "@/public/assets/madamdepan.jpeg";
 
 function useCount(queryFn: () => Promise<any>, key: string) {
   return useQuery({
@@ -92,7 +90,7 @@ export default function ProfilePage() {
         title="Profil Sekolah"
         subtitle={`Mengenal lebih dekat ${school.name}: sejarah, visi misi, struktur organisasi, dan fasilitas unggulan`}
         breadcrumbs={[{ label: "Profil Sekolah" }]}
-        backgroundImage={bgHeaderProfile}
+        backgroundImage="../../../public/assets/lobi.jpeg"
       />
 
       {/* Sejarah Sekolah */}
@@ -225,8 +223,8 @@ lembaga pendidikan kejuruan terdepan yang menghasilkan lulusan berkualitas dan s
                       .map((s: string) => s.trim())
                       .filter(Boolean)
                   : [
-                  "Menyelenggarakan pendidikan kejuruan yang berkualitas dan relevan",
-                  "Mengembangkan kurikulum yang adaptif terhadap perkembangan teknologi",
+                      "Menyelenggarakan pendidikan kejuruan yang berkualitas dan relevan",
+                      "Mengembangkan kurikulum yang adaptif terhadap perkembangan teknologi",
                     ]
                 ).map((item: string, index: number) => (
                   <li key={index} className="flex items-start">
@@ -553,7 +551,7 @@ lembaga pendidikan kejuruan terdepan yang menghasilkan lulusan berkualitas dan s
             >
               <div className="relative h-96 rounded-2xl overflow-hidden shadow-2xl">
                 <Image
-                  src={bgProfile}
+                  src="../../../public/assets/madamdepan.jpeg"
                   alt="Gedung SMK SIAKAD"
                   fill
                   className="object-cover"

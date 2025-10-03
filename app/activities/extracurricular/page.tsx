@@ -5,7 +5,6 @@ import { motion } from "framer-motion";
 import { PageHeader } from "@/components/molecules/PageHeader";
 import { Typography } from "@/components/atoms/Typography/Typography";
 import { useExtracurriculars } from "@/lib/hooks/use-activities";
-import bgHeaderExtracurricular from "@/public/assets/bg-eskul.png";
 
 export default function ExtracurricularPage() {
   const { data, isLoading, error } = useExtracurriculars();
@@ -17,7 +16,7 @@ export default function ExtracurricularPage() {
         title="Ekstrakurikuler"
         subtitle="Informasi kegiatan pengembangan minat dan bakat di SMK Madyatama"
         breadcrumbs={[{ label: "Ekstrakurikuler" }]}
-        backgroundImage={bgHeaderExtracurricular}
+        backgroundImage="../../../public/assets/bg-eskul.png"
       />
 
       <section className="section-padding bg-white">

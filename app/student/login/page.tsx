@@ -9,7 +9,6 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/contexts/auth-context";
 import { useLoginMutation } from "@/lib/hooks/use-auth";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import bgHeaderLogin from "@/public/assets/bg-header-login.jpeg";
 
 export default function StudentLoginPage() {
   const router = useRouter();
@@ -40,7 +39,7 @@ export default function StudentLoginPage() {
         title="Portal Siswa"
         subtitle="Masuk untuk mengakses informasi akademik Anda"
         breadcrumbs={[{ label: "Portal Siswa" }]}
-        backgroundImage={bgHeaderLogin}
+        backgroundImage="../../../public/assets/bg-header-login.jpeg"
       />
 
       <section className="section-padding bg-white">

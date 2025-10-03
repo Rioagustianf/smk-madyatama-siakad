@@ -5,7 +5,6 @@ import { motion } from "framer-motion";
 import { PageHeader } from "@/components/molecules/PageHeader";
 import { Typography } from "@/components/atoms/Typography/Typography";
 import { useAchievements } from "@/lib/hooks/use-activities";
-import bgHeaderAchievements from "@/public/assets/prestasi.png";
 
 export default function AchievementsPage() {
   const { data, isLoading, error } = useAchievements();
@@ -21,7 +20,7 @@ export default function AchievementsPage() {
         title="Prestasi"
         subtitle={`Kumpulan prestasi akademik dan non-akademik`}
         breadcrumbs={[{ label: "Prestasi" }]}
-        backgroundImage={bgHeaderAchievements}
+        backgroundImage="../../../public/assets/prestasi.png"
       />
 
       <section className="section-padding bg-white">
