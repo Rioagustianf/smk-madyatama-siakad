@@ -1,24 +1,26 @@
+import type { StaticImageData } from "next/image";
+
 declare module "*.png" {
-  const src: import("next/dist/shared/lib/get-img-props").StaticImport;
+  const src: StaticImageData;
   export default src;
 }
 
 declare module "*.jpg" {
-  const src: import("next/dist/shared/lib/get-img-props").StaticImport;
+  const src: StaticImageData;
   export default src;
 }
 
 declare module "*.jpeg" {
-  const src: import("next/dist/shared/lib/get-img-props").StaticImport;
+  const src: StaticImageData;
   export default src;
 }
 
 declare module "*.JPG" {
-  const src: import("next/dist/shared/lib/get-img-props").StaticImport;
+  const src: StaticImageData;
   export default src;
 }
 
 declare module "*.PNG" {
-  const src: import("next/dist/shared/lib/get-img-props").StaticImport;
+  const src: StaticImageData;
   export default src;
 }
