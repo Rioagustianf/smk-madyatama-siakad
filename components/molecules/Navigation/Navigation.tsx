@@ -19,7 +19,6 @@ import { HoveredLink } from "@/components/ui/navbar-menu";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { school } from "@/lib/school";
-import logo from "../../../public/assets/logo.png";
 
 export function Navigation() {
   const pathname = usePathname();
@@ -74,7 +73,7 @@ export function Navigation() {
             className={`relative z-20 mr-4 flex items-center space-x-2 px-2 py-1 text-sm font-medium ${brandTextClass}`}
           >
             <Image
-              src={logo}
+              src="../../../public/assets/logo.png"
               alt={`${school.name} logo`}
               width={36}
               height={36}
