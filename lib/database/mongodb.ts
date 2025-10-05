@@ -48,8 +48,8 @@ export const getCollections = async () => {
     activities: database.collection("activities"),
     staff: database.collection("staff"),
     internships: database.collection("internships"),
+    internshipPartners: database.collection("internshipPartners"),
     internshipSchedules: database.collection("internshipSchedules"),
-    news: database.collection("news"),
     profile: database.collection("profile"),
   };
 };

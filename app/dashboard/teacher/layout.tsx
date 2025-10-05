@@ -71,7 +71,7 @@ export default function TeacherLayout({
                   </DropdownMenuLabel>
                   <DropdownMenuItem
                     className="text-white cursor-pointer"
-                    onClick={() => router.push("/profile")}
+                    onSelect={() => router.push("/dashboard/teacher/account")}
                   >
                     <User className="mr-2 h-4 w-4" />
                     Profile
@@ -79,7 +79,7 @@ export default function TeacherLayout({
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     className="font-bold text-white cursor-pointer"
-                    onClick={handleLogout}
+                    onSelect={handleLogout}
                   >
                     <LogOut className="mr-2 h-4 w-4" />
                     Logout

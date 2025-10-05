@@ -41,6 +41,24 @@ export function GalleryForm({
   submitText = "Simpan",
   onCancel,
 }: GalleryFormProps) {
+  const [tagsInput, setTagsInput] = React.useState<string>(
+    (formData.tags || []).join(", ")
+  );
+
+  // Keep local input responsive to commas; update parent on blur or Enter
+  const commitTags = React.useCallback(() => {
+    const parsed = tagsInput
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    onInputChange("tags", parsed);
+  }, [onInputChange, tagsInput]);
+
+  React.useEffect(() => {
+    // Sync when external formData changes (e.g., editing an item)
+    setTagsInput((formData.tags || []).join(", "));
+  }, [formData.tags]);
+
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <Input
@@ -55,12 +73,26 @@ export function GalleryForm({
         onChange={(e) => onInputChange("description", e.target.value)}
         rows={3}
       />
-      <ImageUpload
-        value={formData.url}
-        onChange={(val) => onInputChange("url", val)}
-        label="Gambar/Media"
-        placeholder="Pilih atau masukkan URL gambar"
-      />
+      {formData.type === "image" ? (
+        <ImageUpload
+          value={formData.url}
+          onChange={(val) => onInputChange("url", val)}
+          label="Gambar"
+          placeholder="Pilih atau masukkan URL gambar"
+        />
+      ) : (
+        <div className="space-y-2">
+          <Input
+            placeholder="URL YouTube (https://www.youtube.com/watch?v=...)"
+            value={formData.url}
+            onChange={(e) => onInputChange("url", e.target.value)}
+            required
+          />
+          <p className="text-xs text-muted-foreground">
+            Masukkan URL video YouTube. Thumbnail opsional bisa diisi di bawah.
+          </p>
+        </div>
+      )}
       <Input
         placeholder="URL Thumbnail (opsional)"
         value={formData.thumbnail}
@@ -69,16 +101,15 @@ export function GalleryForm({
       <div className="grid md:grid-cols-2 gap-3">
         <Input
           placeholder="Tag (pisahkan dengan koma)"
-          value={formData.tags.join(", ")}
-          onChange={(e) =>
-            onInputChange(
-              "tags",
-              e.target.value
-                .split(",")
-                .map((s) => s.trim())
-                .filter(Boolean)
-            )
-          }
+          value={tagsInput}
+          onChange={(e) => setTagsInput(e.target.value)}
+          onBlur={commitTags}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              commitTags();
+            }
+          }}
         />
         <div className="grid md:grid-cols-2 gap-3">
           <div>

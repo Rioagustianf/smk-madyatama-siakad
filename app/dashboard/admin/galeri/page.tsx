@@ -149,6 +149,35 @@ export default function AdminGaleriPage() {
     } catch {}
   };
 
+  // Build preview URL (handle YouTube video)
+  const getYoutubeId = (url: string): string | null => {
+    if (!url) return null;
+    try {
+      const u = new URL(url);
+      if (u.hostname.includes("youtu.be")) {
+        return u.pathname.slice(1) || null;
+      }
+      if (u.hostname.includes("youtube.com")) {
+        const vid = u.searchParams.get("v");
+        if (vid) return vid;
+        const parts = u.pathname.split("/");
+        const watchId = parts.includes("shorts") ? parts.pop() : null;
+        return watchId || null;
+      }
+    } catch {}
+    return null;
+  };
+
+  const getPreviewUrl = (item: any): string => {
+    if (item?.type === "video") {
+      if (item.thumbnail) return item.thumbnail;
+      const vid = getYoutubeId(item.url || "");
+      if (vid) return `https://img.youtube.com/vi/${vid}/hqdefault.jpg`;
+      return "/placeholder.svg";
+    }
+    return item.url || item.imageUrl || "/placeholder.svg";
+  };
+
   return (
     <div className="min-h-screen bg-muted/30 p-6">
       <div className="mx-auto max-w-7xl space-y-6">
@@ -328,10 +357,10 @@ export default function AdminGaleriPage() {
                       <TableCell>
                         <div className="relative h-12 w-12 overflow-hidden rounded-md border">
                           <Image
-                            src={
-                              item.url || item.imageUrl || "/placeholder.svg"
-                            }
+                            src={getPreviewUrl(item)}
                             alt={item.title}
+                            width={48}
+                            height={48}
                             className="h-full w-full object-cover"
                           />
                         </div>

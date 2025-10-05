@@ -115,7 +115,9 @@ export function ImageUpload({
           <Image
             src={preview}
             alt="Preview"
-            className="w-full h-full object-cover"
+            fill
+            sizes="(max-width: 768px) 100vw, 700px"
+            className="object-cover"
           />
           <Button
             type="button"

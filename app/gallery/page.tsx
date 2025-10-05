@@ -50,6 +50,37 @@ export default function GalleryPage() {
 
   const items = useMemo(() => (data as any)?.data || [], [data]);
 
+  // Helpers for video rendering
+  const getYoutubeId = (url: string): string | null => {
+    if (!url) return null;
+    try {
+      const u = new URL(url);
+      if (u.hostname.includes("youtu.be")) {
+        return u.pathname.slice(1) || null;
+      }
+      if (u.hostname.includes("youtube.com")) {
+        const v = u.searchParams.get("v");
+        if (v) return v;
+        const parts = u.pathname.split("/");
+        // handle /shorts/<id>
+        const shortsIdx = parts.findIndex((p) => p === "shorts");
+        if (shortsIdx !== -1 && parts[shortsIdx + 1])
+          return parts[shortsIdx + 1];
+      }
+    } catch {}
+    return null;
+  };
+
+  const getPreviewUrl = (item: any): string => {
+    if (item?.type === "video") {
+      if (item.thumbnail) return item.thumbnail;
+      const vid = getYoutubeId(item.url || "");
+      if (vid) return `https://img.youtube.com/vi/${vid}/hqdefault.jpg`;
+      return "/placeholder.svg";
+    }
+    return item.thumbnail || item.url || "/placeholder.svg";
+  };
+
   const openModal = (item: any) => {
     setSelectedItem(item);
   };
@@ -173,7 +204,7 @@ export default function GalleryPage() {
                   <div className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
                     <div className="relative aspect-square overflow-hidden">
                       <Image
-                        src={item.thumbnail || item.url}
+                        src={getPreviewUrl(item)}
                         alt={item.title}
                         fill
                         className="object-cover group-hover:scale-110 transition-transform duration-300"
@@ -248,7 +279,7 @@ export default function GalleryPage() {
                   <div className="flex">
                     <div className="relative w-48 h-32 flex-shrink-0">
                       <Image
-                        src={item.thumbnail || item.url}
+                        src={getPreviewUrl(item)}
                         alt={item.title}
                         fill
                         className="object-cover"
@@ -357,12 +388,28 @@ export default function GalleryPage() {
               {/* Media */}
               <div className="relative aspect-video">
                 {selectedItem.type === "video" ? (
-                  <video
-                    src={selectedItem.url}
-                    controls
-                    className="w-full h-full object-cover"
-                    autoPlay
-                  />
+                  (() => {
+                    const ytId = getYoutubeId(selectedItem.url || "");
+                    if (ytId) {
+                      return (
+                        <iframe
+                          src={`https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0`}
+                          title={selectedItem.title || "YouTube video"}
+                          className="w-full h-full"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                          allowFullScreen
+                        />
+                      );
+                    }
+                    return (
+                      <video
+                        src={selectedItem.url}
+                        controls
+                        className="w-full h-full object-cover"
+                        autoPlay
+                      />
+                    );
+                  })()
                 ) : (
                   <Image
                     src={selectedItem.url}

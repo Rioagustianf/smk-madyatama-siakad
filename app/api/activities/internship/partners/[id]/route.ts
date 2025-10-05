@@ -46,7 +46,7 @@ export async function PUT(
       );
     const body = await request.json();
     const collections = await getCollections();
-    const res = await collections.internships?.updateOne(
+    const res = await collections.internshipPartners?.updateOne(
       { _id: new ObjectId(id) },
       { $set: { ...body, updatedAt: new Date() } }
     );
@@ -83,7 +83,7 @@ export async function DELETE(
         { status: 400 }
       );
     const collections = await getCollections();
-    const res = await collections.internships?.deleteOne({
+    const res = await collections.internshipPartners?.deleteOne({
       _id: new ObjectId(id),
     });
     if (!res?.deletedCount)

@@ -27,13 +27,13 @@ export function Navigation() {
     { name: "Pengumuman", link: "/announcements" },
     { name: "Kepala Sekolah & Tenaga Pendidik", link: "/staff" },
   ];
-  const akademikLinks = [
-    { name: "Program Keahlian", link: "/academic/majors" },
-  ];
   const kegiatanLinks = [
     { name: "Prestasi", link: "/activities/achievements" },
     { name: "Ekstrakurikuler", link: "/activities/extracurricular" },
     { name: "DUDI & Prakerin", link: "/activities/internship" },
+  ];
+  const akademikLinks = [
+    { name: "Program Keahlian", link: "/academic/majors" },
   ];
   const galeriLinks = [{ name: "Galeri", link: "/gallery" }];
 
@@ -116,13 +116,6 @@ export function Navigation() {
               </DropdownMenu>
             </div>
 
-            <HoveredLink
-              href="/academic/majors"
-              className={`px-3 py-2 rounded-md ${navItemsClasses}`}
-            >
-              Akademik
-            </HoveredLink>
-
             <div
               onMouseEnter={() => setKegiatanOpen(true)}
               onMouseLeave={() => setKegiatanOpen(false)}
@@ -148,6 +141,13 @@ export function Navigation() {
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
+
+            <HoveredLink
+              href="/academic/majors"
+              className={`px-3 py-2 rounded-md ${navItemsClasses}`}
+            >
+              Akademik
+            </HoveredLink>
             <HoveredLink
               href="/gallery"
               className={`px-3 py-2 rounded-md ${navItemsClasses}`}
@@ -218,9 +218,9 @@ export function Navigation() {
                 </div>
               </div>
               <div>
-                <div className="text-white/70 text-xs mb-2">Akademik</div>
+                <div className="text-white/70 text-xs mb-2">Kegiatan</div>
                 <div className="flex flex-col gap-2">
-                  {akademikLinks.map((item) => (
+                  {kegiatanLinks.map((item) => (
                     <a
                       key={item.link}
                       href={item.link}
@@ -233,9 +233,9 @@ export function Navigation() {
                 </div>
               </div>
               <div>
-                <div className="text-white/70 text-xs mb-2">Kegiatan</div>
+                <div className="text-white/70 text-xs mb-2">Akademik</div>
                 <div className="flex flex-col gap-2">
-                  {kegiatanLinks.map((item) => (
+                  {akademikLinks.map((item) => (
                     <a
                       key={item.link}
                       href={item.link}

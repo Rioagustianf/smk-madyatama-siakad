@@ -73,7 +73,6 @@ function useSidebarData() {
           url: "#",
           items: [
             { title: "Pengumuman", url: "/dashboard/admin/announcements" },
-            { title: "Berita", url: "/dashboard/admin/news" },
           ],
         },
         {

@@ -232,12 +232,6 @@ export const API_ENDPOINTS = {
     UPDATE: (id: string) => `/api/internships/${id}`,
     DELETE: (id: string) => `/api/internships/${id}`,
   },
-  NEWS: {
-    LIST: "/api/news",
-    CREATE: "/api/news",
-    UPDATE: (id: string) => `/api/news/${id}`,
-    DELETE: (id: string) => `/api/news/${id}`,
-  },
   PROFILE: {
     GET: "/api/profile",
     UPDATE: "/api/profile",

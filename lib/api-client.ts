@@ -37,14 +37,7 @@ apiClient.interceptors.response.use(
   },
   (error) => {
     // Handle common errors
-    if (error.response?.status === 401) {
-      // Unauthorized - redirect to login
-      if (typeof window !== "undefined") {
-        document.cookie =
-          "auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-        window.location.href = "/student/login";
-      }
-    }
+    // Let pages handle 401 to show inline error; avoid auto-redirect
     return Promise.reject(error);
   }
 );
@@ -92,6 +85,12 @@ export const apiMethods = {
     }) => api.post(API_ENDPOINTS.AUTH.LOGIN, credentials),
     logout: () => api.post(API_ENDPOINTS.AUTH.LOGOUT),
     getProfile: () => api.get(API_ENDPOINTS.AUTH.PROFILE),
+    updateAccount: (data: {
+      name?: string;
+      username?: string;
+      currentPassword?: string;
+      newPassword?: string;
+    }) => api.put(API_ENDPOINTS.AUTH.PROFILE, data),
   },
 
   // Users
@@ -232,6 +231,16 @@ export const apiMethods = {
         api.delete(`/api/activities/extracurricular/${id}`),
     },
     internship: {
+      partners: {
+        list: (filters?: Record<string, any>) =>
+          api.get("/api/activities/internship/partners", { params: filters }),
+        create: (data: any) =>
+          api.post("/api/activities/internship/partners", data),
+        update: (id: string, data: any) =>
+          api.put(`/api/activities/internship/partners/${id}`, data),
+        delete: (id: string) =>
+          api.delete(`/api/activities/internship/partners/${id}`),
+      },
       schedules: {
         list: (filters?: Record<string, any>) =>
           api.get("/api/activities/internship/schedules", { params: filters }),
@@ -264,17 +273,6 @@ export const apiMethods = {
     update: (id: string, data: any) =>
       api.put(API_ENDPOINTS.INTERNSHIPS.UPDATE(id), data),
     delete: (id: string) => api.delete(API_ENDPOINTS.INTERNSHIPS.DELETE(id)),
-  },
-
-  // News
-  news: {
-    list: (filters?: Record<string, any>) =>
-      api.get(API_ENDPOINTS.NEWS.LIST, { params: filters }),
-    get: (id: string) => api.get(API_ENDPOINTS.NEWS.UPDATE(id)),
-    create: (data: any) => api.post(API_ENDPOINTS.NEWS.CREATE, data),
-    update: (id: string, data: any) =>
-      api.put(API_ENDPOINTS.NEWS.UPDATE(id), data),
-    delete: (id: string) => api.delete(API_ENDPOINTS.NEWS.DELETE(id)),
   },
 
   // Profile

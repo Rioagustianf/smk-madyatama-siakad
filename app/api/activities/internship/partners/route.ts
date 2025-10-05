@@ -43,13 +43,13 @@ export async function GET(request: NextRequest) {
       ];
     }
     const [items, total] = await Promise.all([
-      collections.internships
+      collections.internshipPartners
         ?.find(filter)
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
         .toArray() ?? [],
-      collections.internships?.countDocuments(filter) ?? 0,
+      collections.internshipPartners?.countDocuments(filter) ?? 0,
     ]);
     return NextResponse.json({
       success: true,
@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-    const res = await collections.internships?.insertOne(doc);
+    const res = await collections.internshipPartners?.insertOne(doc);
     return NextResponse.json({
       success: true,
       message: "Mitra ditambahkan",

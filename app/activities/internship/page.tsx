@@ -5,76 +5,85 @@ import { motion } from "framer-motion";
 import { PageHeader } from "@/components/molecules/PageHeader";
 import { Typography } from "@/components/atoms/Typography/Typography";
 import {
-  useInternshipPartners,
   useInternshipSchedules,
+  useInternshipPartners,
 } from "@/lib/hooks/use-activities";
 
 export default function InternshipPage() {
-  const {
-    data: partnersData,
-    isLoading: isPartnersLoading,
-    error: partnersError,
-  } = useInternshipPartners();
   const {
     data: schedulesData,
     isLoading: isSchedulesLoading,
     error: schedulesError,
   } = useInternshipSchedules();
-  const partners = partnersData?.data || [];
+  const {
+    data: partnersData,
+    isLoading: isPartnersLoading,
+    error: partnersError,
+  } = useInternshipPartners();
   const schedules = schedulesData?.data || [];
+  const partners = partnersData?.data || [];
 
   return (
     <div>
       <PageHeader
-        title="DUDI & Prakerin"
-        subtitle="Kemitraan dunia usaha dan industri serta jadwal program prakerin"
-        breadcrumbs={[{ label: "DUDI & Prakerin" }]}
+        title="Jadwal Prakerin"
+        subtitle="Informasi jadwal dan kegiatan program prakerin"
+        breadcrumbs={[{ label: "Jadwal Prakerin" }]}
         backgroundImage="/assets/p5.jpeg"
       />
 
       <section className="section-padding bg-white">
         <div className="container-custom">
-          <div className="grid lg:grid-cols-2 gap-12">
+          <div className="grid lg:grid-cols-2 gap-12 items-stretch">
             {/* Partners */}
-            <div>
+            <div className="flex flex-col shadow-md">
               <Typography variant="h3" className="mb-4">
                 Mitra DUDI
               </Typography>
-              <div className="space-y-4">
-                {isPartnersLoading && (
-                  <div className="text-muted-foreground">Memuat mitra...</div>
-                )}
-                {partnersError && (
-                  <div className="text-red-600">Gagal memuat mitra</div>
-                )}
-                {!isPartnersLoading &&
-                  !partnersError &&
-                  partners.map((p: any, i: number) => (
-                    <motion.div
-                      key={p._id || p.name}
-                      initial={{ opacity: 0, y: 20 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.5, delay: i * 0.05 }}
-                      className="rounded-xl border border-primary-100 p-4"
-                    >
-                      <Typography variant="subtitle2">
-                        {p.name || "-"}
-                      </Typography>
-                      <Typography variant="caption" color="muted">
-                        {p.field || ""}
-                      </Typography>
-                    </motion.div>
-                  ))}
+              <div className="rounded-2xl border border-primary-100 bg-white h-full overflow-hidden">
+                <div className="p-4">
+                  {isPartnersLoading && (
+                    <div className="text-muted-foreground">Memuat mitra...</div>
+                  )}
+                  {partnersError && (
+                    <div className="text-red-600">Gagal memuat mitra</div>
+                  )}
+                  {!isPartnersLoading &&
+                    !partnersError &&
+                    partners.length === 0 && (
+                      <div className="text-muted-foreground">
+                        Belum ada data mitra.
+                      </div>
+                    )}
+                  {!isPartnersLoading &&
+                    !partnersError &&
+                    partners.map((p: any, i: number) => (
+                      <motion.div
+                        key={p._id || p.name}
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.5, delay: i * 0.05 }}
+                        className="rounded-xl border border-primary-100 p-4 mb-3 last:mb-0"
+                      >
+                        <Typography variant="subtitle2">
+                          {p.name || "-"}
+                        </Typography>
+                        <Typography variant="caption" color="muted">
+                          {p.field || ""}
+                        </Typography>
+                      </motion.div>
+                    ))}
+                </div>
               </div>
             </div>
 
             {/* Schedule */}
-            <div>
+            <div className="flex flex-col shadow-md">
               <Typography variant="h3" className="mb-4">
                 Jadwal Prakerin
               </Typography>
-              <div className="rounded-2xl border border-primary-100 overflow-hidden">
+              <div className="rounded-2xl border border-primary-100 overflow-hidden bg-white h-full">
                 <div className="grid grid-cols-3 bg-primary-50 text-primary-700 font-medium">
                   <div className="p-3">Program</div>
                   <div className="p-3">Periode</div>
@@ -92,9 +101,20 @@ export default function InternshipPage() {
                 )}
                 {!isSchedulesLoading &&
                   !schedulesError &&
+                  schedules.length === 0 && (
+                    <div className="p-3 text-center text-muted-foreground">
+                      Belum ada data jadwal.
+                    </div>
+                  )}
+                {!isSchedulesLoading &&
+                  !schedulesError &&
                   schedules.map((s: any, i: number) => (
-                    <div
-                      key={i}
+                    <motion.div
+                      key={s._id || i}
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.5, delay: i * 0.05 }}
                       className={`grid grid-cols-3 ${
                         i % 2 ? "bg-white" : "bg-primary-50/30"
                       }`}
@@ -114,7 +134,7 @@ export default function InternshipPage() {
                           {s.notes || ""}
                         </Typography>
                       </div>
-                    </div>
+                    </motion.div>
                   ))}
               </div>
             </div>

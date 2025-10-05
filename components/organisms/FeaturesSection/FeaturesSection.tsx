@@ -7,6 +7,7 @@ import { Button } from "@/components/atoms/Button/Button";
 import { school } from "@/lib/school";
 import { useMajors } from "@/lib/hooks/use-majors";
 import { useAchievements } from "@/lib/hooks/use-activities";
+import { useAnnouncements } from "@/lib/hooks/use-announcements";
 import {
   GraduationCap,
   Users,
@@ -100,6 +101,13 @@ export const FeaturesSection: React.FC = () => {
     error: achError,
   } = useAchievements({ limit: 5 });
   const achievements: any[] = achData?.data || [];
+
+  const {
+    data: annData,
+    isLoading: isAnnLoading,
+    error: annError,
+  } = useAnnouncements({ limit: 5, isPublished: true });
+  const announcements: any[] = annData?.data || [];
 
   const toSlug = (nameOrCode: string) =>
     (nameOrCode || "")
@@ -273,7 +281,7 @@ export const FeaturesSection: React.FC = () => {
           </div>
         </motion.div>
 
-        {/* Achievements & News */}
+        {/* Achievements & Announcements */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -321,32 +329,44 @@ export const FeaturesSection: React.FC = () => {
           </div>
           <div>
             <Typography variant="overline" color="primary" className="mb-2">
-              BERITA
+              PENGUMUMAN
             </Typography>
             <Typography variant="h3" className="mb-4">
-              Kabar Terbaru
+              Informasi Terbaru
             </Typography>
             <div className="space-y-4">
-              {school.news_samples.map((n, i) => (
-                <div
-                  key={i}
-                  className="rounded-xl border border-primary-700 shadow-primary-500 p-4"
-                >
-                  <a
-                    href={n.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="underline decoration-primary-500 underline-offset-4"
-                  >
-                    <Typography variant="subtitle2" className="mb-1">
-                      {n.title}
-                    </Typography>
-                  </a>
-                  <Typography variant="caption" color="muted">
-                    {n.source} • {n.date}
-                  </Typography>
+              {isAnnLoading && (
+                <div className="text-muted-foreground">Memuat pengumuman…</div>
+              )}
+              {annError && (
+                <div className="text-red-600">Gagal memuat pengumuman</div>
+              )}
+              {!isAnnLoading && !annError && announcements.length === 0 && (
+                <div className="text-muted-foreground">
+                  Belum ada pengumuman
                 </div>
-              ))}
+              )}
+              {!isAnnLoading &&
+                !annError &&
+                announcements.map((ann: any, i: number) => (
+                  <div
+                    key={ann._id || i}
+                    className="rounded-xl border border-primary-700 shadow-primary-500 p-4"
+                  >
+                    <a
+                      href={`/announcements/${ann._id}`}
+                      className="underline decoration-primary-500 underline-offset-4"
+                    >
+                      <Typography variant="subtitle2" className="mb-1">
+                        {ann.title}
+                      </Typography>
+                    </a>
+                    <Typography variant="caption" color="muted">
+                      {ann.category} •{" "}
+                      {new Date(ann.createdAt).toLocaleDateString("id-ID")}
+                    </Typography>
+                  </div>
+                ))}
             </div>
           </div>
         </motion.div>
