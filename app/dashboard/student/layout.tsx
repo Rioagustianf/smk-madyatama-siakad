@@ -28,6 +28,7 @@ export default function StudentLayout({
 }) {
   const { state, logout } = useAuth();
   const router = useRouter();
+  const student: any = state.user || {};
 
   const handleLogout = async () => {
     await logout();
@@ -51,7 +52,9 @@ export default function StudentLayout({
             className="mr-2 data-[orientation=vertical]:h-4"
           />
           <div className="flex items-center justify-between w-full">
-            <div className="font-semibold">Dashboard Siswa</div>
+            <div className="flex flex-col">
+              <div className="font-semibold text-lg">Dashboard Siswa</div>
+            </div>
             <div className="">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -63,12 +66,20 @@ export default function StudentLayout({
                   />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
-                  className="w-56 bg-primary-900"
+                  className="w-64 bg-primary-900"
                   align="start"
                 >
                   <DropdownMenuLabel className="text-white">
-                    {state.user?.name || "Nama Siswa"}
+                    <div className="flex justify-between">
+                      {state.user?.name || "Nama Siswa"}
+                      {student?.class && (
+                        <div className="flex items-center justify-between">
+                          <span className="font-semibold">{student.class}</span>
+                        </div>
+                      )}
+                    </div>
                   </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem
                     className="text-white cursor-pointer"
                     onSelect={() => router.push("/dashboard/student/account")}

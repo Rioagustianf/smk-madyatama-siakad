@@ -198,18 +198,22 @@ export default function AdminSchedulesPage() {
             </div>
           ) : (
             <Tabs defaultValue={groupedData[0]?.className} className="w-full">
-              <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              <TabsList className="flex flex-wrap gap-2 overflow-x-auto p-1">
                 {groupedData.map((group: any) => (
                   <TabsTrigger
                     key={group.className}
                     value={group.className}
-                    className="text-sm"
+                    className="text-sm h-9 px-3 min-w-0 w-auto justify-start gap-2 rounded-md border border-primary-600 bg-white hover:bg-primary-50 hover:text-primary-900 data-[state=active]:bg-primary-900 data-[state=active]:text-white data-[state=active]:border-primary-900"
+                    style={{
+                      width: "auto",
+                      minWidth: "unset",
+                      maxWidth: "100%",
+                    }}
                   >
-                    <Calendar className="h-4 w-4 mr-2" />
-                    {group.className}
-                    <span className="ml-1 text-xs bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded-full">
-                      {group.totalSchedules}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 mr-2" />
+                      {group.className}
+                    </div>
                   </TabsTrigger>
                 ))}
               </TabsList>

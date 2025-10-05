@@ -168,6 +168,7 @@ export const API_ENDPOINTS = {
     CREATE: "/api/students",
     UPDATE: (id: string) => `/api/students/${id}`,
     DELETE: (id: string) => `/api/students/${id}`,
+    BULK: "/api/students/bulk",
   },
   COURSES: {
     LIST: "/api/courses",

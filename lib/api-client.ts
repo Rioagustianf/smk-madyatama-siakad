@@ -140,6 +140,12 @@ export const apiMethods = {
     update: (id: string, data: any) =>
       api.put(API_ENDPOINTS.STUDENTS.UPDATE(id), data),
     delete: (id: string) => api.delete(API_ENDPOINTS.STUDENTS.DELETE(id)),
+    bulk: (payload: {
+      action: "changeSemester" | "promoteGrade" | "setGradeLevel";
+      studentIds?: string[];
+      filter?: Record<string, any>;
+      payload?: any;
+    }) => api.post(API_ENDPOINTS.STUDENTS.BULK, payload),
   },
 
   // Courses

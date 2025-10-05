@@ -16,6 +16,10 @@ export interface Student extends User {
   class: string;
   major: string;
   year: number;
+  // Current academic semester for the student (1 = Ganjil, 2 = Genap)
+  semester?: number;
+  // Current grade level (10, 11, 12). If absent, derive from class name when needed
+  gradeLevel?: number;
   parentContact?: string;
   address?: string;
 }
@@ -353,4 +357,7 @@ export interface SearchFilters {
   dateTo?: string;
   page?: number;
   limit?: number;
+  semester?: number | string;
+  gradeLevel?: number | string;
+  class?: string;
 }

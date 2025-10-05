@@ -231,6 +231,10 @@ export const useDeleteStudent = () => {
   return useDeleteMutation(queryKeys.students.all, apiMethods.students.delete);
 };
 
+export const useStudentsBulk = () => {
+  return useCreateMutation(queryKeys.students.all, apiMethods.students.bulk);
+};
+
 // Courses hooks
 export const useCourses = (filters?: SearchFilters) => {
   return useListQuery(
