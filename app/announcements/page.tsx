@@ -155,6 +155,8 @@ export default function AnnouncementsPage() {
                         <Image
                           src={announcement.image || "/placeholder.svg"}
                           alt={announcement.title}
+                          width={100}
+                          height={100}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         />
                         <div className="absolute top-3 right-3">
