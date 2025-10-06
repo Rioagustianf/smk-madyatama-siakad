@@ -1,3 +1,9 @@
+"use client";
+
+import React from "react";
+import { roundNumber } from "@/lib/utils";
+import { useAuth } from "@/lib/contexts/auth-context";
+import { useStudentGrades } from "@/lib/hooks/use-api";
 import {
   Table,
   TableBody,
@@ -7,43 +13,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-type GradeRow = {
-  subject: string;
-  assignments: number;
-  midterm: number;
-  final: number;
-  total: number;
-  grade: string;
-};
-
-const mockGrades: GradeRow[] = [
-  {
-    subject: "Matematika",
-    assignments: 85,
-    midterm: 80,
-    final: 90,
-    total: 85,
-    grade: "A",
-  },
-  {
-    subject: "Bahasa Indonesia",
-    assignments: 78,
-    midterm: 82,
-    final: 80,
-    total: 80,
-    grade: "B",
-  },
-  {
-    subject: "Produktif RPL",
-    assignments: 88,
-    midterm: 86,
-    final: 92,
-    total: 89,
-    grade: "A",
-  },
-];
+type GradeItem = any;
 
 export default function StudentGradesPage() {
+  const { state } = useAuth();
+  const studentId = (state.user as any)?.studentId || (state.user as any)?.id;
+  const { data, isLoading } = useStudentGrades(studentId);
+  const grades: GradeItem[] = ((data as any)?.data || []) as any[];
+
   return (
     <div className="rounded-xl border border-primary-900 bg-white p-5">
       <h1 className="text-xl font-semibold mb-3">Nilai Saya</h1>
@@ -59,16 +36,30 @@ export default function StudentGradesPage() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {mockGrades.map((g) => (
-            <TableRow key={g.subject}>
-              <TableCell>{g.subject}</TableCell>
-              <TableCell>{g.assignments}</TableCell>
-              <TableCell>{g.midterm}</TableCell>
-              <TableCell>{g.final}</TableCell>
-              <TableCell>{g.total}</TableCell>
-              <TableCell>{g.grade}</TableCell>
+          {isLoading ? (
+            <TableRow>
+              <TableCell colSpan={6}>Memuat…</TableCell>
             </TableRow>
-          ))}
+          ) : grades.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={6}>Belum ada nilai</TableCell>
+            </TableRow>
+          ) : (
+            grades.map((g: any, idx: number) => (
+              <TableRow key={g._id || idx}>
+                <TableCell>
+                  {g.subjectName || g.subject || g.subjectId}
+                </TableCell>
+                <TableCell>{g.assignments ?? "-"}</TableCell>
+                <TableCell>{g.midterm ?? "-"}</TableCell>
+                <TableCell>{g.final ?? "-"}</TableCell>
+                <TableCell>
+                  {g.total != null ? roundNumber(g.total, 2) : "-"}
+                </TableCell>
+                <TableCell>{g.grade ?? "-"}</TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
     </div>

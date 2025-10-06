@@ -193,6 +193,7 @@ export const apiMethods = {
       api.get(API_ENDPOINTS.GRADES.BY_STUDENT(studentId)),
     byTeacher: (teacherId: string) =>
       api.get(API_ENDPOINTS.GRADES.BY_TEACHER(teacherId)),
+    bulk: (items: any[]) => api.post(API_ENDPOINTS.GRADES.BULK, { items }),
   },
 
   // Announcements (deprecated duplicate removed below)

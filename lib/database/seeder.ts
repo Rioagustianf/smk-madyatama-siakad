@@ -205,10 +205,10 @@ const teachers = [
     isActive: true,
   },
   {
-    name: "Ustadz Ahmad",
-    username: "ustadz_ahmad",
+    name: "Drs. Waziruddin",
+    username: "drs_waziruddin",
     phone: "081234567898",
-    education: "S.Ag",
+    education: "Drs.",
     subjects: [],
     classes: ["12 TKJ 1", "12 TKJ 2"],
     isActive: true,
@@ -711,7 +711,7 @@ export async function seedDatabase() {
         MTK: "Yesi Oktavia",
         "B. Inggris": "Fadhilah Khairani",
         "B. Indonesia": "Lina Maryana",
-        Agama: "Ustadz Ahmad", // Will need to add this teacher
+        Agama: "Drs. Waziruddin",
       };
 
       const teacherName = teacherNameMap[subject.code];
@@ -851,7 +851,7 @@ function getTeacherBySubject(subject: string): string {
     MTK: "Yesi Oktavia",
     "B. Inggris": "Fadhilah Khairani",
     "B. Indonesia": "Lina Maryana",
-    Agama: "Ustadz Ahmad",
+    Agama: "Drs. Waziruddin",
     UPACARA: "Guru Piket",
     SENAM: "Guru Olahraga",
   };

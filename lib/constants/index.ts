@@ -202,6 +202,7 @@ export const API_ENDPOINTS = {
     DELETE: (id: string) => `/api/grades/${id}`,
     BY_STUDENT: (studentId: string) => `/api/grades/student/${studentId}`,
     BY_TEACHER: (teacherId: string) => `/api/grades/teacher/${teacherId}`,
+    BULK: "/api/grades/bulk",
   },
   ANNOUNCEMENTS: {
     LIST: "/api/announcements",

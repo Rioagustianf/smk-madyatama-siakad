@@ -468,6 +468,10 @@ export const useDeleteGrade = () => {
   return useDeleteMutation(queryKeys.grades.all, apiMethods.grades.delete);
 };
 
+export const useBulkGrades = () => {
+  return useCreateMutation(queryKeys.grades.all, apiMethods.grades.bulk);
+};
+
 // Announcements hooks
 export const useAnnouncements = (filters?: SearchFilters) => {
   return useListQuery(
