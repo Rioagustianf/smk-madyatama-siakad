@@ -68,12 +68,6 @@ Langkah:
 
 Jika berhasil, Anda akan melihat ringkasan jumlah data yang diinsert (majors, students, teachers, subjects, classes, schedules, admins).
 
-Credensial default (dari `scripts/seed.js` dan `lib/database/seeder.ts`):
-
-- Admin: `admin` / `admin123`
-- Guru: `iik_ayu` / `password123`
-- Siswa: `0091128942` / `password123`
-
 Troubleshooting seeding:
 
 - Pastikan `npm run dev` sudah berjalan (seeder memanggil `http://localhost:3000/api/seed`).
