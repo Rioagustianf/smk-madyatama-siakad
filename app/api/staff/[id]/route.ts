@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCollections, handleDatabaseError } from "@/lib/database/mongodb";
-import { ObjectId } from "mongodb";
+import { handleDatabaseError } from "@/lib/database/errors";
+import { getStaffRepository } from "@/lib/database/repository";
 import jwt from "jsonwebtoken";
 import { storage } from "@/lib/supabase-client";
 
@@ -51,19 +51,8 @@ export async function GET(
       );
     }
 
-    // Validate ObjectId format
-    if (!ObjectId.isValid(id)) {
-      return NextResponse.json(
-        { success: false, message: "Format ID tidak valid" },
-        { status: 400 }
-      );
-    }
-
-    const collections = await getCollections();
-
-    const staff = await collections.staff.findOne({
-      _id: new ObjectId(id),
-    });
+    const repo = getStaffRepository();
+    const staff = await repo.findById(id);
 
     if (!staff) {
       return NextResponse.json(
@@ -72,16 +61,9 @@ export async function GET(
       );
     }
 
-    // Transform _id to id for frontend consistency
-    const transformedStaff = {
-      ...staff,
-      id: staff._id.toString(),
-      _id: undefined, // Remove _id to avoid confusion
-    };
-
     return NextResponse.json({
       success: true,
-      data: transformedStaff,
+      data: staff,
     });
   } catch (error) {
     console.error("Error fetching staff:", error);
@@ -110,10 +92,9 @@ export async function PUT(
 
     const { id } = params;
 
-    // Validate ObjectId format
-    if (!ObjectId.isValid(id)) {
+    if (!id) {
       return NextResponse.json(
-        { success: false, message: "Format ID tidak valid" },
+        { success: false, message: "ID tidak valid" },
         { status: 400 }
       );
     }
@@ -142,12 +123,8 @@ export async function PUT(
       );
     }
 
-    const collections = await getCollections();
-
-    // Check if staff exists
-    const existingStaff = await collections.staff.findOne({
-      _id: new ObjectId(id),
-    });
+    const repo = getStaffRepository();
+    const existingStaff = await repo.findById(id);
     if (!existingStaff) {
       return NextResponse.json(
         { success: false, message: "Staf tidak ditemukan" },
@@ -167,8 +144,7 @@ export async function PUT(
       console.warn("Warning: failed to delete old staff image:", e);
     }
 
-    // Update staff with minimal schema
-    const updateData = {
+    const updated = await repo.update(id, {
       name,
       role: role || existingStaff.role || "staff",
       position,
@@ -179,25 +155,12 @@ export async function PUT(
       order: typeof order === "number" ? order : existingStaff.order ?? 0,
       isActive:
         isActive !== undefined ? isActive : existingStaff.isActive ?? true,
-      updatedAt: new Date(),
-    };
-
-    const result = await collections.staff.updateOne(
-      { _id: new ObjectId(id) },
-      { $set: updateData }
-    );
-
-    if (result.matchedCount === 0) {
-      return NextResponse.json(
-        { success: false, message: "Staf tidak ditemukan" },
-        { status: 404 }
-      );
-    }
+    });
 
     return NextResponse.json({
       success: true,
       message: "Staf berhasil diperbarui",
-      data: { _id: id, ...updateData },
+      data: updated,
     });
   } catch (error) {
     console.error("Error updating staff:", error);
@@ -233,20 +196,8 @@ export async function DELETE(
       );
     }
 
-    // Validate ObjectId format
-    if (!ObjectId.isValid(id)) {
-      return NextResponse.json(
-        { success: false, message: "Format ID tidak valid" },
-        { status: 400 }
-      );
-    }
-
-    const collections = await getCollections();
-
-    // Check if staff exists
-    const existingStaff = await collections.staff.findOne({
-      _id: new ObjectId(id),
-    });
+    const repo = getStaffRepository();
+    const existingStaff = await repo.findById(id);
     if (!existingStaff) {
       return NextResponse.json(
         { success: false, message: "Staf tidak ditemukan" },
@@ -266,17 +217,7 @@ export async function DELETE(
       console.warn("Warning: failed to delete staff image from storage:", e);
     }
 
-    // Hard delete (permanently remove from database)
-    const result = await collections.staff.deleteOne({
-      _id: new ObjectId(id),
-    });
-
-    if (result.deletedCount === 0) {
-      return NextResponse.json(
-        { success: false, message: "Staf tidak ditemukan" },
-        { status: 404 }
-      );
-    }
+    await repo.remove(id);
 
     return NextResponse.json({
       success: true,

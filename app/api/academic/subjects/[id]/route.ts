@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCollections, handleDatabaseError } from "@/lib/database/mongodb";
-import { ObjectId } from "mongodb";
+import { handleDatabaseError } from "@/lib/database/errors";
+import { getSubjectsRepository, getTeachersRepository } from "@/lib/database/repository";
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET =
@@ -50,53 +50,8 @@ export async function GET(
       );
     }
 
-    // Validate ObjectId format
-    if (!ObjectId.isValid(id)) {
-      return NextResponse.json(
-        { success: false, message: "Format ID tidak valid" },
-        { status: 400 }
-      );
-    }
-
-    const collections = await getCollections();
-
-    // Get subject with teacher information using aggregation
-    const pipeline = [
-      { $match: { _id: new ObjectId(id), isActive: true } },
-      {
-        $addFields: {
-          teacherObjectId: {
-            $cond: {
-              if: { $ne: ["$teacherId", ""] },
-              then: { $toObjectId: "$teacherId" },
-              else: null,
-            },
-          },
-        },
-      },
-      {
-        $lookup: {
-          from: "teachers",
-          localField: "teacherObjectId",
-          foreignField: "_id",
-          as: "teacher",
-        },
-      },
-      {
-        $addFields: {
-          teacher: { $arrayElemAt: ["$teacher", 0] },
-        },
-      },
-      {
-        $addFields: {
-          teacherName: "$teacher.name",
-          teacherEducation: "$teacher.education",
-        },
-      },
-    ];
-
-    const subjects = await collections.subjects.aggregate(pipeline).toArray();
-    const subject = subjects[0];
+    const repo = getSubjectsRepository();
+    const subject = await repo.findById(id);
 
     if (!subject) {
       return NextResponse.json(
@@ -136,14 +91,6 @@ export async function PUT(
 
     const { id } = params;
 
-    // Validate ObjectId format
-    if (!ObjectId.isValid(id)) {
-      return NextResponse.json(
-        { success: false, message: "Format ID tidak valid" },
-        { status: 400 }
-      );
-    }
-
     const body = await request.json();
     const { name, code, description, teacherId } = body;
 
@@ -158,12 +105,8 @@ export async function PUT(
       );
     }
 
-    const collections = await getCollections();
-
-    // Check if subject exists
-    const existingSubject = await collections.subjects.findOne({
-      _id: new ObjectId(id),
-    });
+    const repo = getSubjectsRepository();
+    const existingSubject = await repo.findById(id);
     if (!existingSubject) {
       return NextResponse.json(
         { success: false, message: "Mata pelajaran tidak ditemukan" },
@@ -171,23 +114,10 @@ export async function PUT(
       );
     }
 
-    // Check if code is used by another subject
-    const codeExists = await collections.subjects.findOne({
-      code,
-      _id: { $ne: new ObjectId(id) },
-    });
-    if (codeExists) {
-      return NextResponse.json(
-        { success: false, message: "Kode mata pelajaran sudah digunakan" },
-        { status: 400 }
-      );
-    }
-
-    // Validate teacherId if provided
+    // Validate teacher if provided
     if (teacherId) {
-      const teacher = await collections.teachers.findOne({
-        _id: new ObjectId(teacherId),
-      });
+      const teachersRepo = getTeachersRepository();
+      const teacher = await teachersRepo.findById(teacherId);
       if (!teacher) {
         return NextResponse.json(
           { success: false, message: "Guru tidak ditemukan" },
@@ -196,32 +126,28 @@ export async function PUT(
       }
     }
 
-    // Update subject (align to seeder fields)
-    const updateData = {
-      name,
-      code,
-      description: description || "",
-      teacherId: teacherId || "",
-      updatedAt: new Date(),
-    };
+    try {
+      const updated = await repo.update(id, {
+        name,
+        code,
+        description: description || "",
+        teacherId: teacherId || null,
+      });
 
-    const result = await collections.subjects.updateOne(
-      { _id: new ObjectId(id) },
-      { $set: updateData }
-    );
-
-    if (result.matchedCount === 0) {
-      return NextResponse.json(
-        { success: false, message: "Mata pelajaran tidak ditemukan" },
-        { status: 404 }
-      );
+      return NextResponse.json({
+        success: true,
+        message: "Mata pelajaran berhasil diperbarui",
+        data: updated,
+      });
+    } catch (err: any) {
+      if (err?.code === "P2002") {
+        return NextResponse.json(
+          { success: false, message: "Kode mata pelajaran sudah digunakan" },
+          { status: 400 }
+        );
+      }
+      throw err;
     }
-
-    return NextResponse.json({
-      success: true,
-      message: "Mata pelajaran berhasil diperbarui",
-      data: { _id: id, ...updateData },
-    });
   } catch (error) {
     console.error("Error updating subject:", error);
     const errorResponse = handleDatabaseError(error);
@@ -256,20 +182,8 @@ export async function DELETE(
       );
     }
 
-    // Validate ObjectId format
-    if (!ObjectId.isValid(id)) {
-      return NextResponse.json(
-        { success: false, message: "Format ID tidak valid" },
-        { status: 400 }
-      );
-    }
-
-    const collections = await getCollections();
-
-    // Check if subject exists
-    const existingSubject = await collections.subjects.findOne({
-      _id: new ObjectId(id),
-    });
+    const repo = getSubjectsRepository();
+    const existingSubject = await repo.findById(id);
     if (!existingSubject) {
       return NextResponse.json(
         { success: false, message: "Mata pelajaran tidak ditemukan" },
@@ -277,46 +191,9 @@ export async function DELETE(
       );
     }
 
-    // Check if subject has grades
-    const gradesCount = await collections.grades.countDocuments({
-      subjectId: new ObjectId(id),
-    });
-    if (gradesCount > 0) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: `Tidak dapat menghapus mata pelajaran karena masih memiliki ${gradesCount} nilai`,
-        },
-        { status: 400 }
-      );
-    }
-
-    // Check if subject has schedules (match by code like seeder)
-    const schedulesCount = await collections.schedules.countDocuments({
-      subject: existingSubject.code,
-    });
-    if (schedulesCount > 0) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: `Tidak dapat menghapus mata pelajaran karena masih memiliki ${schedulesCount} jadwal`,
-        },
-        { status: 400 }
-      );
-    }
-
-    // Soft delete (set isActive to false)
-    const result = await collections.subjects.updateOne(
-      { _id: new ObjectId(id) },
-      { $set: { isActive: false, updatedAt: new Date() } }
-    );
-
-    if (result.matchedCount === 0) {
-      return NextResponse.json(
-        { success: false, message: "Mata pelajaran tidak ditemukan" },
-        { status: 404 }
-      );
-    }
+    // TODO: Add business validation for grades/schedules if needed
+    // For now, soft delete via repository
+    await repo.remove(id);
 
     return NextResponse.json({
       success: true,

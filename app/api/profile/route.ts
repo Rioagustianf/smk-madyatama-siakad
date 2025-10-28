@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCollections, handleDatabaseError } from "@/lib/database/mongodb";
+import { handleDatabaseError } from "@/lib/database/errors";
+import { getProfileRepository } from "@/lib/database/repository";
 import jwt from "jsonwebtoken";
 
 export const dynamic = "force-dynamic";
@@ -29,8 +30,8 @@ async function verifyAdminToken(request: NextRequest) {
 
 export async function GET() {
   try {
-    const collections = await getCollections();
-    const profile = await collections.profile.findOne({ _singleton: true });
+    const repo = getProfileRepository();
+    const profile = await repo.get();
     return NextResponse.json({ success: true, data: profile || null });
   } catch (error) {
     const err = handleDatabaseError(error);
@@ -51,14 +52,9 @@ export async function PUT(request: NextRequest) {
       );
     }
     const body = await request.json();
-    const collections = await getCollections();
-    const update = { ...body, _singleton: true, updatedAt: new Date() };
-    await collections.profile.updateOne(
-      { _singleton: true },
-      { $set: update },
-      { upsert: true }
-    );
-    return NextResponse.json({ success: true, data: update });
+    const repo = getProfileRepository();
+    const updated = await repo.upsert(body);
+    return NextResponse.json({ success: true, data: updated });
   } catch (error) {
     const err = handleDatabaseError(error);
     return NextResponse.json(

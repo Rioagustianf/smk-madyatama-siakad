@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCollections, handleDatabaseError } from "@/lib/database/mongodb";
-import { ObjectId } from "mongodb";
+import { handleDatabaseError } from "@/lib/database/errors";
+import { getActivitiesRepository } from "@/lib/database/repository";
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET =
@@ -33,16 +33,8 @@ export async function GET(
 ) {
   try {
     const { id } = params;
-    if (!ObjectId.isValid(id))
-      return NextResponse.json(
-        { success: false, message: "ID tidak valid" },
-        { status: 400 }
-      );
-    const collections = await getCollections();
-    const doc = await collections.activities?.findOne({
-      _id: new ObjectId(id),
-      kind: "extracurricular",
-    });
+    const repo = getActivitiesRepository();
+    const doc = await repo.findById(id);
     if (!doc)
       return NextResponse.json(
         { success: false, message: "Data tidak ditemukan" },
@@ -70,18 +62,10 @@ export async function PUT(
         { status: auth.status }
       );
     const { id } = params;
-    if (!ObjectId.isValid(id))
-      return NextResponse.json(
-        { success: false, message: "ID tidak valid" },
-        { status: 400 }
-      );
     const body = await request.json();
-    const collections = await getCollections();
-    const res = await collections.activities?.updateOne(
-      { _id: new ObjectId(id), kind: "extracurricular" },
-      { $set: { ...body, kind: "extracurricular", updatedAt: new Date() } }
-    );
-    if (!res?.matchedCount)
+    const repo = getActivitiesRepository();
+    const updated = await repo.update(id, { ...body, kind: "extracurricular" });
+    if (!updated)
       return NextResponse.json(
         { success: false, message: "Data tidak ditemukan" },
         { status: 404 }
@@ -111,21 +95,13 @@ export async function DELETE(
         { status: auth.status }
       );
     const { id } = params;
-    if (!ObjectId.isValid(id))
+    if (!id)
       return NextResponse.json(
         { success: false, message: "ID tidak valid" },
         { status: 400 }
       );
-    const collections = await getCollections();
-    const res = await collections.activities?.deleteOne({
-      _id: new ObjectId(id),
-      kind: "extracurricular",
-    });
-    if (!res?.deletedCount)
-      return NextResponse.json(
-        { success: false, message: "Data tidak ditemukan" },
-        { status: 404 }
-      );
+    const repo = getActivitiesRepository();
+    await repo.remove(id);
     return NextResponse.json({
       success: true,
       message: "Ekstrakurikuler dihapus",

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCollections, handleDatabaseError } from "@/lib/database/mongodb";
-import { ObjectId } from "mongodb";
+import { handleDatabaseError } from "@/lib/database/errors";
+import { getInternshipSchedulesRepository } from "@/lib/database/repository";
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET =
@@ -34,31 +34,20 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "12");
     const skip = (page - 1) * limit;
-    const collections = await getCollections();
-    const filter: any = {};
-    if (search) {
-      filter.$or = [
-        { program: { $regex: search, $options: "i" } },
-        { notes: { $regex: search, $options: "i" } },
-      ];
-    }
-    const [items, total] = await Promise.all([
-      collections.internshipSchedules
-        ?.find(filter)
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .toArray() ?? [],
-      collections.internshipSchedules?.countDocuments(filter) ?? 0,
-    ]);
+    const repo = getInternshipSchedulesRepository();
+    const { data, total } = await repo.findMany({
+      search,
+      page,
+      limit,
+    });
     return NextResponse.json({
       success: true,
-      data: items,
+      data,
       pagination: {
         page,
         limit,
         total,
-        totalPages: Math.ceil((total as number) / limit),
+        totalPages: Math.ceil(total / limit),
       },
     });
   } catch (error) {
@@ -85,19 +74,16 @@ export async function POST(request: NextRequest) {
         { success: false, message: "Program dan periode diperlukan" },
         { status: 400 }
       );
-    const collections = await getCollections();
-    const doc = {
+    const repo = getInternshipSchedulesRepository();
+    const created = await repo.create({
       program,
       period,
       notes: notes || "",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    const res = await collections.internshipSchedules?.insertOne(doc);
+    });
     return NextResponse.json({
       success: true,
       message: "Jadwal prakerin ditambahkan",
-      data: { _id: res?.insertedId, ...doc },
+      data: created,
     });
   } catch (error) {
     const err = handleDatabaseError(error);

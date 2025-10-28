@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCollections, handleDatabaseError } from "@/lib/database/mongodb";
-import { ObjectId } from "mongodb";
+import { handleDatabaseError } from "@/lib/database/errors";
+import { getSubjectsRepository, getTeachersRepository } from "@/lib/database/repository";
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET =
@@ -40,73 +40,22 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search") || "";
-    const majorId = searchParams.get("majorId") || "";
+    const teacherId = searchParams.get("teacherId") || "";
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");
-    const skip = (page - 1) * limit;
-
-    const collections = await getCollections();
-
-    // Build filter
-    const filter: any = { isActive: true };
-    if (search) {
-      filter.$or = [
-        { name: { $regex: search, $options: "i" } },
-        { code: { $regex: search, $options: "i" } },
-        { description: { $regex: search, $options: "i" } },
-      ];
-    }
-    if (majorId) {
-      // optional relation if available
-      filter.majorId = new ObjectId(majorId);
-    }
-
-    // Get subjects with teacher information using aggregation
-    const pipeline = [
-      { $match: filter },
-      {
-        $addFields: {
-          teacherObjectId: {
-            $cond: {
-              if: { $ne: ["$teacherId", ""] },
-              then: { $toObjectId: "$teacherId" },
-              else: null,
-            },
-          },
-        },
-      },
-      {
-        $lookup: {
-          from: "teachers",
-          localField: "teacherObjectId",
-          foreignField: "_id",
-          as: "teacher",
-        },
-      },
-      {
-        $addFields: {
-          teacher: { $arrayElemAt: ["$teacher", 0] },
-        },
-      },
-      {
-        $addFields: {
-          teacherName: "$teacher.name",
-          teacherEducation: "$teacher.education",
-        },
-      },
-      { $sort: { createdAt: -1 } },
-      { $skip: skip },
-      { $limit: limit },
-    ];
-
-    const [subjects, total] = await Promise.all([
-      collections.subjects.aggregate(pipeline).toArray(),
-      collections.subjects.countDocuments(filter),
-    ]);
+    
+    const repo = getSubjectsRepository();
+    const { data, total } = await repo.findMany({
+      search,
+      teacherId: teacherId || undefined,
+      isActive: true,
+      page,
+      limit,
+    });
 
     return NextResponse.json({
       success: true,
-      data: subjects,
+      data,
       pagination: {
         page,
         limit,
@@ -150,22 +99,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const collections = await getCollections();
-
-    // Check if code already exists
-    const existingSubject = await collections.subjects.findOne({ code });
-    if (existingSubject) {
-      return NextResponse.json(
-        { success: false, message: "Kode mata pelajaran sudah digunakan" },
-        { status: 400 }
-      );
-    }
-
-    // Validate teacherId if provided
+    const repo = getSubjectsRepository();
+    
+    // Validate teacher if provided
     if (teacherId) {
-      const teacher = await collections.teachers.findOne({
-        _id: new ObjectId(teacherId),
-      });
+      const teachersRepo = getTeachersRepository();
+      const teacher = await teachersRepo.findById(teacherId);
       if (!teacher) {
         return NextResponse.json(
           { success: false, message: "Guru tidak ditemukan" },
@@ -174,24 +113,29 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Create new subject
-    const newSubject = {
-      name,
-      code,
-      description: description || "",
-      teacherId: teacherId || "",
-      isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+    try {
+      const created = await repo.create({
+        name,
+        code,
+        description: description || "",
+        teacherId: teacherId || null,
+        isActive: true,
+      });
 
-    const result = await collections.subjects.insertOne(newSubject);
-
-    return NextResponse.json({
-      success: true,
-      message: "Mata pelajaran berhasil ditambahkan",
-      data: { id: result.insertedId, ...newSubject },
-    });
+      return NextResponse.json({
+        success: true,
+        message: "Mata pelajaran berhasil ditambahkan",
+        data: created,
+      });
+    } catch (err: any) {
+      if (err?.code === "P2002") {
+        return NextResponse.json(
+          { success: false, message: "Kode mata pelajaran sudah digunakan" },
+          { status: 400 }
+        );
+      }
+      throw err;
+    }
   } catch (error) {
     console.error("Error creating subject:", error);
     const errorResponse = handleDatabaseError(error);

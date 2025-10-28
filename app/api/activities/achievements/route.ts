@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCollections, handleDatabaseError } from "@/lib/database/mongodb";
-import { ObjectId } from "mongodb";
+import { handleDatabaseError } from "@/lib/database/errors";
+import { getActivitiesRepository } from "@/lib/database/repository";
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET =
@@ -37,34 +37,22 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "12");
     const skip = (page - 1) * limit;
 
-    const collections = await getCollections();
-    const filter: any = { kind: "achievement" };
-    if (search) {
-      filter.$or = [
-        { title: { $regex: search, $options: "i" } },
-        { category: { $regex: search, $options: "i" } },
-        { description: { $regex: search, $options: "i" } },
-      ];
-    }
-
-    const [items, total] = await Promise.all([
-      collections.activities
-        ?.find(filter)
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .toArray() ?? [],
-      collections.activities?.countDocuments(filter) ?? 0,
-    ]);
+    const repo = getActivitiesRepository();
+    const { data, total } = await repo.findMany({
+      search,
+      kind: "achievement",
+      page,
+      limit,
+    });
 
     return NextResponse.json({
       success: true,
-      data: items,
+      data,
       pagination: {
         page,
         limit,
         total,
-        totalPages: Math.ceil((total as number) / limit),
+        totalPages: Math.ceil(total / limit),
       },
     });
   } catch (error) {
@@ -94,21 +82,18 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
 
-    const collections = await getCollections();
-    const doc = {
+    const repo = getActivitiesRepository();
+    const created = await repo.create({
       title,
       category: category || "",
       description: description || "",
       year: year || "",
       kind: "achievement",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    const res = await collections.activities?.insertOne(doc);
+    });
     return NextResponse.json({
       success: true,
       message: "Prestasi ditambahkan",
-      data: { _id: res?.insertedId, ...doc },
+      data: created,
     });
   } catch (error) {
     const err = handleDatabaseError(error);

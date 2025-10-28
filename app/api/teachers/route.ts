@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCollections, handleDatabaseError } from "@/lib/database/mongodb";
-import { ObjectId } from "mongodb";
+import { handleDatabaseError } from "@/lib/database/errors";
+import { getTeachersRepository } from "@/lib/database/repository";
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET =
@@ -43,33 +43,13 @@ export async function GET(request: NextRequest) {
     const isActive = searchParams.get("isActive");
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");
-    const skip = (page - 1) * limit;
-
-    const collections = await getCollections();
-
-    // Build filter
-    const filter: any = {};
-    if (search) {
-      filter.$or = [
-        { name: { $regex: search, $options: "i" } },
-        { username: { $regex: search, $options: "i" } },
-        { education: { $regex: search, $options: "i" } },
-      ];
-    }
-    if (isActive !== null && isActive !== undefined) {
-      filter.isActive = isActive === "true";
-    }
-
-    // Get teachers with pagination
-    const [teachers, total] = await Promise.all([
-      collections.teachers
-        .find(filter)
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .toArray(),
-      collections.teachers.countDocuments(filter),
-    ]);
+    const repo = getTeachersRepository();
+    const { data: teachers, total } = await repo.findMany({
+      search,
+      isActive: isActive === null || isActive === undefined ? undefined : isActive === "true",
+      page,
+      limit,
+    });
 
     return NextResponse.json({
       success: true,
@@ -117,41 +97,33 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const collections = await getCollections();
-
-    // Check if username already exists
-    const existingTeacher = await collections.teachers.findOne({ username });
-    if (existingTeacher) {
-      return NextResponse.json(
-        { success: false, message: "Username sudah digunakan" },
-        { status: 400 }
-      );
-    }
-
-    // Create new teacher
-    const newTeacher = {
-      name,
-      username,
-      phone: phone || "",
-      education: education || "",
-      subjects: [],
-      classes: classes || [],
-      isActive: true,
-      role: "teacher" as const,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    const result = await collections.teachers.insertOne({
-      ...newTeacher,
-      id: username,
-    });
+    const repo = getTeachersRepository();
+    try {
+      const created = await repo.create({
+        name,
+        username,
+        phone: phone || "",
+        education: education || "",
+        subjects: [],
+        classes: classes || [],
+        isActive: true,
+        role: "teacher",
+      });
 
     return NextResponse.json({
       success: true,
       message: "Guru berhasil ditambahkan",
-      data: { id: result.insertedId, ...newTeacher },
+      data: created,
     });
+    } catch (err: any) {
+      if (err?.code === "P2002") {
+        return NextResponse.json(
+          { success: false, message: "Username sudah digunakan" },
+          { status: 400 }
+        );
+      }
+      throw err;
+    }
   } catch (error) {
     console.error("Error creating teacher:", error);
     const errorResponse = handleDatabaseError(error);

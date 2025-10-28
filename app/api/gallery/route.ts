@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCollections, handleDatabaseError } from "@/lib/database/mongodb";
-import { ObjectId } from "mongodb";
+import { handleDatabaseError } from "@/lib/database/errors";
+import { getGalleryRepository } from "@/lib/database/repository";
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET =
@@ -47,41 +47,22 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "10");
     const skip = (page - 1) * limit;
 
-    const collections = await getCollections();
-
-    // Build filter
-    const filter: any = {};
-    if (search) {
-      filter.$or = [
-        { title: { $regex: search, $options: "i" } },
-        { description: { $regex: search, $options: "i" } },
-        { tags: { $regex: search, $options: "i" } },
-      ];
-    }
-    if (category) {
-      filter.category = category;
-    }
-    if (type) {
-      filter.type = type;
-    }
-    if (isPublished !== null && isPublished !== undefined) {
-      filter.isPublished = isPublished === "true";
-    }
-
-    // Get gallery items with pagination
-    const [gallery, total] = await Promise.all([
-      collections.gallery
-        .find(filter)
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .toArray(),
-      collections.gallery.countDocuments(filter),
-    ]);
+    const repo = getGalleryRepository();
+    const { data, total } = await repo.findMany({
+      search,
+      category: category || undefined,
+      type: type || undefined,
+      isPublished:
+        isPublished !== null && isPublished !== undefined
+          ? isPublished === "true"
+          : undefined,
+      page,
+      limit,
+    });
 
     return NextResponse.json({
       success: true,
-      data: gallery,
+      data,
       pagination: {
         page,
         limit,
@@ -134,10 +115,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const collections = await getCollections();
-
-    // Create new gallery item
-    const newGalleryItem = {
+    const repo = getGalleryRepository();
+    const created = await repo.create({
       title,
       description: description || "",
       type,
@@ -147,16 +126,12 @@ export async function POST(request: NextRequest) {
       tags: tags || [],
       isPublished: isPublished || false,
       createdBy: authResult.user.id,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    const result = await collections.gallery.insertOne(newGalleryItem);
+    });
 
     return NextResponse.json({
       success: true,
       message: "Item galeri berhasil ditambahkan",
-      data: { id: result.insertedId, ...newGalleryItem },
+      data: created,
     });
   } catch (error) {
     console.error("Error creating gallery item:", error);

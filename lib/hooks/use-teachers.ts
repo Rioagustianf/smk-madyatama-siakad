@@ -6,7 +6,7 @@ import { toast } from "sonner";
 
 // Types
 export interface Teacher {
-  _id: string;
+  id: string;
   name: string;
   username: string;
   phone?: string;

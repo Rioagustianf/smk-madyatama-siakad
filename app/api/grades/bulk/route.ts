@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCollections, handleDatabaseError } from "@/lib/database/mongodb";
+import { handleDatabaseError } from "@/lib/database/errors";
+import { getGradesRepository, getTeachersRepository } from "@/lib/database/repository";
 import { calculateLetterGrade, roundNumber } from "@/lib/utils";
 import jwt from "jsonwebtoken";
-import { ObjectId } from "mongodb";
 
 const JWT_SECRET =
   process.env.JWT_SECRET || "your-secret-key-change-in-production";
@@ -18,8 +18,8 @@ async function verifyHomeroomTeacher(request: NextRequest) {
     if (!decoded?.id || decoded?.role !== "teacher") {
       return { error: "Akses ditolak", status: 403 } as const;
     }
-    const { teachers } = await getCollections();
-    const teacher = await teachers.findOne({ _id: new ObjectId(decoded.id) });
+    const teachersRepo = getTeachersRepository();
+    const teacher = await teachersRepo.findById(decoded.id);
     const classes = (teacher as any)?.classes || [];
     if (!Array.isArray(classes) || classes.length === 0) {
       return {
@@ -54,46 +54,31 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { grades } = await getCollections();
-    const ops = items.map((g: any) => ({
-      updateOne: {
-        filter: {
-          studentId: g.studentId,
-          subjectId: g.subjectId,
-          semester: g.semester,
-          year: g.year,
-        },
-        update: {
-          $set: {
-            assignments: Number(g.assignments ?? 0),
-            midterm: Number(g.midterm ?? 0),
-            final: Number(g.final ?? 0),
-            total: roundNumber(
-              (Number(g.assignments || 0) +
-                Number(g.midterm || 0) +
-                Number(g.final || 0)) /
-                3,
-              2
-            ),
-            grade: calculateLetterGrade(
-              (Number(g.assignments || 0) +
-                Number(g.midterm || 0) +
-                Number(g.final || 0)) /
-                3
-            ),
-            teacherId: g.teacherId,
-            updatedAt: new Date(),
-          },
-          $setOnInsert: { createdAt: new Date() },
-        },
-        upsert: true,
-      },
-    }));
+    const repo = getGradesRepository();
+    const upsertData = items.map((g: any) => {
+      const avg =
+        (Number(g.assignments || 0) +
+          Number(g.midterm || 0) +
+          Number(g.final || 0)) /
+        3;
+      return {
+        studentId: g.studentId,
+        subjectId: g.subjectId,
+        semester: Number(g.semester),
+        year: Number(g.year),
+        assignments: Number(g.assignments ?? 0),
+        midterm: Number(g.midterm ?? 0),
+        final: Number(g.final ?? 0),
+        total: roundNumber(avg, 2),
+        grade: calculateLetterGrade(avg),
+        teacherId: g.teacherId,
+      };
+    });
 
-    const result = await grades.bulkWrite(ops, { ordered: false });
+    const result = await repo.bulkUpsert(upsertData);
     return NextResponse.json({
       success: true,
-      data: { modified: result.modifiedCount, upserted: result.upsertedCount },
+      data: result,
     });
   } catch (error) {
     return handleDatabaseError(error);

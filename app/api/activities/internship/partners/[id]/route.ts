@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCollections, handleDatabaseError } from "@/lib/database/mongodb";
-import { ObjectId } from "mongodb";
+import { handleDatabaseError } from "@/lib/database/errors";
+import { getInternshipPartnersRepository } from "@/lib/database/repository";
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET =
@@ -39,18 +39,10 @@ export async function PUT(
         { status: auth.status }
       );
     const { id } = params;
-    if (!ObjectId.isValid(id))
-      return NextResponse.json(
-        { success: false, message: "ID tidak valid" },
-        { status: 400 }
-      );
     const body = await request.json();
-    const collections = await getCollections();
-    const res = await collections.internshipPartners?.updateOne(
-      { _id: new ObjectId(id) },
-      { $set: { ...body, updatedAt: new Date() } }
-    );
-    if (!res?.matchedCount)
+    const repo = getInternshipPartnersRepository();
+    const updated = await repo.update(id, body);
+    if (!updated)
       return NextResponse.json(
         { success: false, message: "Data tidak ditemukan" },
         { status: 404 }
@@ -77,20 +69,8 @@ export async function DELETE(
         { status: auth.status }
       );
     const { id } = params;
-    if (!ObjectId.isValid(id))
-      return NextResponse.json(
-        { success: false, message: "ID tidak valid" },
-        { status: 400 }
-      );
-    const collections = await getCollections();
-    const res = await collections.internshipPartners?.deleteOne({
-      _id: new ObjectId(id),
-    });
-    if (!res?.deletedCount)
-      return NextResponse.json(
-        { success: false, message: "Data tidak ditemukan" },
-        { status: 404 }
-      );
+    const repo = getInternshipPartnersRepository();
+    await repo.remove(id);
     return NextResponse.json({ success: true, message: "Mitra dihapus" });
   } catch (error) {
     const err = handleDatabaseError(error);

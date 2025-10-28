@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCollections, handleDatabaseError } from "@/lib/database/mongodb";
+import { handleDatabaseError } from "@/lib/database/errors";
+import { getAnnouncementsRepository } from "@/lib/database/repository";
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET =
@@ -30,42 +31,18 @@ export async function GET(request: NextRequest) {
     const priority = searchParams.get("priority") || "";
     const isPublished = searchParams.get("isPublished");
 
-    const { announcements } = await getCollections();
-
-    // Build filter
-    const filter: any = {};
-
-    if (search) {
-      filter.$or = [
-        { title: { $regex: search, $options: "i" } },
-        { excerpt: { $regex: search, $options: "i" } },
-        { content: { $regex: search, $options: "i" } },
-      ];
-    }
-
-    if (category && category !== "all") {
-      filter.category = category;
-    }
-
-    if (priority && priority !== "all") {
-      filter.priority = priority;
-    }
-
-    if (isPublished !== null && isPublished !== undefined) {
-      filter.isPublished = isPublished === "true";
-    }
-
-    const skip = (page - 1) * limit;
-
-    const [data, total] = await Promise.all([
-      announcements
-        .find(filter)
-        .sort({ publishedAt: -1, createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .toArray(),
-      announcements.countDocuments(filter),
-    ]);
+    const repo = getAnnouncementsRepository();
+    const { data, total } = await repo.findMany({
+      search,
+      category: category && category !== "all" ? category : undefined,
+      priority: priority && priority !== "all" ? priority : undefined,
+      isPublished:
+        isPublished !== null && isPublished !== undefined
+          ? isPublished === "true"
+          : undefined,
+      page,
+      limit,
+    });
 
     return NextResponse.json({
       success: true,
@@ -91,21 +68,17 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { announcements } = await getCollections();
+    const repo = getAnnouncementsRepository();
 
-    const newAnnouncement = {
+    const created = await repo.create({
       ...body,
       publishedAt: body.publishedAt ? new Date(body.publishedAt) : new Date(),
-      createdAt: new Date(),
-      updatedAt: new Date(),
       createdBy: adminData.email,
-    };
-
-    const result = await announcements.insertOne(newAnnouncement);
+    });
 
     return NextResponse.json({
       success: true,
-      data: { _id: result.insertedId, ...newAnnouncement },
+      data: created,
     });
   } catch (error) {
     return handleDatabaseError(error);

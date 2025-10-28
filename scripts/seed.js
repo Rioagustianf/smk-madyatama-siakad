@@ -15,9 +15,9 @@ const path = require("path");
 
 async function main() {
   try {
-    console.log("🌱 Starting database seeding...");
+    console.log("🌱 Starting database seeding with Prisma/MySQL...");
     console.log(
-      "⚠️  Pastikan MongoDB sudah berjalan dan environment variables sudah di-set"
+      "⚠️  Pastikan MySQL sudah berjalan dan DATABASE_URL sudah di-set di .env"
     );
 
     // Run the seeder via API endpoint
@@ -54,8 +54,10 @@ async function main() {
     console.error("❌ Error seeding database:", error.message);
     console.log("\n💡 Pastikan:");
     console.log("   1. Development server sudah berjalan (npm run dev)");
-    console.log("   2. MongoDB sudah terhubung");
-    console.log("   3. Environment variables sudah di-set");
+    console.log("   2. MySQL server sudah running");
+    console.log("   3. DATABASE_URL di .env sudah benar");
+    console.log("   4. Prisma client sudah di-generate (npx prisma generate)");
+    console.log("   5. Database schema sudah di-push (npx prisma db push)");
     process.exit(1);
   }
 }

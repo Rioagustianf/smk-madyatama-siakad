@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ObjectId } from "mongodb";
-import { getCollections, handleDatabaseError } from "@/lib/database/mongodb";
+import { handleDatabaseError } from "@/lib/database/errors";
+import { getAnnouncementsRepository } from "@/lib/database/repository";
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET =
@@ -26,11 +26,8 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { announcements } = await getCollections();
-
-    const announcement = await announcements.findOne({
-      _id: new ObjectId(params.id),
-    });
+    const repo = getAnnouncementsRepository();
+    const announcement = await repo.findById(params.id);
 
     if (!announcement) {
       return NextResponse.json(
@@ -44,7 +41,11 @@ export async function GET(
       data: announcement,
     });
   } catch (error) {
-    return handleDatabaseError(error);
+    const errorResponse = handleDatabaseError(error);
+    return NextResponse.json(
+      { success: false, message: errorResponse.message },
+      { status: errorResponse.status }
+    );
   }
 }
 
@@ -60,21 +61,15 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { announcements } = await getCollections();
+    const repo = getAnnouncementsRepository();
 
-    const updateData = {
+    const updated = await repo.update(params.id, {
       ...body,
-      publishedAt: body.publishedAt ? new Date(body.publishedAt) : new Date(),
-      updatedAt: new Date(),
+      publishedAt: body.publishedAt ? new Date(body.publishedAt) : undefined,
       updatedBy: adminData.email,
-    };
+    });
 
-    const result = await announcements.updateOne(
-      { _id: new ObjectId(params.id) },
-      { $set: updateData }
-    );
-
-    if (result.matchedCount === 0) {
+    if (!updated) {
       return NextResponse.json(
         { error: "Announcement not found" },
         { status: 404 }
@@ -83,7 +78,7 @@ export async function PUT(
 
     return NextResponse.json({
       success: true,
-      data: { _id: params.id, ...updateData },
+      data: updated,
     });
   } catch (error) {
     return handleDatabaseError(error);
@@ -101,18 +96,8 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { announcements } = await getCollections();
-
-    const result = await announcements.deleteOne({
-      _id: new ObjectId(params.id),
-    });
-
-    if (result.deletedCount === 0) {
-      return NextResponse.json(
-        { error: "Announcement not found" },
-        { status: 404 }
-      );
-    }
+    const repo = getAnnouncementsRepository();
+    await repo.remove(params.id);
 
     return NextResponse.json({
       success: true,

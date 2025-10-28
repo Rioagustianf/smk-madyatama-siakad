@@ -1,39 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCollections, handleDatabaseError } from "@/lib/database/mongodb";
-import { ObjectId } from "mongodb";
-import jwt from "jsonwebtoken";
-
-const JWT_SECRET =
-  process.env.JWT_SECRET || "your-secret-key-change-in-production";
+import { getMajorsRepository } from "@/lib/database/repository";
+import { handleDatabaseError } from "@/lib/database/errors";
+import { verifyAdminToken } from "@/lib/auth";
 
 // Prevent static generation
 export const dynamic = "force-dynamic";
-
-// Helper function to verify admin token
-async function verifyAdminToken(request: NextRequest) {
-  const authHeader = request.headers.get("authorization");
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return { error: "Token tidak ditemukan", status: 401 };
-  }
-
-  const token = authHeader.substring(7);
-
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET) as any;
-
-    if (decoded.role !== "admin") {
-      return {
-        error: "Akses ditolak. Hanya admin yang dapat mengakses",
-        status: 403,
-      };
-    }
-
-    return { user: decoded };
-  } catch (error) {
-    return { error: "Token tidak valid", status: 401 };
-  }
-}
 
 // GET - Get all majors
 export async function GET(request: NextRequest) {
@@ -42,55 +13,13 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get("search") || "";
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");
-    const skip = (page - 1) * limit;
 
-    const collections = await getCollections();
-
-    // Build filter
-    const filter: any = {};
-    if (search) {
-      filter.$or = [
-        { name: { $regex: search, $options: "i" } },
-        { code: { $regex: search, $options: "i" } },
-        { description: { $regex: search, $options: "i" } },
-      ];
-    }
-
-    // Get majors with pagination
-    const [majors, total] = await Promise.all([
-      collections.majors
-        .find(filter)
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .toArray(),
-      collections.majors.countDocuments(filter),
-    ]);
-
-    // Compute student counts per major by matching student.major to major.name
-    const majorNames = majors.map((m: any) => m.name);
-    const counts = await collections.students
-      .aggregate([
-        { $match: { major: { $in: majorNames } } },
-        { $group: { _id: "$major", count: { $sum: 1 } } },
-      ])
-      .toArray();
-    const countMap = counts.reduce((acc: Record<string, number>, item: any) => {
-      acc[item._id] = item.count;
-      return acc;
-    }, {} as Record<string, number>);
-
-    const majorsWithCounts = majors.map((m: any) => ({
-      ...m,
-      totalStudents:
-        typeof countMap[m.name] === "number"
-          ? countMap[m.name]
-          : m.totalStudents ?? 0,
-    }));
+    const repo = getMajorsRepository();
+    const { data, total } = await repo.findMany({ search, page, limit });
 
     return NextResponse.json({
       success: true,
-      data: majorsWithCounts,
+      data,
       pagination: {
         page,
         limit,
@@ -99,7 +28,12 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    return handleDatabaseError(error);
+    console.error("Error fetching majors:", error);
+    const errorResponse = handleDatabaseError(error);
+    return NextResponse.json(
+      { success: false, message: errorResponse.message },
+      { status: 500 }
+    );
   }
 }
 
@@ -130,38 +64,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const collections = await getCollections();
-
-    // Check if code already exists
-    const existingMajor = await collections.majors.findOne({ code });
-    if (existingMajor) {
-      return NextResponse.json(
-        { success: false, message: "Kode program keahlian sudah digunakan" },
-        { status: 400 }
-      );
-    }
-
-    // Create new major
-    const newMajor = {
+    const repo = getMajorsRepository();
+    // Will throw duplicate error if code exists (Mongo) or unique constraint (Prisma)
+    const created = await repo.create({
       name,
       code,
-      description: description || "",
-      image: image || "",
-      facilities: facilities || [],
-      careerProspects: careerProspects || [],
-      totalStudents: 0,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    const result = await collections.majors.insertOne(newMajor);
+      description,
+      image,
+      facilities,
+      careerProspects,
+    });
 
     return NextResponse.json({
       success: true,
       message: "Program keahlian berhasil ditambahkan",
-      data: { id: result.insertedId, ...newMajor },
+      data: created,
     });
   } catch (error) {
-    return handleDatabaseError(error);
+    console.error("Error creating major:", error);
+    const errorResponse = handleDatabaseError(error);
+    return NextResponse.json(
+      { success: false, message: errorResponse.message },
+      { status: 500 }
+    );
   }
 }

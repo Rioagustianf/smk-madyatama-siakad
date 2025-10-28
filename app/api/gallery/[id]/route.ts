@@ -1,39 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCollections, handleDatabaseError } from "@/lib/database/mongodb";
-import { ObjectId } from "mongodb";
-import jwt from "jsonwebtoken";
-
-const JWT_SECRET =
-  process.env.JWT_SECRET || "your-secret-key-change-in-production";
-
-// Prevent static generation
-export const dynamic = "force-dynamic";
-
-// Helper function to verify admin token
-async function verifyAdminToken(request: NextRequest) {
-  const authHeader = request.headers.get("authorization");
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return { error: "Token tidak ditemukan", status: 401 };
-  }
-
-  const token = authHeader.substring(7);
-
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET) as any;
-
-    if (decoded.role !== "admin") {
-      return {
-        error: "Akses ditolak. Hanya admin yang dapat mengakses",
-        status: 403,
-      };
-    }
-
-    return { user: decoded };
-  } catch (error) {
-    return { error: "Token tidak valid", status: 401 };
-  }
-}
+import { handleDatabaseError } from "@/lib/database/errors";
+import { getGalleryRepository } from "@/lib/database/repository";
+import { verifyAdminToken } from "@/lib/auth";
 
 // GET - Get single gallery item by ID
 export async function GET(
@@ -50,19 +18,8 @@ export async function GET(
       );
     }
 
-    // Validate ObjectId format
-    if (!ObjectId.isValid(id)) {
-      return NextResponse.json(
-        { success: false, message: "Format ID tidak valid" },
-        { status: 400 }
-      );
-    }
-
-    const collections = await getCollections();
-
-    const galleryItem = await collections.gallery.findOne({
-      _id: new ObjectId(id),
-    });
+    const repo = getGalleryRepository();
+    const galleryItem = await repo.findById(id);
 
     if (!galleryItem) {
       return NextResponse.json(
@@ -71,24 +28,13 @@ export async function GET(
       );
     }
 
-    // Transform _id to id for frontend consistency
-    const transformedGalleryItem = {
-      ...galleryItem,
-      id: galleryItem._id.toString(),
-      _id: undefined, // Remove _id to avoid confusion
-    };
-
     return NextResponse.json({
       success: true,
-      data: transformedGalleryItem,
+      data: galleryItem,
     });
   } catch (error) {
     console.error("Error fetching gallery item:", error);
-    const errorResponse = handleDatabaseError(error);
-    return NextResponse.json(
-      { success: false, message: errorResponse.message },
-      { status: 500 }
-    );
+    return handleDatabaseError(error);
   }
 }
 
@@ -108,14 +54,6 @@ export async function PUT(
     }
 
     const { id } = params;
-
-    // Validate ObjectId format
-    if (!ObjectId.isValid(id)) {
-      return NextResponse.json(
-        { success: false, message: "Format ID tidak valid" },
-        { status: 400 }
-      );
-    }
 
     const body = await request.json();
     const {
@@ -140,21 +78,8 @@ export async function PUT(
       );
     }
 
-    const collections = await getCollections();
-
-    // Check if gallery item exists
-    const existingGalleryItem = await collections.gallery.findOne({
-      _id: new ObjectId(id),
-    });
-    if (!existingGalleryItem) {
-      return NextResponse.json(
-        { success: false, message: "Item galeri tidak ditemukan" },
-        { status: 404 }
-      );
-    }
-
-    // Update gallery item
-    const updateData = {
+    const repo = getGalleryRepository();
+    const updated = await repo.update(id, {
       title,
       description: description || "",
       type,
@@ -163,15 +88,9 @@ export async function PUT(
       category: category || "general",
       tags: tags || [],
       isPublished: isPublished || false,
-      updatedAt: new Date(),
-    };
+    });
 
-    const result = await collections.gallery.updateOne(
-      { _id: new ObjectId(id) },
-      { $set: updateData }
-    );
-
-    if (result.matchedCount === 0) {
+    if (!updated) {
       return NextResponse.json(
         { success: false, message: "Item galeri tidak ditemukan" },
         { status: 404 }
@@ -181,15 +100,11 @@ export async function PUT(
     return NextResponse.json({
       success: true,
       message: "Item galeri berhasil diperbarui",
-      data: { id, ...updateData },
+      data: updated,
     });
   } catch (error) {
     console.error("Error updating gallery item:", error);
-    const errorResponse = handleDatabaseError(error);
-    return NextResponse.json(
-      { success: false, message: errorResponse.message },
-      { status: 500 }
-    );
+    return handleDatabaseError(error);
   }
 }
 
@@ -210,45 +125,8 @@ export async function DELETE(
 
     const { id } = params;
 
-    if (!id) {
-      return NextResponse.json(
-        { success: false, message: "ID item galeri diperlukan" },
-        { status: 400 }
-      );
-    }
-
-    // Validate ObjectId format
-    if (!ObjectId.isValid(id)) {
-      return NextResponse.json(
-        { success: false, message: "Format ID tidak valid" },
-        { status: 400 }
-      );
-    }
-
-    const collections = await getCollections();
-
-    // Check if gallery item exists
-    const existingGalleryItem = await collections.gallery.findOne({
-      _id: new ObjectId(id),
-    });
-    if (!existingGalleryItem) {
-      return NextResponse.json(
-        { success: false, message: "Item galeri tidak ditemukan" },
-        { status: 404 }
-      );
-    }
-
-    // Hard delete (permanently remove from database)
-    const result = await collections.gallery.deleteOne({
-      _id: new ObjectId(id),
-    });
-
-    if (result.deletedCount === 0) {
-      return NextResponse.json(
-        { success: false, message: "Item galeri tidak ditemukan" },
-        { status: 404 }
-      );
-    }
+    const repo = getGalleryRepository();
+    await repo.remove(id);
 
     return NextResponse.json({
       success: true,
@@ -256,10 +134,6 @@ export async function DELETE(
     });
   } catch (error) {
     console.error("Error deleting gallery item:", error);
-    const errorResponse = handleDatabaseError(error);
-    return NextResponse.json(
-      { success: false, message: errorResponse.message },
-      { status: 500 }
-    );
+    return handleDatabaseError(error);
   }
 }

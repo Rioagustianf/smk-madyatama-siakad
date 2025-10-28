@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCollections, handleDatabaseError } from "@/lib/database/mongodb";
-import { ObjectId } from "mongodb";
+import { handleDatabaseError } from "@/lib/database/errors";
+import { getStaffRepository } from "@/lib/database/repository";
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET =
@@ -48,42 +48,23 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "10");
     const skip = (page - 1) * limit;
 
-    const collections = await getCollections();
-
-    // Build filter (minimal fields)
-    const filter: any = {};
-    if (search) {
-      filter.$or = [
-        { name: { $regex: search, $options: "i" } },
-        { position: { $regex: search, $options: "i" } },
-      ];
-    }
-    if (position) {
-      filter.position = position;
-    }
-    if (role) {
-      filter.role = { $regex: role, $options: "i" };
-    }
-    if (level) {
-      filter.level = { $regex: level, $options: "i" };
-    }
-    if (isActive !== null && isActive !== undefined) {
-      filter.isActive = isActive === "true";
-    }
-
-    const [staff, total] = await Promise.all([
-      collections.staff
-        .find(filter)
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .toArray(),
-      collections.staff.countDocuments(filter),
-    ]);
+    const repo = getStaffRepository();
+    const { data, total } = await repo.findMany({
+      search,
+      position: position || undefined,
+      role: role || undefined,
+      level: level || undefined,
+      isActive:
+        isActive !== null && isActive !== undefined
+          ? isActive === "true"
+          : undefined,
+      page,
+      limit,
+    });
 
     return NextResponse.json({
       success: true,
-      data: staff,
+      data,
       pagination: {
         page,
         limit,
@@ -138,9 +119,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const collections = await getCollections();
-
-    const newStaff = {
+    const repo = getStaffRepository();
+    const created = await repo.create({
       name,
       role: role || "staff",
       position,
@@ -151,16 +131,12 @@ export async function POST(request: NextRequest) {
       order: typeof order === "number" ? order : 0,
       level: level || "",
       isActive: isActive !== undefined ? isActive : true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    const result = await collections.staff.insertOne(newStaff);
+    });
 
     return NextResponse.json({
       success: true,
       message: "Staf berhasil ditambahkan",
-      data: { _id: result.insertedId, ...newStaff },
+      data: created,
     });
   } catch (error) {
     console.error("Error creating staff:", error);

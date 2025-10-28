@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCollections } from "@/lib/database/mongodb";
+import { prisma } from "@/lib/database/prisma";
 
 export const dynamic = "force-dynamic";
 
@@ -27,25 +27,23 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const format = (searchParams.get("format") || "csv").toLowerCase();
 
-    const collections = await getCollections();
-
     const [students, teachers, admins] = await Promise.all([
-      collections.students.find({}).toArray(),
-      collections.teachers.find({}).toArray(),
-      collections.admins.find({}).toArray(),
+      prisma.student.findMany({ select: { username: true } }),
+      prisma.teacher.findMany({ select: { username: true } }),
+      prisma.admin.findMany({ select: { username: true } }),
     ]);
 
-    const studentRows = students.map((s: any) => ({
+    const studentRows = students.map((s) => ({
       username: s.username,
       password: "password123",
     }));
 
-    const teacherRows = teachers.map((t: any) => ({
+    const teacherRows = teachers.map((t) => ({
       username: t.username,
       password: "password123",
     }));
 
-    const adminRows = admins.map((a: any) => ({
+    const adminRows = admins.map((a) => ({
       username: a.username,
       password: "admin123",
     }));

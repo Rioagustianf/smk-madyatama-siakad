@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCollections, handleDatabaseError } from "@/lib/database/mongodb";
-import { ObjectId } from "mongodb";
+import { handleDatabaseError } from "@/lib/database/errors";
+import { getClassesRepository } from "@/lib/database/repository";
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET =
@@ -42,79 +42,18 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get("search") || "";
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");
-    const skip = (page - 1) * limit;
 
-    const collections = await getCollections();
-
-    // Build filter
-    const filter: any = { isActive: true };
-    if (search) {
-      filter.$or = [{ name: { $regex: search, $options: "i" } }];
-    }
-
-    // Get classes with homeroom teacher and major information using aggregation
-    const pipeline = [
-      { $match: filter },
-      {
-        $addFields: {
-          homeroomTeacherObjectId: {
-            $cond: {
-              if: { $ne: ["$homeroomTeacherId", ""] },
-              then: { $toObjectId: "$homeroomTeacherId" },
-              else: null,
-            },
-          },
-          majorObjectId: {
-            $cond: {
-              if: { $ne: ["$majorId", ""] },
-              then: { $toObjectId: "$majorId" },
-              else: null,
-            },
-          },
-        },
-      },
-      {
-        $lookup: {
-          from: "teachers",
-          localField: "homeroomTeacherObjectId",
-          foreignField: "_id",
-          as: "homeroomTeacher",
-        },
-      },
-      {
-        $lookup: {
-          from: "majors",
-          localField: "majorObjectId",
-          foreignField: "_id",
-          as: "major",
-        },
-      },
-      {
-        $addFields: {
-          homeroomTeacher: { $arrayElemAt: ["$homeroomTeacher", 0] },
-          major: { $arrayElemAt: ["$major", 0] },
-        },
-      },
-      {
-        $addFields: {
-          homeroomTeacherName: "$homeroomTeacher.name",
-          homeroomTeacherEducation: "$homeroomTeacher.education",
-          majorName: "$major.name",
-        },
-      },
-      { $sort: { createdAt: -1 } },
-      { $skip: skip },
-      { $limit: limit },
-    ];
-
-    const [classes, total] = await Promise.all([
-      collections.classes.aggregate(pipeline).toArray(),
-      collections.classes.countDocuments(filter),
-    ]);
+    const repo = getClassesRepository();
+    const { data, total } = await repo.findMany({
+      search,
+      isActive: true,
+      page,
+      limit,
+    });
 
     return NextResponse.json({
       success: true,
-      data: classes,
+      data,
       pagination: {
         page,
         limit,
@@ -158,47 +97,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const collections = await getCollections();
-
-    // Check if class name already exists
-    const existingClass = await collections.classes.findOne({ name });
-    if (existingClass) {
-      return NextResponse.json(
-        { success: false, message: "Nama kelas sudah digunakan" },
-        { status: 400 }
-      );
-    }
-
-    // Validate homeroom teacher if provided
-    if (homeroomTeacherId) {
-      const teacher = await collections.teachers.findOne({
-        _id: new ObjectId(homeroomTeacherId),
+    const repo = getClassesRepository();
+    
+    try {
+      const created = await repo.create({
+        name,
+        majorId: majorId || null,
+        homeroomTeacherId: homeroomTeacherId || null,
+        isActive: true,
       });
-      if (!teacher) {
+
+      return NextResponse.json({
+        success: true,
+        message: "Kelas berhasil ditambahkan",
+        data: created,
+      });
+    } catch (err: any) {
+      if (err?.code === "P2002") {
         return NextResponse.json(
-          { success: false, message: "Guru wali kelas tidak ditemukan" },
+          { success: false, message: "Nama kelas sudah digunakan" },
           { status: 400 }
         );
       }
+      throw err;
     }
-
-    // Create new class
-    const newClass = {
-      name,
-      majorId: majorId || "",
-      homeroomTeacherId: homeroomTeacherId || "",
-      isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    const result = await collections.classes.insertOne(newClass);
-
-    return NextResponse.json({
-      success: true,
-      message: "Kelas berhasil ditambahkan",
-      data: { id: result.insertedId, ...newClass },
-    });
   } catch (error) {
     console.error("Error creating class:", error);
     const errorResponse = handleDatabaseError(error);

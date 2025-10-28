@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCollections, handleDatabaseError } from "@/lib/database/mongodb";
-import { ObjectId } from "mongodb";
+import { handleDatabaseError } from "@/lib/database/errors";
+import { getTeachersRepository, getClassesRepository } from "@/lib/database/repository";
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET =
@@ -50,20 +50,8 @@ export async function GET(
       );
     }
 
-    // Validate ObjectId format
-    if (!ObjectId.isValid(id)) {
-      return NextResponse.json(
-        { success: false, message: "Format ID tidak valid" },
-        { status: 400 }
-      );
-    }
-
-    const collections = await getCollections();
-
-    const teacher = await collections.teachers.findOne({
-      _id: new ObjectId(id),
-      isActive: true,
-    });
+    const repo = getTeachersRepository();
+    const teacher = await repo.findById(id);
 
     if (!teacher) {
       return NextResponse.json(
@@ -103,14 +91,6 @@ export async function PUT(
 
     const { id } = params;
 
-    // Validate ObjectId format
-    if (!ObjectId.isValid(id)) {
-      return NextResponse.json(
-        { success: false, message: "Format ID tidak valid" },
-        { status: 400 }
-      );
-    }
-
     const body = await request.json();
     const { name, username, phone, education, classes } = body;
 
@@ -125,12 +105,8 @@ export async function PUT(
       );
     }
 
-    const collections = await getCollections();
-
-    // Check if teacher exists
-    const existingTeacher = await collections.teachers.findOne({
-      _id: new ObjectId(id),
-    });
+    const repo = getTeachersRepository();
+    const existingTeacher = await repo.findById(id);
     if (!existingTeacher) {
       return NextResponse.json(
         { success: false, message: "Guru tidak ditemukan" },
@@ -138,45 +114,29 @@ export async function PUT(
       );
     }
 
-    // Check if username is used by another teacher
-    const usernameExists = await collections.teachers.findOne({
-      username,
-      _id: { $ne: new ObjectId(id) },
-    });
-    if (usernameExists) {
-      return NextResponse.json(
-        { success: false, message: "Username sudah digunakan" },
-        { status: 400 }
-      );
-    }
-
-    // Update teacher
-    const updateData = {
-      name,
-      username,
-      phone: phone || "",
-      education: education || "",
-      classes: classes || [],
-      updatedAt: new Date(),
-    };
-
-    const result = await collections.teachers.updateOne(
-      { _id: new ObjectId(id) },
-      { $set: updateData }
-    );
-
-    if (result.matchedCount === 0) {
-      return NextResponse.json(
-        { success: false, message: "Guru tidak ditemukan" },
-        { status: 404 }
-      );
-    }
+    try {
+      const updated = await repo.update(id, {
+        name,
+        username,
+        phone: phone || "",
+        education: education || "",
+        classes: classes || [],
+      });
 
     return NextResponse.json({
       success: true,
       message: "Guru berhasil diperbarui",
-      data: { _id: id, ...updateData },
+      data: updated,
     });
+    } catch (err: any) {
+      if (err?.code === "P2002") {
+        return NextResponse.json(
+          { success: false, message: "Username sudah digunakan" },
+          { status: 400 }
+        );
+      }
+      throw err;
+    }
   } catch (error) {
     console.error("Error updating teacher:", error);
     const errorResponse = handleDatabaseError(error);
@@ -204,20 +164,8 @@ export async function DELETE(
 
     const { id } = params;
 
-    // Validate ObjectId format
-    if (!ObjectId.isValid(id)) {
-      return NextResponse.json(
-        { success: false, message: "Format ID tidak valid" },
-        { status: 400 }
-      );
-    }
-
-    const collections = await getCollections();
-
-    // Check if teacher exists
-    const existingTeacher = await collections.teachers.findOne({
-      _id: new ObjectId(id),
-    });
+    const repo = getTeachersRepository();
+    const existingTeacher = await repo.findById(id);
     if (!existingTeacher) {
       return NextResponse.json(
         { success: false, message: "Guru tidak ditemukan" },
@@ -225,26 +173,13 @@ export async function DELETE(
       );
     }
 
-    // Check if teacher is assigned to any subjects
-    const subjectsWithTeacher = await collections.subjects.countDocuments({
-      teacherId: id,
-    });
-    if (subjectsWithTeacher > 0) {
-      return NextResponse.json(
-        {
-          success: false,
-          message:
-            "Guru tidak dapat dihapus karena masih mengajar mata pelajaran",
-        },
-        { status: 400 }
-      );
-    }
-
     // Check if teacher is homeroom teacher for any class
-    const classesWithTeacher = await collections.classes.countDocuments({
+    const classesRepo = getClassesRepository();
+    const classesWithTeacher = await classesRepo.findMany({
       homeroomTeacherId: id,
+      limit: 1,
     });
-    if (classesWithTeacher > 0) {
+    if (classesWithTeacher.total > 0) {
       return NextResponse.json(
         {
           success: false,
@@ -254,18 +189,7 @@ export async function DELETE(
       );
     }
 
-    // Soft delete teacher
-    const result = await collections.teachers.updateOne(
-      { _id: new ObjectId(id) },
-      { $set: { isActive: false, updatedAt: new Date() } }
-    );
-
-    if (result.matchedCount === 0) {
-      return NextResponse.json(
-        { success: false, message: "Guru tidak ditemukan" },
-        { status: 404 }
-      );
-    }
+    await repo.remove(id);
 
     return NextResponse.json({
       success: true,

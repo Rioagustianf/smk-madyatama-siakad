@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ObjectId } from "mongodb";
-import { getCollections, handleDatabaseError } from "@/lib/database/mongodb";
+import { handleDatabaseError } from "@/lib/database/errors";
+import { getGradesRepository, getSubjectsRepository } from "@/lib/database/repository";
 
 export async function GET(
   req: NextRequest,
@@ -12,18 +12,11 @@ export async function GET(
     const semester = searchParams.get("semester");
     const year = searchParams.get("year");
 
-    const { grades, subjects } = await getCollections();
+    const repo = getGradesRepository();
+    const items = await repo.findByStudent(id);
 
-    const filter: any = { studentId: id };
-    if (semester) filter.semester = Number(semester);
-    if (year) filter.year = Number(year);
-
-    const items = await grades
-      .find(filter)
-      .sort({ updatedAt: -1, year: -1, semester: -1 })
-      .toArray();
-
-    // Enrich with subject name when possible
+    // Enrich with subject name
+    const subjectsRepo = getSubjectsRepository();
     const subjectIds = Array.from(
       new Set(
         items
@@ -33,19 +26,15 @@ export async function GET(
     );
 
     let subjectDocs: Record<string, string> = {};
-    if (subjectIds.length > 0) {
-      const docs = await subjects
-        .find({
-          _id: {
-            $in: subjectIds
-              .filter((x) => ObjectId.isValid(x))
-              .map((x) => new ObjectId(x)),
-          },
-        })
-        .toArray();
-      docs.forEach((s: any) => {
-        subjectDocs[String(s._id)] = s.name;
-      });
+    for (const sid of subjectIds) {
+      try {
+        const subject = await subjectsRepo.findById(sid as string);
+        if (subject) {
+          subjectDocs[sid as string] = subject.name;
+        }
+      } catch {
+        // Ignore if subject not found
+      }
     }
 
     const data = items.map((g: any) => ({
@@ -60,6 +49,10 @@ export async function GET(
 
     return NextResponse.json({ success: true, data });
   } catch (error) {
-    return handleDatabaseError(error);
+    const errorResponse = handleDatabaseError(error);
+    return NextResponse.json(
+      { success: false, message: errorResponse.message },
+      { status: errorResponse.status }
+    );
   }
 }

@@ -103,7 +103,7 @@ export default function AdminSchedulesPage() {
       if (selectedSchedule) {
         // Update
         await updateScheduleMutation.mutateAsync({
-          id: selectedSchedule._id,
+          id: selectedSchedule.id || selectedSchedule._id,
           data: formData,
         });
         setIsEditDialogOpen(false);
@@ -130,7 +130,7 @@ export default function AdminSchedulesPage() {
   const handleDeleteConfirm = async () => {
     if (selectedSchedule) {
       try {
-        await deleteScheduleMutation.mutateAsync(selectedSchedule._id);
+        await deleteScheduleMutation.mutateAsync(selectedSchedule.id || selectedSchedule._id);
         setSelectedSchedule(null);
       } catch (error) {
         console.error("Error deleting schedule:", error);

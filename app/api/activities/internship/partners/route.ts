@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCollections, handleDatabaseError } from "@/lib/database/mongodb";
-import { ObjectId } from "mongodb";
+import { handleDatabaseError } from "@/lib/database/errors";
+import { getInternshipPartnersRepository } from "@/lib/database/repository";
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET =
@@ -34,31 +34,20 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "12");
     const skip = (page - 1) * limit;
-    const collections = await getCollections();
-    const filter: any = {};
-    if (search) {
-      filter.$or = [
-        { name: { $regex: search, $options: "i" } },
-        { field: { $regex: search, $options: "i" } },
-      ];
-    }
-    const [items, total] = await Promise.all([
-      collections.internshipPartners
-        ?.find(filter)
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .toArray() ?? [],
-      collections.internshipPartners?.countDocuments(filter) ?? 0,
-    ]);
+    const repo = getInternshipPartnersRepository();
+    const { data, total } = await repo.findMany({
+      search,
+      page,
+      limit,
+    });
     return NextResponse.json({
       success: true,
-      data: items,
+      data,
       pagination: {
         page,
         limit,
         total,
-        totalPages: Math.ceil((total as number) / limit),
+        totalPages: Math.ceil(total / limit),
       },
     });
   } catch (error) {
@@ -85,18 +74,15 @@ export async function POST(request: NextRequest) {
         { success: false, message: "Nama mitra diperlukan" },
         { status: 400 }
       );
-    const collections = await getCollections();
-    const doc = {
+    const repo = getInternshipPartnersRepository();
+    const created = await repo.create({
       name,
       field: field || "",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    const res = await collections.internshipPartners?.insertOne(doc);
+    });
     return NextResponse.json({
       success: true,
       message: "Mitra ditambahkan",
-      data: { _id: res?.insertedId, ...doc },
+      data: created,
     });
   } catch (error) {
     const err = handleDatabaseError(error);

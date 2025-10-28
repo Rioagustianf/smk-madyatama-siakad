@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCollections, handleDatabaseError } from "@/lib/database/mongodb";
-import { ObjectId } from "mongodb";
+import { handleDatabaseError } from "@/lib/database/errors";
+import { getSchedulesRepository } from "@/lib/database/repository";
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET =
@@ -50,20 +50,8 @@ export async function GET(
       );
     }
 
-    // Validate ObjectId format
-    if (!ObjectId.isValid(id)) {
-      return NextResponse.json(
-        { success: false, message: "Format ID tidak valid" },
-        { status: 400 }
-      );
-    }
-
-    const collections = await getCollections();
-
-    const schedule = await collections.schedules.findOne({
-      _id: new ObjectId(id),
-      isActive: true,
-    });
+    const repo = getSchedulesRepository();
+    const schedule = await repo.findById(id);
 
     if (!schedule) {
       return NextResponse.json(
@@ -103,14 +91,6 @@ export async function PUT(
 
     const { id } = params;
 
-    // Validate ObjectId format
-    if (!ObjectId.isValid(id)) {
-      return NextResponse.json(
-        { success: false, message: "Format ID tidak valid" },
-        { status: 400 }
-      );
-    }
-
     const body = await request.json();
     const { day, time, subject, class: className, teacher } = body;
 
@@ -125,12 +105,8 @@ export async function PUT(
       );
     }
 
-    const collections = await getCollections();
-
-    // Check if schedule exists
-    const existingSchedule = await collections.schedules.findOne({
-      _id: new ObjectId(id),
-    });
+    const repo = getSchedulesRepository();
+    const existingSchedule = await repo.findById(id);
     if (!existingSchedule) {
       return NextResponse.json(
         { success: false, message: "Jadwal tidak ditemukan" },
@@ -138,32 +114,18 @@ export async function PUT(
       );
     }
 
-    // Update schedule
-    const updateData = {
+    const updated = await repo.update(id, {
       day,
       time,
       subject,
       class: className,
       teacher: teacher || "",
-      updatedAt: new Date(),
-    };
-
-    const result = await collections.schedules.updateOne(
-      { _id: new ObjectId(id) },
-      { $set: updateData }
-    );
-
-    if (result.matchedCount === 0) {
-      return NextResponse.json(
-        { success: false, message: "Jadwal tidak ditemukan" },
-        { status: 404 }
-      );
-    }
+    });
 
     return NextResponse.json({
       success: true,
       message: "Jadwal berhasil diperbarui",
-      data: { _id: id, ...updateData },
+      data: updated,
     });
   } catch (error) {
     console.error("Error updating schedule:", error);
@@ -192,20 +154,8 @@ export async function DELETE(
 
     const { id } = params;
 
-    // Validate ObjectId format
-    if (!ObjectId.isValid(id)) {
-      return NextResponse.json(
-        { success: false, message: "Format ID tidak valid" },
-        { status: 400 }
-      );
-    }
-
-    const collections = await getCollections();
-
-    // Check if schedule exists
-    const existingSchedule = await collections.schedules.findOne({
-      _id: new ObjectId(id),
-    });
+    const repo = getSchedulesRepository();
+    const existingSchedule = await repo.findById(id);
     if (!existingSchedule) {
       return NextResponse.json(
         { success: false, message: "Jadwal tidak ditemukan" },
@@ -213,18 +163,7 @@ export async function DELETE(
       );
     }
 
-    // Soft delete schedule
-    const result = await collections.schedules.updateOne(
-      { _id: new ObjectId(id) },
-      { $set: { isActive: false, updatedAt: new Date() } }
-    );
-
-    if (result.matchedCount === 0) {
-      return NextResponse.json(
-        { success: false, message: "Jadwal tidak ditemukan" },
-        { status: 404 }
-      );
-    }
+    await repo.remove(id);
 
     return NextResponse.json({
       success: true,

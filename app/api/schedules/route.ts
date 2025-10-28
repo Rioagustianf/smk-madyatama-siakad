@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCollections, handleDatabaseError } from "@/lib/database/mongodb";
-import { ObjectId } from "mongodb";
+import { handleDatabaseError } from "@/lib/database/errors";
+import { getSchedulesRepository } from "@/lib/database/repository";
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET =
@@ -41,47 +41,22 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search") || "";
     const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "10");
-    const skip = (page - 1) * limit;
+    const limit = parseInt(searchParams.get("limit") || "100");
+    const classFilter = searchParams.get("class") || undefined;
+    const teacherFilter = searchParams.get("teacher") || undefined;
 
-    const collections = await getCollections();
-
-    // Build filter
-    const filter: any = { isActive: true };
-
-    // Add specific filters
-    const classFilter = searchParams.get("class");
-    const teacherFilter = searchParams.get("teacher");
-
-    if (classFilter) {
-      filter.class = classFilter;
-    }
-
-    if (teacherFilter) {
-      filter.teacher = teacherFilter;
-    }
-
-    if (search) {
-      filter.$or = [
-        { day: { $regex: search, $options: "i" } },
-        { subject: { $regex: search, $options: "i" } },
-        { class: { $regex: search, $options: "i" } },
-        { teacher: { $regex: search, $options: "i" } },
-      ];
-    }
-
-    // Get all schedules first for proper grouping
-    const allSchedules = await collections.schedules
-      .find(filter)
-      .sort({
-        class: 1,
-        day: 1,
-        time: 1,
-      })
-      .toArray();
+    const repo = getSchedulesRepository();
+    const { data, total } = await repo.findMany({
+      search,
+      classFilter,
+      teacherFilter,
+      isActive: true,
+      page,
+      limit,
+    });
 
     // Group schedules by class
-    const groupedSchedules = allSchedules.reduce((acc, schedule) => {
+    const groupedSchedules = data.reduce((acc, schedule) => {
       const className = schedule.class;
       if (!acc[className]) {
         acc[className] = [];
@@ -90,32 +65,23 @@ export async function GET(request: NextRequest) {
       return acc;
     }, {} as Record<string, any[]>);
 
-    // Convert grouped data to array format for pagination
     const scheduleGroups = Object.entries(groupedSchedules).map(
       ([className, schedules]) => ({
         className,
         schedules,
-        totalSchedules: schedules.length,
+        totalSchedules: (schedules as any[]).length,
       })
     );
 
-    // Apply pagination to groups
-    const totalGroups = scheduleGroups.length;
-    const paginatedGroups = scheduleGroups.slice(skip, skip + limit);
-
-    // Flatten schedules for response
-    const schedules = paginatedGroups.flatMap((group) => group.schedules);
-    const total = allSchedules.length;
-
     return NextResponse.json({
       success: true,
-      data: schedules,
-      groupedData: paginatedGroups,
+      data,
+      groupedData: scheduleGroups,
       pagination: {
         page,
         limit,
         total,
-        totalPages: Math.ceil(totalGroups / limit),
+        totalPages: Math.ceil(total / limit),
       },
     });
   } catch (error) {
@@ -154,26 +120,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const collections = await getCollections();
-
-    // Create new schedule
-    const newSchedule = {
+    const repo = getSchedulesRepository();
+    const created = await repo.create({
       day,
       time,
       subject,
       class: className,
       teacher: teacher || "",
       isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    const result = await collections.schedules.insertOne(newSchedule);
+    });
 
     return NextResponse.json({
       success: true,
       message: "Jadwal berhasil ditambahkan",
-      data: { id: result.insertedId, ...newSchedule },
+      data: created,
     });
   } catch (error) {
     console.error("Error creating schedule:", error);

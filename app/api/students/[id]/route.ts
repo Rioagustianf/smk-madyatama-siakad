@@ -1,19 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ObjectId } from "mongodb";
-import { getCollections, handleDatabaseError } from "@/lib/database/mongodb";
+import { handleDatabaseError } from "@/lib/database/errors";
+import { getStudentsRepository } from "@/lib/database/repository";
 
 export async function PUT(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const { students } = await getCollections();
+    const repo = getStudentsRepository();
     const body = await req.json();
     const { id } = params;
-    const filter = { _id: new ObjectId(id) };
-    const update = { $set: { ...body, updatedAt: new Date() } };
-    await students.updateOne(filter, update);
-    const updated = await students.findOne(filter);
+    const updated = await repo.update(id, body);
     return NextResponse.json({ success: true, data: updated });
   } catch (error) {
     return handleDatabaseError(error);
@@ -25,9 +22,9 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { students } = await getCollections();
+    const repo = getStudentsRepository();
     const { id } = params;
-    await students.deleteOne({ _id: new ObjectId(id) });
+    await repo.remove(id);
     return NextResponse.json({ success: true, message: "Deleted" });
   } catch (error) {
     return handleDatabaseError(error);

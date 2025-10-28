@@ -1,39 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCollections, handleDatabaseError } from "@/lib/database/mongodb";
-import { ObjectId } from "mongodb";
-import jwt from "jsonwebtoken";
-
-const JWT_SECRET =
-  process.env.JWT_SECRET || "your-secret-key-change-in-production";
+import { getMajorsRepository } from "@/lib/database/repository";
+import { handleDatabaseError } from "@/lib/database/errors";
+import { verifyAdminToken } from "@/lib/auth";
 
 // Prevent static generation
 export const dynamic = "force-dynamic";
-
-// Helper function to verify admin token
-async function verifyAdminToken(request: NextRequest) {
-  const authHeader = request.headers.get("authorization");
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return { error: "Token tidak ditemukan", status: 401 };
-  }
-
-  const token = authHeader.substring(7);
-
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET) as any;
-
-    if (decoded.role !== "admin") {
-      return {
-        error: "Akses ditolak. Hanya admin yang dapat mengakses",
-        status: 403,
-      };
-    }
-
-    return { user: decoded };
-  } catch (error) {
-    return { error: "Token tidak valid", status: 401 };
-  }
-}
 
 // GET - Get single major by ID
 export async function GET(
@@ -50,19 +21,8 @@ export async function GET(
       );
     }
 
-    // Validate ObjectId format
-    if (!ObjectId.isValid(id)) {
-      return NextResponse.json(
-        { success: false, message: "Format ID tidak valid" },
-        { status: 400 }
-      );
-    }
-
-    const collections = await getCollections();
-
-    const major = await collections.majors.findOne({
-      _id: new ObjectId(id),
-    });
+    const repo = getMajorsRepository();
+    const major = await repo.findById(id);
 
     if (!major) {
       return NextResponse.json(
@@ -71,20 +31,17 @@ export async function GET(
       );
     }
 
-    // Transform _id to id for frontend consistency
-    const transformedMajor = {
-      ...major,
-      id: major._id.toString(),
-      _id: undefined, // Remove _id to avoid confusion
-    };
-
     return NextResponse.json({
       success: true,
-      data: transformedMajor,
+      data: major,
     });
   } catch (error) {
     console.error("Error fetching major:", error);
-    return handleDatabaseError(error);
+    const errorResponse = handleDatabaseError(error);
+    return NextResponse.json(
+      { success: false, message: errorResponse.message },
+      { status: 500 }
+    );
   }
 }
 
@@ -95,7 +52,7 @@ export async function PUT(
 ) {
   try {
     // Verify admin token
-    const authResult = await verifyAdminToken(request);
+    const authResult = verifyAdminToken(request);
     if (authResult.error) {
       return NextResponse.json(
         { success: false, message: authResult.error },
@@ -104,18 +61,8 @@ export async function PUT(
     }
 
     const { id } = params;
-
-    // Validate ObjectId format
-    if (!ObjectId.isValid(id)) {
-      return NextResponse.json(
-        { success: false, message: "Format ID tidak valid" },
-        { status: 400 }
-      );
-    }
-
     const body = await request.json();
-    const { name, code, description, image, facilities, careerProspects } =
-      body;
+    const { name, code, description, image, facilities, careerProspects } = body;
 
     // Validation
     if (!name || !code) {
@@ -128,28 +75,14 @@ export async function PUT(
       );
     }
 
-    const collections = await getCollections();
+    const repo = getMajorsRepository();
 
     // Check if major exists
-    const existingMajor = await collections.majors.findOne({
-      _id: new ObjectId(id),
-    });
+    const existingMajor = await repo.findById(id);
     if (!existingMajor) {
       return NextResponse.json(
         { success: false, message: "Program keahlian tidak ditemukan" },
         { status: 404 }
-      );
-    }
-
-    // Check if code is used by another major
-    const codeExists = await collections.majors.findOne({
-      code,
-      _id: { $ne: new ObjectId(id) },
-    });
-    if (codeExists) {
-      return NextResponse.json(
-        { success: false, message: "Kode program keahlian sudah digunakan" },
-        { status: 400 }
       );
     }
 
@@ -161,29 +94,22 @@ export async function PUT(
       image: image || "",
       facilities: facilities || [],
       careerProspects: careerProspects || [],
-      updatedAt: new Date(),
     };
 
-    const result = await collections.majors.updateOne(
-      { _id: new ObjectId(id) },
-      { $set: updateData }
-    );
-
-    if (result.matchedCount === 0) {
-      return NextResponse.json(
-        { success: false, message: "Program keahlian tidak ditemukan" },
-        { status: 404 }
-      );
-    }
+    const updatedMajor = await repo.update(id, updateData);
 
     return NextResponse.json({
       success: true,
       message: "Program keahlian berhasil diperbarui",
-      data: { id, ...updateData },
+      data: updatedMajor,
     });
   } catch (error) {
     console.error("Error updating major:", error);
-    return handleDatabaseError(error);
+    const errorResponse = handleDatabaseError(error);
+    return NextResponse.json(
+      { success: false, message: errorResponse.message },
+      { status: 500 }
+    );
   }
 }
 
@@ -194,7 +120,7 @@ export async function DELETE(
 ) {
   try {
     // Verify admin token
-    const authResult = await verifyAdminToken(request);
+    const authResult = verifyAdminToken(request);
     if (authResult.error) {
       return NextResponse.json(
         { success: false, message: authResult.error },
@@ -211,20 +137,10 @@ export async function DELETE(
       );
     }
 
-    // Validate ObjectId format
-    if (!ObjectId.isValid(id)) {
-      return NextResponse.json(
-        { success: false, message: "Format ID tidak valid" },
-        { status: 400 }
-      );
-    }
-
-    const collections = await getCollections();
+    const repo = getMajorsRepository();
 
     // Check if major exists
-    const existingMajor = await collections.majors.findOne({
-      _id: new ObjectId(id),
-    });
+    const existingMajor = await repo.findById(id);
     if (!existingMajor) {
       return NextResponse.json(
         { success: false, message: "Program keahlian tidak ditemukan" },
@@ -232,31 +148,8 @@ export async function DELETE(
       );
     }
 
-    // Check if major has students
-    const studentsCount = await collections.students.countDocuments({
-      major: existingMajor.name,
-    });
-    if (studentsCount > 0) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: `Tidak dapat menghapus program keahlian karena masih memiliki ${studentsCount} siswa`,
-        },
-        { status: 400 }
-      );
-    }
-
-    // Hard delete (permanently remove from database)
-    const result = await collections.majors.deleteOne({
-      _id: new ObjectId(id),
-    });
-
-    if (result.deletedCount === 0) {
-      return NextResponse.json(
-        { success: false, message: "Program keahlian tidak ditemukan" },
-        { status: 404 }
-      );
-    }
+    // Delete major
+    await repo.remove(id);
 
     return NextResponse.json({
       success: true,
@@ -264,6 +157,10 @@ export async function DELETE(
     });
   } catch (error) {
     console.error("Error deleting major:", error);
-    return handleDatabaseError(error);
+    const errorResponse = handleDatabaseError(error);
+    return NextResponse.json(
+      { success: false, message: errorResponse.message },
+      { status: 500 }
+    );
   }
 }

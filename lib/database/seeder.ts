@@ -1,4 +1,4 @@
-import { connectToDatabase, getCollections } from "@/lib/database/mongodb";
+import { prisma } from "@/lib/database/prisma";
 import bcrypt from "bcryptjs";
 
 // Data siswa kelas 12 TKJ 1
@@ -54,7 +54,7 @@ const studentsTKJ2 = [
   { name: "Damar Saputra", nisn: "0084997148" },
   { name: "Fariz Akbar Hidayat", nisn: "" },
   { name: "Fazri Dwi Rismianto", nisn: "0089252284" },
-  { name: "Ilham Fais Naqli", nisn: "0081885825" },
+  { name: "Ilham Fais Naqli", nisn: "" }, // Duplicate NISN, using auto-generated ID
   { name: "Kaila Agustin", nisn: "0086495309" },
   { name: "Lilis Oktarina", nisn: "0072495941" },
   { name: "M. Arya Merlinsky", nisn: "0099211566" },
@@ -85,7 +85,7 @@ const studentsTKJ2 = [
   { name: "Widiyanto", nisn: "0064002544" },
   { name: "Wulandari", nisn: "0087451999" },
   { name: "Yuna Olivia", nisn: "3095486147" },
-  { name: "Zahwatul Hayyah", nisn: "0076235621" },
+  { name: "Zahwatul Hayyah", nisn: "" }, // Duplicate NISN, using auto-generated ID
 ];
 
 // Data jurusan (majors)
@@ -576,33 +576,24 @@ function nameToUsername(name: string): string {
 
 export async function seedDatabase() {
   try {
-    console.log("🌱 Starting database seeding...");
+    console.log("🌱 Starting database seeding with Prisma/MySQL...");
 
-    const collections = await getCollections();
-    console.log("📊 Collections:", Object.keys(collections));
-
-    // Clear existing data
-    if (collections.majors) {
-      await collections.majors.deleteMany({});
-    }
-    if (collections.students) {
-      await collections.students.deleteMany({});
-    }
-    if (collections.teachers) {
-      await collections.teachers.deleteMany({});
-    }
-    if (collections.subjects) {
-      await collections.subjects.deleteMany({});
-    }
-    if (collections.classes) {
-      await collections.classes.deleteMany({});
-    }
-    if (collections.schedules) {
-      await collections.schedules.deleteMany({});
-    }
-    if (collections.admins) {
-      await collections.admins.deleteMany({});
-    }
+    // Clear existing data (in reverse order of dependencies)
+    console.log("🗑️  Clearing existing data...");
+    await prisma.schedule.deleteMany({});
+    await prisma.grade.deleteMany({});
+    await prisma.student.deleteMany({});
+    await prisma.subject.deleteMany({});
+    await prisma.schoolClass.deleteMany({});
+    await prisma.teacher.deleteMany({});
+    await prisma.major.deleteMany({});
+    await prisma.admin.deleteMany({});
+    await prisma.announcement.deleteMany({});
+    await prisma.gallery.deleteMany({});
+    await prisma.activity.deleteMany({});
+    await prisma.staff.deleteMany({});
+    await prisma.internshipPartner.deleteMany({});
+    await prisma.internshipSchedule.deleteMany({});
 
     console.log("✅ Cleared existing data");
 
@@ -611,169 +602,158 @@ export async function seedDatabase() {
     const hashedAdminPassword = await bcrypt.hash("admin123", 10);
 
     // Seed majors first
-    const majorData = majors.map((major) => ({
-      ...major,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    }));
+    console.log("📚 Seeding majors...");
+    const createdMajors = await Promise.all(
+      majors.map((major) =>
+        prisma.major.create({
+          data: {
+            name: major.name,
+            code: major.code,
+            description: major.description || "",
+            facilities: major.facilities || [],
+            careerProspects: major.careerProspects || [],
+            totalStudents: 0,
+            isActive: major.isActive,
+          },
+        })
+      )
+    );
+    console.log(`✅ Seeded ${createdMajors.length} majors`);
 
-    if (collections.majors) {
-      const result = await collections.majors.insertMany(majorData);
-      console.log(`✅ Seeded ${result.insertedCount} majors`);
-    } else {
-      console.log("❌ Majors collection not found");
-    }
+    // Seed teachers first (needed before students & subjects)
+    console.log("👨‍🏫 Seeding teachers...");
+    const createdTeachers = await Promise.all(
+      teachers.map((teacher) =>
+        prisma.teacher.create({
+          data: {
+            name: teacher.name,
+            username: teacher.username,
+            phone: teacher.phone || "",
+            password: hashedPassword,
+            subjects: teacher.subjects,
+            classes: teacher.classes,
+            education: teacher.education || "",
+            isActive: teacher.isActive,
+            role: "teacher",
+          },
+        })
+      )
+    );
+    console.log(`✅ Seeded ${createdTeachers.length} teachers`);
+
+    // Create teacher ID mapping for later use
+    const teacherIds: { [key: string]: string } = {};
+    createdTeachers.forEach((teacher) => {
+      teacherIds[teacher.name] = teacher.id;
+    });
 
     // Seed students
+    console.log("👨‍🎓 Seeding students...");
     const studentData = [
       ...studentsTKJ1.map((student, index) => ({
-        id: student.nisn || `TKJ1-${String(index + 1).padStart(2, "0")}`,
-        studentId: student.nisn || `TKJ1-${String(index + 1).padStart(2, "0")}`,
+        studentId: student.nisn && student.nisn.trim() !== "" && student.nisn !== "-" 
+          ? student.nisn 
+          : `TKJ1-${String(index + 1).padStart(3, "0")}`,
         name: student.name,
         username: nameToUsername(student.name),
         password: hashedPassword,
         class: "12 TKJ 1",
         major: "Teknik Komputer dan Jaringan",
-        nisn: student.nisn || "",
+        nisn: student.nisn && student.nisn.trim() !== "" && student.nisn !== "-" ? student.nisn : "",
         year: 2024,
         gradeLevel: 12,
         semester: 1,
         isActive: true,
         role: "student" as const,
-        createdAt: new Date(),
-        updatedAt: new Date(),
       })),
       ...studentsTKJ2.map((student, index) => ({
-        id: student.nisn || `TKJ2-${String(index + 1).padStart(2, "0")}`,
-        studentId: student.nisn || `TKJ2-${String(index + 1).padStart(2, "0")}`,
+        studentId: student.nisn && student.nisn.trim() !== "" && student.nisn !== "-" 
+          ? student.nisn 
+          : `TKJ2-${String(index + 1).padStart(3, "0")}`,
         name: student.name,
         username: nameToUsername(student.name),
         password: hashedPassword,
         class: "12 TKJ 2",
         major: "Teknik Komputer dan Jaringan",
-        nisn: student.nisn || "",
+        nisn: student.nisn && student.nisn.trim() !== "" && student.nisn !== "-" ? student.nisn : "",
         year: 2024,
         gradeLevel: 12,
         semester: 1,
         isActive: true,
         role: "student" as const,
-        createdAt: new Date(),
-        updatedAt: new Date(),
       })),
     ];
 
-    if (collections.students) {
-      const result = await collections.students.insertMany(studentData);
-      console.log(`✅ Seeded ${result.insertedCount} students`);
-    } else {
-      console.log("❌ Students collection not found");
-    }
-
-    // Seed teachers first
-    const teacherData = teachers.map((teacher) => ({
-      id: teacher.username,
-      name: teacher.name,
-      username: teacher.username,
-      phone: teacher.phone,
-      password: hashedPassword,
-      subjects: [], // Will be populated after subjects are created
-      classes: teacher.classes,
-      education: teacher.education,
-      isActive: teacher.isActive,
-      role: "teacher" as const,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    }));
-
-    let teacherIds: { [key: string]: string } = {};
-    if (collections.teachers) {
-      const result = await collections.teachers.insertMany(teacherData);
-      console.log(`✅ Seeded ${result.insertedCount} teachers`);
-
-      // Create mapping of teacher names to IDs
-      const insertedTeachers = await collections.teachers.find({}).toArray();
-      insertedTeachers.forEach((teacher) => {
-        teacherIds[teacher.name] = teacher._id.toString();
-      });
-    } else {
-      console.log("❌ Teachers collection not found");
-    }
+    const createdStudents = await prisma.student.createMany({
+      data: studentData,
+    });
+    console.log(`✅ Seeded ${createdStudents.count} students`);
 
     // Seed subjects with teacher references
-    const subjectData = subjects.map((subject) => {
-      // Map teacher names to IDs
-      const teacherNameMap: { [key: string]: string } = {
-        ASJ: "Iik Ayu Meilani",
-        TLJ: "Supriyanto",
-        AIJ: "Miranda",
-        PKK: "Erwin Mulyadi",
-        PKN: "Eka Yunita",
-        MTK: "Yesi Oktavia",
-        "B. Inggris": "Fadhilah Khairani",
-        "B. Indonesia": "Lina Maryana",
-        Agama: "Drs. Waziruddin",
-      };
+    console.log("📖 Seeding subjects...");
+    // Map teacher names to IDs
+    const teacherNameMap: { [key: string]: string } = {
+      ASJ: "Iik Ayu Meilani",
+      TLJ: "Supriyanto",
+      AIJ: "Miranda",
+      PKK: "Erwin Mulyadi",
+      PKN: "Eka Yunita",
+      MTK: "Yesi Oktavia",
+      "B. Inggris": "Fadhilah Khairani",
+      "B. Indonesia": "Lina Maryana",
+      Agama: "Drs. Waziruddin",
+    };
 
-      const teacherName = teacherNameMap[subject.code];
-      const teacherId = teacherName ? teacherIds[teacherName] : "";
+    const createdSubjects = await Promise.all(
+      subjects.map((subject) => {
+        const teacherName = teacherNameMap[subject.code];
+        const teacherId = teacherName ? teacherIds[teacherName] : null;
 
-      return {
-        code: subject.code,
-        name: subject.name,
-        description: subject.description,
-        teacherId: teacherId,
-        isActive: subject.isActive,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-    });
-
-    if (collections.subjects) {
-      await collections.subjects.insertMany(subjectData);
-      console.log(`✅ Seeded ${subjectData.length} subjects`);
-    } else {
-      console.log("⚠️ Subjects collection not found, skipping...");
-    }
+        return prisma.subject.create({
+          data: {
+            code: subject.code,
+            name: subject.name,
+            description: subject.description || "",
+            teacherId: teacherId,
+            isActive: subject.isActive,
+          },
+        });
+      })
+    );
+    console.log(`✅ Seeded ${createdSubjects.length} subjects`);
 
     // Seed classes with homeroom teacher references
-    // Get majors from database to get actual _id
-    const majorsFromDB = await collections.majors.find({}).toArray();
-    const majorIds: { [key: string]: string } = {};
-    majorsFromDB.forEach((major: any) => {
-      majorIds[major.name] = major._id.toString();
-    });
+    console.log("🏫 Seeding classes...");
+    
+    // Get TKJ major ID
+    const tkjMajor = createdMajors.find((m) => m.code === "TKJ");
+    const tkjMajorId = tkjMajor?.id || null;
 
-    const classData = classes.map((cls) => {
-      // Assign homeroom teachers (first teacher for TKJ 1, second for TKJ 2)
-      const homeroomTeacherMap: { [key: string]: string } = {
-        "12 TKJ 1": "Iik Ayu Meilani", // ASJ teacher
-        "12 TKJ 2": "Supriyanto", // TLJ teacher
-      };
+    // Assign homeroom teachers
+    const homeroomTeacherMap: { [key: string]: string } = {
+      "12 TKJ 1": "Iik Ayu Meilani", // ASJ teacher
+      "12 TKJ 2": "Supriyanto", // TLJ teacher
+    };
 
-      const teacherName = homeroomTeacherMap[cls.name];
-      const homeroomTeacherId = teacherName ? teacherIds[teacherName] : "";
+    const createdClasses = await Promise.all(
+      classes.map((cls) => {
+        const teacherName = homeroomTeacherMap[cls.name];
+        const homeroomTeacherId = teacherName ? teacherIds[teacherName] : null;
 
-      // Get TKJ major ID from database
-      const majorId = majorIds["Teknik Komputer dan Jaringan"] || "";
-
-      return {
-        name: cls.name,
-        majorId: majorId,
-        homeroomTeacherId: homeroomTeacherId,
-        isActive: cls.isActive,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-    });
-
-    if (collections.classes) {
-      const result = await collections.classes.insertMany(classData);
-      console.log(`✅ Seeded ${result.insertedCount} classes`);
-    } else {
-      console.log("❌ Classes collection not found");
-    }
+        return prisma.schoolClass.create({
+          data: {
+            name: cls.name,
+            majorId: tkjMajorId,
+            homeroomTeacherId: homeroomTeacherId,
+            isActive: cls.isActive,
+          },
+        });
+      })
+    );
+    console.log(`✅ Seeded ${createdClasses.length} classes`);
 
     // Seed schedules
+    console.log("📅 Seeding schedules...");
     const scheduleData = [
       ...scheduleTKJ1.map((schedule) => ({
         day: schedule.day,
@@ -782,8 +762,6 @@ export async function seedDatabase() {
         class: schedule.class,
         teacher: getTeacherBySubject(schedule.subject),
         isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
       })),
       ...scheduleTKJ2.map((schedule) => ({
         day: schedule.day,
@@ -792,43 +770,37 @@ export async function seedDatabase() {
         class: schedule.class,
         teacher: getTeacherBySubject(schedule.subject),
         isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
       })),
     ];
 
-    if (collections.schedules) {
-      await collections.schedules.insertMany(scheduleData);
-      console.log(`✅ Seeded ${scheduleData.length} schedules`);
-    } else {
-      console.log("⚠️ Schedules collection not found, skipping...");
-    }
+    const createdSchedules = await prisma.schedule.createMany({
+      data: scheduleData,
+    });
+    console.log(`✅ Seeded ${createdSchedules.count} schedules`);
 
     // Seed default admin
-    const adminData = {
-      id: "admin",
-      name: "Administrator",
-      username: "admin",
-      password: hashedAdminPassword,
-      permissions: ["all"],
-      isActive: true,
-      role: "admin" as const,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    await collections.admins.insertOne(adminData);
+    console.log("👤 Seeding admin...");
+    const admin = await prisma.admin.create({
+      data: {
+        name: "Administrator",
+        username: "admin",
+        password: hashedAdminPassword,
+        permissions: ["all"],
+        isActive: true,
+        role: "admin",
+      },
+    });
     console.log("✅ Seeded default admin");
 
-    console.log("🎉 Database seeding completed successfully!");
+    console.log("🎉 Database seeding completed successfully with Prisma/MySQL!");
 
     return {
-      majors: majorData.length,
-      students: studentData.length,
-      teachers: teacherData.length,
-      subjects: subjectData.length,
-      classes: classData.length,
-      schedules: scheduleData.length,
+      majors: createdMajors.length,
+      students: createdStudents.count,
+      teachers: createdTeachers.length,
+      subjects: createdSubjects.length,
+      classes: createdClasses.length,
+      schedules: createdSchedules.count,
       admins: 1,
     };
   } catch (error) {
@@ -838,6 +810,8 @@ export async function seedDatabase() {
       console.error("❌ Error stack:", error.stack);
     }
     throw error;
+  } finally {
+    await prisma.$disconnect();
   }
 }
 
