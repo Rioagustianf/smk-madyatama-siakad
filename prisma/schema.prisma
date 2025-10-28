@@ -209,18 +209,21 @@ model Profile {
   id               String   @id @default(cuid()) @map("_id")
   singleton        Boolean? @default(false) @map("_singleton")
   name             String?
-  address          String?
+  address          Json?
   phone            String?
   email            String?
   website          String?
   logo             String?
-  history          String?
-  vision           String?
-  mission          Json?
+  history          String? @db.Text
+  historyImage     String?
+  vision           String? @db.Text
+  mission          String? @db.Text
   principalName    String?
   principalImage   String?
-  principalMessage String?
+  principalMessage String? @db.Text
   facilities       Json?
+  organization     Json?
+  contact          Json?
   updatedAt        DateTime @updatedAt
 }
 
