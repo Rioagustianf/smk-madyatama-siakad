@@ -33,17 +33,17 @@ export async function GET(request: NextRequest) {
       prisma.admin.findMany({ select: { username: true } }),
     ]);
 
-    const studentRows = students.map((s) => ({
+    const studentRows = students.map((s: any) => ({
       username: s.username,
       password: "password123",
     }));
 
-    const teacherRows = teachers.map((t) => ({
+    const teacherRows = teachers.map((t: any) => ({
       username: t.username,
       password: "password123",
     }));
 
-    const adminRows = admins.map((a) => ({
+    const adminRows = admins.map((a: any) => ({
       username: a.username,
       password: "admin123",
     }));

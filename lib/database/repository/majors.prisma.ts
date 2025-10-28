@@ -29,7 +29,7 @@ export const majorsPrismaRepository: MajorsRepository = {
     ]);
 
     // Compute totalStudents by grouping students.major = major.name
-    const majorNames = data.map((m) => m.name);
+    const majorNames = data.map((m: any) => m.name);
     if (majorNames.length > 0) {
       const rows = await prisma.student.groupBy({
         by: ["major"],
@@ -37,8 +37,8 @@ export const majorsPrismaRepository: MajorsRepository = {
         _count: { _all: true },
       });
       const map = new Map<string, number>();
-      rows.forEach((r) => map.set(r.major, r._count._all));
-      const merged = data.map((m) => ({
+      rows.forEach((r: any) => map.set(r.major, r._count._all));
+      const merged = data.map((m: any) => ({
         ...m,
         totalStudents: map.get(m.name) ?? m.totalStudents ?? 0,
       }));
