@@ -5,6 +5,8 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { PageHeader } from "@/components/molecules/PageHeader/PageHeader";
 import { Typography } from "@/components/atoms/Typography/Typography";
+import { Button } from "@/components/ui/button";
+import { Users } from "lucide-react";
 
 import { useStaffList } from "@/lib/hooks/use-staff";
 import dynamic from "next/dynamic";
@@ -115,6 +117,29 @@ export default function StaffPage() {
             <div className="text-center text-red-500 py-16">
               Gagal memuat data staf
             </div>
+          ) : staff.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6 }}
+              className="text-center py-16"
+            >
+              <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Users className="w-12 h-12 text-gray-400" />
+              </div>
+              <Typography variant="h4" color="muted" className="mb-4">
+                Belum ada data tenaga pendidik
+              </Typography>
+              <Typography variant="body1" color="muted" className="mb-8">
+                Data kepala sekolah dan tenaga pendidik akan ditampilkan di sini
+              </Typography>
+              <Button
+                variant="outline"
+                onClick={() => window.location.reload()}
+              >
+                Refresh Halaman
+              </Button>
+            </motion.div>
           ) : headmaster ? (
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               <motion.div
@@ -158,9 +183,28 @@ export default function StaffPage() {
               </motion.div>
             </div>
           ) : (
-            <div className="text-center text-muted-foreground py-16">
-              Data kepala sekolah belum tersedia
-            </div>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6 }}
+              className="text-center py-16"
+            >
+              <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Users className="w-12 h-12 text-gray-400" />
+              </div>
+              <Typography variant="h4" color="muted" className="mb-4">
+                Data kepala sekolah belum tersedia
+              </Typography>
+              <Typography variant="body1" color="muted" className="mb-8">
+                Informasi kepala sekolah akan ditampilkan di sini setelah data tersedia
+              </Typography>
+              <Button
+                variant="outline"
+                onClick={() => window.location.reload()}
+              >
+                Refresh Halaman
+              </Button>
+            </motion.div>
           )}
         </div>
       </section>

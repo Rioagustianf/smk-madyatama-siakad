@@ -4,6 +4,8 @@ import React from "react";
 import { motion } from "framer-motion";
 import { PageHeader } from "@/components/molecules/PageHeader";
 import { Typography } from "@/components/atoms/Typography/Typography";
+import { Button } from "@/components/ui/button";
+import { Users, Activity } from "lucide-react";
 import { useExtracurriculars } from "@/lib/hooks/use-activities";
 
 export default function ExtracurricularPage() {
@@ -50,6 +52,7 @@ export default function ExtracurricularPage() {
             )}
             {!isLoading &&
               !error &&
+              extracurriculars.length > 0 &&
               extracurriculars.map((item: any, index: number) => (
                 <motion.div
                   key={item._id || item.name}
@@ -67,6 +70,30 @@ export default function ExtracurricularPage() {
                   </Typography>
                 </motion.div>
               ))}
+            {!isLoading && !error && extracurriculars.length === 0 && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.6 }}
+                className="col-span-3 text-center py-16"
+              >
+                <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Activity className="w-12 h-12 text-gray-400" />
+                </div>
+                <Typography variant="h4" color="muted" className="mb-4">
+                  Belum ada ekstrakurikuler yang tersedia
+                </Typography>
+                <Typography variant="body1" color="muted" className="mb-8">
+                  Kegiatan ekstrakurikuler akan ditampilkan di sini setelah data tersedia
+                </Typography>
+                <Button
+                  variant="outline"
+                  onClick={() => window.location.reload()}
+                >
+                  Refresh Halaman
+                </Button>
+              </motion.div>
+            )}
           </div>
         </div>
       </section>

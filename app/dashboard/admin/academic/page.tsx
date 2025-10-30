@@ -81,8 +81,9 @@ export default function AdminAcademicPage() {
     if (!selectedMajor) return;
 
     try {
+      const majorId = selectedMajor.id || (selectedMajor as any)._id;
       await updateMajorMutation.mutateAsync({
-        id: selectedMajor._id,
+        id: majorId,
         data: formData,
       });
       // Reset form and close dialog
@@ -103,7 +104,8 @@ export default function AdminAcademicPage() {
 
   const handleDeleteMajor = async (major: Major) => {
     try {
-      await deleteMajorMutation.mutateAsync(major._id as any);
+      const majorId = major.id || (major as any)._id;
+      await deleteMajorMutation.mutateAsync(majorId as any);
     } catch (error) {
       // Error handling is done in the mutation hook
     }
@@ -118,8 +120,8 @@ export default function AdminAcademicPage() {
       code: major.code,
       description: major.description,
       image: major.image || "",
-      facilities: major.facilities,
-      careerProspects: major.careerProspects,
+      facilities: Array.isArray(major.facilities) ? major.facilities : [],
+      careerProspects: Array.isArray(major.careerProspects) ? major.careerProspects : [],
     };
     await debugLog("Setting form data to", newFormData);
     setFormData(newFormData);
@@ -254,7 +256,7 @@ export default function AdminAcademicPage() {
                   </TableRow>
                 ) : (
                   majors.map((major: Major) => (
-                    <TableRow key={major._id} className="hover:bg-muted/50">
+                    <TableRow key={major.id || (major as any)._id} className="hover:bg-muted/50">
                       <TableCell className="font-medium">
                         {major.name}
                       </TableCell>

@@ -215,13 +215,13 @@ export default function AdminAnnouncementsPage() {
         >
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>Judul</TableHead>
-                <TableHead>Kategori</TableHead>
-                <TableHead>Prioritas</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Tanggal</TableHead>
-                <TableHead className="w-[100px]">Aksi</TableHead>
+              <TableRow className="bg-primary-950 text-white hover:bg-primary-950" >
+                <TableHead className="text-white">Judul</TableHead>
+                <TableHead className="text-white">Kategori</TableHead>
+                <TableHead className="text-white">Prioritas</TableHead>
+                <TableHead className="text-white">Status</TableHead>
+                <TableHead className="text-white">Tanggal</TableHead>
+                <TableHead className="w-[100px] text-white">Aksi</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

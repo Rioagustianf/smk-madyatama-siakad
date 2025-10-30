@@ -38,7 +38,7 @@ export interface Admin extends User {
 
 // Academic types
 export interface Major {
-  _id: string;
+  id: string;
   name: string;
   code: string;
   description: string;
@@ -50,11 +50,11 @@ export interface Major {
 }
 
 export interface Subject {
-  _id: string;
+  id: string;
   name: string;
   code: string;
   description?: string;
-  teacherId: string; // Reference to Teacher._id
+  teacherId: string; // Reference to Teacher.id
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -62,10 +62,10 @@ export interface Subject {
 
 // Class types
 export interface Class {
-  _id: string;
+  id: string;
   name: string;
-  majorId?: string; // Reference to Major._id
-  homeroomTeacherId: string; // Reference to Teacher._id (wali kelas)
+  majorId: string; // Reference to Major.id
+  homeroomTeacherId: string; // Reference to Teacher.id (wali kelas)
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -113,7 +113,7 @@ export interface Grade {
 
 // Content types
 export interface Announcement {
-  _id: string;
+  id: string;
   title: string;
   content: string;
   excerpt?: string;

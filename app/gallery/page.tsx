@@ -17,6 +17,7 @@ import {
   Grid3X3,
   List,
   Loader2,
+  ImageIcon,
 } from "lucide-react";
 import { useGalleryList } from "@/lib/hooks/use-gallery";
 
@@ -95,7 +96,7 @@ export default function GalleryPage() {
         title="Galeri"
         subtitle="Dokumentasi kegiatan dan momen bersejarah SMK Madyatama"
         breadcrumbs={[{ label: "Galeri" }]}
-        backgroundImage="https://images.pexels.com/photos/196644/pexels-photo-196644.jpeg"
+        backgroundImage="/assets/hg0.jpeg"
       />
 
       <section className="section-padding bg-gray-50">
@@ -190,6 +191,33 @@ export default function GalleryPage() {
             <div className="text-center text-red-500 py-16">
               Gagal memuat galeri
             </div>
+          ) : items.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6 }}
+              className="text-center py-16"
+            >
+              <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <ImageIcon className="w-12 h-12 text-gray-400" />
+              </div>
+              <Typography variant="h4" color="muted" className="mb-4">
+                Belum ada foto atau video
+              </Typography>
+              <Typography variant="body1" color="muted" className="mb-8">
+                {selectedCategory !== "all"
+                  ? "Tidak ada item di kategori ini"
+                  : "Galeri foto dan video akan ditampilkan di sini"}
+              </Typography>
+              {selectedCategory !== "all" && (
+                <Button
+                  variant="outline"
+                  onClick={() => setSelectedCategory("all")}
+                >
+                  Lihat Semua Kategori
+                </Button>
+              )}
+            </motion.div>
           ) : viewMode === "grid" ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {items.map((item: any, index: number) => (

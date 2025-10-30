@@ -4,6 +4,8 @@ import React from "react";
 import { motion } from "framer-motion";
 import { PageHeader } from "@/components/molecules/PageHeader";
 import { Typography } from "@/components/atoms/Typography/Typography";
+import { Button } from "@/components/ui/button";
+import { Trophy, Bell } from "lucide-react";
 import { useAchievements } from "@/lib/hooks/use-activities";
 
 export default function AchievementsPage() {
@@ -38,6 +40,7 @@ export default function AchievementsPage() {
             )}
             {!isLoading &&
               !error &&
+              achievements.length > 0 &&
               achievements.map((item: any, index: number) => (
                 <motion.div
                   key={item.title}
@@ -62,6 +65,21 @@ export default function AchievementsPage() {
                   </Typography>
                 </motion.div>
               ))}
+            {!isLoading && !error && achievements.length === 0 && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.6 }}
+                className="col-span-3 text-center py-16"
+              >
+                <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Trophy className="w-12 h-12 text-gray-400" />
+                </div>
+                <Typography variant="h4" color="muted" className="mb-4">
+                  Belum ada prestasi yang tercatat
+                </Typography>
+              </motion.div>
+            )}
           </div>
         </div>
       </section>

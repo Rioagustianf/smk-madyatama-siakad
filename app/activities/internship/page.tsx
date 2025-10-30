@@ -4,6 +4,8 @@ import React from "react";
 import { motion } from "framer-motion";
 import { PageHeader } from "@/components/molecules/PageHeader";
 import { Typography } from "@/components/atoms/Typography/Typography";
+import { Button } from "@/components/ui/button";
+import { Building2, Calendar, Briefcase } from "lucide-react";
 import {
   useInternshipSchedules,
   useInternshipPartners,
@@ -51,9 +53,29 @@ export default function InternshipPage() {
                   {!isPartnersLoading &&
                     !partnersError &&
                     partners.length === 0 && (
-                      <div className="text-muted-foreground">
-                        Belum ada data mitra.
-                      </div>
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.6 }}
+                        className="text-center py-12"
+                      >
+                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <Building2 className="w-8 h-8 text-gray-400" />
+                        </div>
+                        <Typography variant="h5" color="muted" className="mb-2">
+                          Belum ada mitra DUDI
+                        </Typography>
+                        <Typography variant="body2" color="muted" className="mb-4">
+                          Data mitra industri akan ditampilkan di sini
+                        </Typography>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => window.location.reload()}
+                        >
+                          Refresh
+                        </Button>
+                      </motion.div>
                     )}
                   {!isPartnersLoading &&
                     !partnersError &&
@@ -102,9 +124,29 @@ export default function InternshipPage() {
                 {!isSchedulesLoading &&
                   !schedulesError &&
                   schedules.length === 0 && (
-                    <div className="p-3 text-center text-muted-foreground">
-                      Belum ada data jadwal.
-                    </div>
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.6 }}
+                      className="p-6 text-center"
+                    >
+                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Calendar className="w-8 h-8 text-gray-400" />
+                      </div>
+                      <Typography variant="h5" color="muted" className="mb-2">
+                        Belum ada jadwal prakerin
+                      </Typography>
+                      <Typography variant="body2" color="muted" className="mb-4">
+                        Jadwal prakerin akan ditampilkan di sini
+                      </Typography>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.location.reload()}
+                      >
+                        Refresh
+                      </Button>
+                    </motion.div>
                   )}
                 {!isSchedulesLoading &&
                   !schedulesError &&
