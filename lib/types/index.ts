@@ -237,6 +237,17 @@ export interface ExamSchedule {
   updatedAt: Date;
 }
 
+// Academic Calendar types
+export interface AcademicEvent {
+  id: string;
+  title: string;
+  description?: string;
+  type: string;
+  startDate: string;
+  endDate: string;
+  isPublished: boolean;
+}
+
 // Internship types
 export interface Internship {
   id: string;

@@ -24,8 +24,16 @@ import { adminsPrismaRepository } from "./admins.prisma";
 import type { AdminsRepository } from "./admins";
 import { profilePrismaRepository } from "./profile.prisma";
 import type { ProfileRepository } from "./profile";
-import { internshipPartnersPrismaRepository, internshipSchedulesPrismaRepository } from "./internships.prisma";
-import type { InternshipPartnersRepository, InternshipSchedulesRepository } from "./internships";
+import {
+  internshipPartnersPrismaRepository,
+  internshipSchedulesPrismaRepository,
+} from "./internships.prisma";
+import type {
+  InternshipPartnersRepository,
+  InternshipSchedulesRepository,
+} from "./internships";
+import { academicEventsPrismaRepository } from "./academic-events.prisma";
+import type { AcademicEventsRepository } from "./academic-events";
 
 export function getMajorsRepository(): MajorsRepository {
   return majorsPrismaRepository;
@@ -74,5 +82,6 @@ export function getInternshipPartnersRepository(): InternshipPartnersRepository 
 export function getInternshipSchedulesRepository(): InternshipSchedulesRepository {
   return internshipSchedulesPrismaRepository;
 }
-
-
+export function getAcademicEventsRepository(): AcademicEventsRepository {
+  return academicEventsPrismaRepository;
+}

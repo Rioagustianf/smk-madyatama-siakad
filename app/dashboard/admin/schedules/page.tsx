@@ -130,7 +130,9 @@ export default function AdminSchedulesPage() {
   const handleDeleteConfirm = async () => {
     if (selectedSchedule) {
       try {
-        await deleteScheduleMutation.mutateAsync(selectedSchedule.id || selectedSchedule._id);
+        await deleteScheduleMutation.mutateAsync(
+          selectedSchedule.id || selectedSchedule._id
+        );
         setSelectedSchedule(null);
       } catch (error) {
         console.error("Error deleting schedule:", error);

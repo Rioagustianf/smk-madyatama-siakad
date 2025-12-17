@@ -256,3 +256,16 @@ model InternshipSchedule {
 
   @@index([partnerId], name: "idx_internshipSchedules_partnerId")
 }
+
+model AcademicEvent {
+  id          String   @id @default(cuid())
+  title       String
+  description String?  @db.Text
+  type        String   @default("EVENT") // EVENT, HOLIDAY, ADMISSION
+  startDate   DateTime
+  endDate     DateTime
+  isPublished Boolean  @default(true)
+  createdBy   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

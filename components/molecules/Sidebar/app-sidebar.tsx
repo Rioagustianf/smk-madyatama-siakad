@@ -54,6 +54,7 @@ function useSidebarData() {
             { title: "Manajemen Kelas", url: "/dashboard/admin/classes" },
             { title: "Manajemen Semester", url: "/dashboard/admin/students" },
             { title: "Jadwal Pelajaran", url: "/dashboard/admin/schedules" },
+            { title: "Kalender Akademik", url: "/dashboard/admin/calendar" },
           ],
         },
         {

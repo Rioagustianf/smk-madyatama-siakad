@@ -288,6 +288,17 @@ export const apiMethods = {
     update: (data: any) => api.put(API_ENDPOINTS.PROFILE.UPDATE, data),
   },
 
+  // Calendar
+  calendar: {
+    list: (filters?: Record<string, any>) =>
+      api.get("/api/calendar", { params: filters }),
+    get: (id: string) => api.get(`/api/calendar/${id}`),
+    create: (data: any) => api.post("/api/calendar", data),
+    update: (id: string, data: any) => api.put(`/api/calendar/${id}`, data),
+    delete: (id: string) => api.delete(`/api/calendar/${id}`),
+    seed: (year?: number) => api.post("/api/calendar/seed", { year }),
+  },
+
   // Announcements (final canonical)
   announcements: {
     list: (params: any = {}) => {
