@@ -26,6 +26,7 @@ export function Navigation() {
     { name: "Profil Sekolah", link: "/profile" },
     { name: "Pengumuman", link: "/announcements" },
     { name: "Kepala Sekolah & Tenaga Pendidik", link: "/staff" },
+    { name: "Kalender Akademik", link: "/calendar" },
   ];
   const kegiatanLinks = [
     { name: "Prestasi", link: "/activities/achievements" },
@@ -106,8 +107,15 @@ export function Navigation() {
                   className={`min-w-64 flex flex-col gap-2 bg-primary-900 text-white p-3 ${dropdownAnim}`}
                 >
                   {infoLinks.map((item) => (
-                    <DropdownMenuItem key={item.link} asChild>
-                      <HoveredLink className="text-white" href={item.link}>
+                    <DropdownMenuItem
+                      key={item.link}
+                      asChild
+                      className="cursor-pointer"
+                    >
+                      <HoveredLink
+                        className="text-white cursor-pointer"
+                        href={item.link}
+                      >
                         {item.name}
                       </HoveredLink>
                     </DropdownMenuItem>
@@ -132,8 +140,15 @@ export function Navigation() {
                   className={`min-w-64 flex flex-col gap-2 bg-primary-900 text-white p-3 ${dropdownAnim}`}
                 >
                   {kegiatanLinks.map((item) => (
-                    <DropdownMenuItem key={item.link} asChild>
-                      <HoveredLink className="text-white" href={item.link}>
+                    <DropdownMenuItem
+                      key={item.link}
+                      asChild
+                      className="cursor-pointer"
+                    >
+                      <HoveredLink
+                        className="text-white cursor-pointer"
+                        href={item.link}
+                      >
                         {item.name}
                       </HoveredLink>
                     </DropdownMenuItem>
