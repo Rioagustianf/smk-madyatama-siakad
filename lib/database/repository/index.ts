@@ -35,6 +35,9 @@ import type {
 import { academicEventsPrismaRepository } from "./academic-events.prisma";
 import type { AcademicEventsRepository } from "./academic-events";
 
+import { examSchedulesPrismaRepository } from "./exams.prisma";
+import type { ExamSchedulesRepository } from "./exams";
+
 export function getMajorsRepository(): MajorsRepository {
   return majorsPrismaRepository;
 }
@@ -84,4 +87,7 @@ export function getInternshipSchedulesRepository(): InternshipSchedulesRepositor
 }
 export function getAcademicEventsRepository(): AcademicEventsRepository {
   return academicEventsPrismaRepository;
+}
+export function getExamSchedulesRepository(): ExamSchedulesRepository {
+  return examSchedulesPrismaRepository;
 }

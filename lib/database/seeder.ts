@@ -580,6 +580,7 @@ export async function seedDatabase() {
 
     // Clear existing data (in reverse order of dependencies)
     console.log("🗑️  Clearing existing data...");
+    await prisma.examSchedule.deleteMany({});
     await prisma.schedule.deleteMany({});
     await prisma.grade.deleteMany({});
     await prisma.student.deleteMany({});
@@ -651,15 +652,19 @@ export async function seedDatabase() {
     console.log("👨‍🎓 Seeding students...");
     const studentData = [
       ...studentsTKJ1.map((student, index) => ({
-        studentId: student.nisn && student.nisn.trim() !== "" && student.nisn !== "-" 
-          ? student.nisn 
-          : `TKJ1-${String(index + 1).padStart(3, "0")}`,
+        studentId:
+          student.nisn && student.nisn.trim() !== "" && student.nisn !== "-"
+            ? student.nisn
+            : `TKJ1-${String(index + 1).padStart(3, "0")}`,
         name: student.name,
         username: nameToUsername(student.name),
         password: hashedPassword,
         class: "12 TKJ 1",
         major: "Teknik Komputer dan Jaringan",
-        nisn: student.nisn && student.nisn.trim() !== "" && student.nisn !== "-" ? student.nisn : "",
+        nisn:
+          student.nisn && student.nisn.trim() !== "" && student.nisn !== "-"
+            ? student.nisn
+            : "",
         year: 2024,
         gradeLevel: 12,
         semester: 1,
@@ -667,15 +672,19 @@ export async function seedDatabase() {
         role: "student" as const,
       })),
       ...studentsTKJ2.map((student, index) => ({
-        studentId: student.nisn && student.nisn.trim() !== "" && student.nisn !== "-" 
-          ? student.nisn 
-          : `TKJ2-${String(index + 1).padStart(3, "0")}`,
+        studentId:
+          student.nisn && student.nisn.trim() !== "" && student.nisn !== "-"
+            ? student.nisn
+            : `TKJ2-${String(index + 1).padStart(3, "0")}`,
         name: student.name,
         username: nameToUsername(student.name),
         password: hashedPassword,
         class: "12 TKJ 2",
         major: "Teknik Komputer dan Jaringan",
-        nisn: student.nisn && student.nisn.trim() !== "" && student.nisn !== "-" ? student.nisn : "",
+        nisn:
+          student.nisn && student.nisn.trim() !== "" && student.nisn !== "-"
+            ? student.nisn
+            : "",
         year: 2024,
         gradeLevel: 12,
         semester: 1,
@@ -722,9 +731,49 @@ export async function seedDatabase() {
     );
     console.log(`✅ Seeded ${createdSubjects.length} subjects`);
 
+    // Update teachers with their subjects (JSON field) to match the relations
+    // Update teachers with their subjects (JSON field) to match the relations
+    console.log("🔄 Updating teacher subject lists...");
+    for (const [subjectCode, teacherName] of Object.entries(teacherNameMap)) {
+      const teacherId = teacherIds[teacherName];
+      if (teacherId) {
+        // Find teacher in the created array (mutable reference)
+        const teacher = createdTeachers.find((t) => t.id === teacherId);
+        if (teacher) {
+          try {
+            // Get current subjects
+            // Ensure strictly string array or empty
+            const currentSubjects: string[] = Array.isArray(teacher.subjects)
+              ? (teacher.subjects as string[])
+              : [];
+
+            // Add new subject code if not exists
+            if (!currentSubjects.includes(subjectCode)) {
+              const newSubjects = [...currentSubjects, subjectCode];
+
+              await prisma.teacher.update({
+                where: { id: teacherId },
+                data: {
+                  subjects: newSubjects,
+                },
+              });
+
+              // Update in-memory object for subsequent iterations
+              teacher.subjects = newSubjects;
+            }
+          } catch (updateError) {
+            console.error(
+              `❌ Failed to update teacher ${teacherName} with subject ${subjectCode}:`,
+              updateError
+            );
+          }
+        }
+      }
+    }
+
     // Seed classes with homeroom teacher references
     console.log("🏫 Seeding classes...");
-    
+
     // Get TKJ major ID
     const tkjMajor = createdMajors.find((m) => m.code === "TKJ");
     const tkjMajorId = tkjMajor?.id || null;
@@ -792,7 +841,9 @@ export async function seedDatabase() {
     });
     console.log("✅ Seeded default admin");
 
-    console.log("🎉 Database seeding completed successfully with Prisma/MySQL!");
+    console.log(
+      "🎉 Database seeding completed successfully with Prisma/MySQL!"
+    );
 
     return {
       majors: createdMajors.length,

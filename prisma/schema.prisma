@@ -74,6 +74,7 @@ model Subject {
 
   teacher     Teacher? @relation("TeacherSubjects", fields: [teacherId], references: [id])
   grades      Grade[]
+  examSchedules ExamSchedule[]
 
   @@index([teacherId], name: "idx_subjects_teacherId")
 }
@@ -89,10 +90,32 @@ model SchoolClass {
 
   major             Major?   @relation(fields: [majorId], references: [id])
   homeroomTeacher   Teacher? @relation("HomeroomTeacher", fields: [homeroomTeacherId], references: [id])
+  examSchedules     ExamSchedule[]
 
   @@index([majorId], name: "idx_classes_majorId")
   @@index([homeroomTeacherId], name: "idx_classes_homeroomTeacherId")
   @@map("classes")
+}
+
+model ExamSchedule {
+  id          String   @id @default(cuid())
+  subjectId   String
+  classId     String
+  type        String   // midterm, final, assignment
+  date        DateTime
+  startTime   String
+  endTime     String
+  room        String
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  subject     Subject     @relation(fields: [subjectId], references: [id])
+  class       SchoolClass @relation(fields: [classId], references: [id])
+
+  @@index([subjectId], name: "idx_examSchedules_subjectId")
+  @@index([classId], name: "idx_examSchedules_classId")
 }
 
 model Schedule {

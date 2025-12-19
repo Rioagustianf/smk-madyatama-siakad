@@ -20,8 +20,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { ActionButtons } from "@/components/molecules/ActionButtons/ActionButtons";
-import { DeleteConfirmation } from "@/components/molecules/DeleteConfirmation/DeleteConfirmation";
+
 import {
   Select,
   SelectContent,
@@ -37,6 +36,8 @@ import {
   Search,
   Loader2,
 } from "lucide-react";
+import { ActionButtons } from "@/components/molecules/ActionButtons/ActionButtons";
+import { DeleteConfirmation } from "@/components/molecules/DeleteConfirmation/DeleteConfirmation";
 import { AdminTableCard } from "@/components/molecules/AdminTable/AdminTableCard";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
@@ -50,42 +51,46 @@ import { useSubjects } from "@/lib/hooks/use-subjects";
 import { useClasses } from "@/lib/hooks/use-classes";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/lib/contexts/toast-context";
+import { useAuthQuery } from "@/lib/hooks/use-auth";
 
-// Map exam types to readable labels
 const EXAM_TYPES = [
   { value: "midterm", label: "UTS (Ujian Tengah Semester)" },
   { value: "final", label: "UAS (Ujian Akhir Semester)" },
   { value: "assignment", label: "Tugas / Kuis" },
 ];
 
-export default function AdminExamsPage() {
+export default function TeacherExamsPage() {
   const [search, setSearch] = useState("");
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedExam, setSelectedExam] = useState<any>(null);
 
-  // Filter states
   const [filterClass, setFilterClass] = useState("all");
   const [filterSubject, setFilterSubject] = useState("all");
 
   const { addToast } = useToast();
 
-  // Data fetching
+  const { data: user } = useAuthQuery();
+
   const { data: examsData, isLoading } = useExams({
     search,
     classId: filterClass !== "all" ? filterClass : undefined,
     subjectId: filterSubject !== "all" ? filterSubject : undefined,
   });
 
-  const { data: subjectsData } = useSubjects({ limit: 100 });
+  const teacherId = user?.role === "teacher" ? user.id : undefined;
+
+  const { data: subjectsData } = useSubjects({
+    limit: 100,
+    teacherId,
+  });
+
   const { data: classesData } = useClasses({ limit: 100 });
 
-  // Mutations
   const createMutation = useCreateExam();
   const updateMutation = useUpdateExam();
   const deleteMutation = useDeleteExam();
 
-  // Form state
   const [formData, setFormData] = useState({
     date: "",
     startTime: "",
@@ -134,9 +139,7 @@ export default function AdminExamsPage() {
         setIsAddOpen(false);
       }
       resetForm();
-    } catch (error) {
-      // Error handled by hook
-    }
+    } catch (error) {}
   };
 
   const handleEdit = (exam: any) => {
@@ -173,7 +176,21 @@ export default function AdminExamsPage() {
 
   const exams = examsData?.data || [];
   const subjects = subjectsData?.data || [];
-  const classes = classesData?.data || [];
+  const allClasses = classesData?.data || [];
+
+  const teacherClasses = React.useMemo(() => {
+    if (!user?.classes || !Array.isArray(user.classes)) return [];
+
+    return allClasses.filter(
+      (c: any) => user.classes.includes(c.name) || user.classes.includes(c.id)
+    );
+  }, [user?.classes, allClasses]);
+
+  const classes = teacherClasses;
+  const myExams = exams.filter((exam: any) => {
+    const mySubjectIds = subjects.map((s: any) => s.id);
+    return mySubjectIds.includes(exam.subjectId);
+  });
 
   const isSubmitting = createMutation.isPending || updateMutation.isPending;
 
@@ -185,7 +202,7 @@ export default function AdminExamsPage() {
             <h1 className="text-3xl font-bold tracking-tight text-foreground">
               Jadwal Ujian
             </h1>
-            <p className="text-muted-foreground">Kelola jadwal ujian sekolah</p>
+            <p className="text-muted-foreground">Kelola jadwal ujian siswa</p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="relative">
@@ -206,7 +223,7 @@ export default function AdminExamsPage() {
               }}
             >
               <DialogTrigger asChild>
-                <Button className="gap-2">
+                <Button className="gap-2 bg-primary-950 text-white">
                   <Plus className="h-4 w-4" />
                   Tambah
                 </Button>
@@ -222,7 +239,6 @@ export default function AdminExamsPage() {
                   </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4">
-                  {/* Form fields reuse */}
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>Tanggal</Label>
@@ -346,10 +362,15 @@ export default function AdminExamsPage() {
                       variant="outline"
                       onClick={() => setIsAddOpen(false)}
                       disabled={isSubmitting}
+                      className="border border-primary-600"
                     >
                       Batal
                     </Button>
-                    <Button type="submit" disabled={isSubmitting}>
+                    <Button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="bg-primary-950 text-white"
+                    >
                       {isSubmitting && (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       )}
@@ -362,7 +383,10 @@ export default function AdminExamsPage() {
           </div>
         </div>
 
-        <AdminTableCard title="Daftar Ujian" description="Kelola jadwal ujian">
+        <AdminTableCard
+          title="Daftar Ujian"
+          description="Kelola jadwal ujian siswa"
+        >
           <div className="p-4 flex gap-4 border-b">
             <Select value={filterClass} onValueChange={setFilterClass}>
               <SelectTrigger className="w-[180px]">
@@ -411,17 +435,17 @@ export default function AdminExamsPage() {
                     <Loader2 className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />
                   </TableCell>
                 </TableRow>
-              ) : exams.length === 0 ? (
+              ) : myExams.length === 0 ? (
                 <TableRow>
                   <TableCell
                     colSpan={6}
                     className="text-center py-8 text-muted-foreground"
                   >
-                    Tidak ada jadwal ujian ditemukan
+                    Tidak ada jadwal ujian ditemukan untuk mata pelajaran Anda
                   </TableCell>
                 </TableRow>
               ) : (
-                exams.map((exam: any) => (
+                myExams.map((exam: any) => (
                   <TableRow key={exam.id} className="hover:bg-muted/50">
                     <TableCell>
                       <div className="font-medium">
@@ -480,7 +504,6 @@ export default function AdminExamsPage() {
         </AdminTableCard>
       </div>
 
-      {/* Edit Dialog - reusing form structure */}
       <Dialog
         open={isEditOpen}
         onOpenChange={(open) => {

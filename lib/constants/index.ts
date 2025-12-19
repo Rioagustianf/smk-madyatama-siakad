@@ -26,10 +26,12 @@ export const NAVIGATION_ITEMS = {
   TEACHER: [
     { label: "Input Nilai", href: "/dashboard/teacher/lesson-value-input" },
     { label: "Jadwal Pelajaran", href: "/dashboard/teacher/schedules" },
+    { label: "Jadwal Ujian", href: "/dashboard/teacher/exams" },
   ],
   STUDENT: [
     { label: "Lihat Nilai", href: "/dashboard/student/nilai" },
     { label: "Jadwal", href: "/dashboard/student/jadwal" },
+    { label: "Jadwal Ujian", href: "/dashboard/student/exams" },
   ],
 };
 

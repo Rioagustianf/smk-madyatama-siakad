@@ -179,6 +179,17 @@ export const apiMethods = {
     delete: (_id: string) => api.delete(API_ENDPOINTS.MAJORS.DELETE(_id)),
   },
 
+  // Exams
+  exams: {
+    list: (filters?: Record<string, any>) =>
+      api.get(API_ENDPOINTS.EXAMS.LIST, { params: filters }),
+    get: (id: string) => api.get(API_ENDPOINTS.EXAMS.UPDATE(id)),
+    create: (data: any) => api.post(API_ENDPOINTS.EXAMS.CREATE, data),
+    update: (id: string, data: any) =>
+      api.put(API_ENDPOINTS.EXAMS.UPDATE(id), data),
+    delete: (id: string) => api.delete(API_ENDPOINTS.EXAMS.DELETE(id)),
+  },
+
   // -- duplicate schedules block removed --
 
   // Grades

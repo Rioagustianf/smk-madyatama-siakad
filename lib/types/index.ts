@@ -370,4 +370,5 @@ export interface SearchFilters {
   semester?: number | string;
   gradeLevel?: number | string;
   class?: string;
+  teacherId?: string;
 }

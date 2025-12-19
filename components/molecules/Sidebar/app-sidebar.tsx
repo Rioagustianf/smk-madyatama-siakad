@@ -28,6 +28,7 @@ function useSidebarData() {
       navMain: [
         { title: "Lihat Nilai", url: "/dashboard/student/lesson-value" },
         { title: "Jadwal Pelajaran", url: "/dashboard/student/schedules" },
+        { title: "Jadwal Ujian", url: "/dashboard/student/exams" },
       ],
     };
   }
@@ -37,6 +38,7 @@ function useSidebarData() {
       navMain: [
         { title: "Input Nilai", url: "/dashboard/teacher/lesson-value-input" },
         { title: "Jadwal Pelajaran", url: "/dashboard/teacher/schedules" },
+        { title: "Jadwal Ujian", url: "/dashboard/teacher/exams" },
       ],
     };
   }

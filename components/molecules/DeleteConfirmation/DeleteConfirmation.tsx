@@ -50,8 +50,6 @@ export function DeleteConfirmation({
               Data akan dihapus selamanya dari database dan tidak dapat
               dikembalikan.
             </strong>
-            <br />
-            Pastikan tidak ada siswa yang terdaftar di program ini.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

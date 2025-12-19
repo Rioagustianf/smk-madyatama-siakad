@@ -97,31 +97,28 @@ export default function AdminAcademicPage() {
       });
       setSelectedMajor(null);
       setIsEditDialogOpen(false);
-    } catch (error) {
-      // Error handling is done in the mutation hook
-    }
+    } catch (error) {}
   };
 
   const handleDeleteMajor = async (major: Major) => {
     try {
       const majorId = major.id || (major as any)._id;
       await deleteMajorMutation.mutateAsync(majorId as any);
-    } catch (error) {
-      // Error handling is done in the mutation hook
-    }
+    } catch (error) {}
   };
 
   const handleEditMajor = async (major: Major) => {
     await debugLog("Editing major clicked", major);
     setSelectedMajor(major);
-    // Set form data immediately when edit is clicked
     const newFormData = {
       name: major.name,
       code: major.code,
       description: major.description,
       image: major.image || "",
       facilities: Array.isArray(major.facilities) ? major.facilities : [],
-      careerProspects: Array.isArray(major.careerProspects) ? major.careerProspects : [],
+      careerProspects: Array.isArray(major.careerProspects)
+        ? major.careerProspects
+        : [],
     };
     await debugLog("Setting form data to", newFormData);
     setFormData(newFormData);
@@ -131,7 +128,6 @@ export default function AdminAcademicPage() {
   const handleEditDialogChange = async (open: boolean) => {
     await debugLog("Dialog state changing to", { open, selectedMajor });
     if (!open) {
-      // Dialog is closing, reset form
       await debugLog("Dialog closing, resetting form");
       resetForm();
     }
@@ -256,7 +252,10 @@ export default function AdminAcademicPage() {
                   </TableRow>
                 ) : (
                   majors.map((major: Major) => (
-                    <TableRow key={major.id || (major as any)._id} className="hover:bg-muted/50">
+                    <TableRow
+                      key={major.id || (major as any)._id}
+                      className="hover:bg-muted/50"
+                    >
                       <TableCell className="font-medium">
                         {major.name}
                       </TableCell>
