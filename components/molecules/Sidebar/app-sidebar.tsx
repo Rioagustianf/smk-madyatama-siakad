@@ -29,6 +29,14 @@ function useSidebarData() {
         { title: "Lihat Nilai", url: "/dashboard/student/lesson-value" },
         { title: "Jadwal Pelajaran", url: "/dashboard/student/schedules" },
         { title: "Jadwal Ujian", url: "/dashboard/student/exams" },
+        {
+          title: "Absensi",
+          url: "/dashboard/student/attendance",
+        },
+        {
+          title: "Keuangan",
+          url: "/dashboard/student/finance",
+        },
       ],
     };
   }
@@ -39,6 +47,10 @@ function useSidebarData() {
         { title: "Input Nilai", url: "/dashboard/teacher/lesson-value-input" },
         { title: "Jadwal Pelajaran", url: "/dashboard/teacher/schedules" },
         { title: "Jadwal Ujian", url: "/dashboard/teacher/exams" },
+        {
+          title: "Absensi",
+          url: "/dashboard/teacher/attendance",
+        },
       ],
     };
   }
@@ -57,6 +69,14 @@ function useSidebarData() {
             { title: "Manajemen Semester", url: "/dashboard/admin/students" },
             { title: "Jadwal Pelajaran", url: "/dashboard/admin/schedules" },
             { title: "Kalender Akademik", url: "/dashboard/admin/calendar" },
+            {
+              title: "Pengaturan Absensi",
+              url: "/dashboard/admin/attendance/settings",
+            },
+            {
+              title: "Monitoring Absensi",
+              url: "/dashboard/admin/attendance/monitoring",
+            },
           ],
         },
         {
@@ -76,6 +96,16 @@ function useSidebarData() {
           url: "#",
           items: [
             { title: "Pengumuman", url: "/dashboard/admin/announcements" },
+          ],
+        },
+        {
+          title: "Keuangan",
+          url: "#",
+          items: [
+            {
+              title: "Tagihan & Pembayaran",
+              url: "/dashboard/admin/finance/bills",
+            },
           ],
         },
         {

@@ -213,70 +213,114 @@ const teachers = [
     classes: ["12 TKJ 1", "12 TKJ 2"],
     isActive: true,
   },
+  {
+    name: "Guru Olahraga",
+    username: "guru_olahraga",
+    phone: "081234567899",
+    education: "S.Pd",
+    subjects: [],
+    classes: ["12 TKJ 1", "12 TKJ 2"],
+    isActive: true,
+  },
 ];
 
 // Data mata pelajaran - dengan teacherId reference (akan diisi setelah teachers dibuat)
 const subjects = [
   {
     code: "ASJ",
-    name: "Administrasi Sistem Jaringan",
+    name: "ASJ", // Match schedule
     description: "Mata pelajaran Administrasi Sistem Jaringan",
     teacherId: "", // Will be populated with actual teacher _id
     isActive: true,
   },
   {
     code: "TLJ",
-    name: "Teknik Layanan Jaringan",
+    name: "TLJ", // Match schedule
     description: "Mata pelajaran Teknik Layanan Jaringan",
     teacherId: "",
     isActive: true,
   },
   {
     code: "AIJ",
-    name: "Administrasi Infrastruktur Jaringan",
+    name: "AIJ", // Match schedule
     description: "Mata pelajaran Administrasi Infrastruktur Jaringan",
     teacherId: "",
     isActive: true,
   },
   {
     code: "PKK",
-    name: "Produk Kreatif Kewirausahaan",
+    name: "PKK", // Match schedule
     description: "Mata pelajaran Produk Kreatif Kewirausahaan",
     teacherId: "",
     isActive: true,
   },
   {
     code: "PKN",
-    name: "Pendidikan Kewarganegaraan",
+    name: "PKN", // Match schedule
     description: "Mata pelajaran Pendidikan Kewarganegaraan",
     teacherId: "",
     isActive: true,
   },
   {
     code: "MTK",
-    name: "Matematika",
+    name: "MTK", // Match schedule
     description: "Mata pelajaran Matematika",
     teacherId: "",
     isActive: true,
   },
   {
     code: "B. Inggris",
-    name: "Bahasa Inggris",
+    name: "B. Inggris", // Match schedule exactly
     description: "Mata pelajaran Bahasa Inggris",
     teacherId: "",
     isActive: true,
   },
   {
     code: "B. Indonesia",
-    name: "Bahasa Indonesia",
+    name: "B. Indonesia", // Match schedule exactly
     description: "Mata pelajaran Bahasa Indonesia",
     teacherId: "",
     isActive: true,
   },
   {
     code: "Agama",
-    name: "Pendidikan Agama Islam",
+    name: "Agama", // Match schedule
     description: "Mata pelajaran Pendidikan Agama Islam",
+    teacherId: "",
+    isActive: true,
+  },
+  {
+    code: "Agama Islam",
+    name: "Agama Islam", // For TKJ 2
+    description: "Mata pelajaran Pendidikan Agama Islam",
+    teacherId: "",
+    isActive: true,
+  },
+  {
+    code: "SENAM",
+    name: "SENAM", // Match schedule
+    description: "Senam Pagi",
+    teacherId: "",
+    isActive: true,
+  },
+  {
+    code: "UPACARA",
+    name: "UPACARA", // Match schedule
+    description: "Upacara Bendera",
+    teacherId: "",
+    isActive: true,
+  },
+  {
+    code: "Adminfrajar",
+    name: "Adminfrajar", // Match schedule
+    description: "Administrasi Infrastruktur Jaringan",
+    teacherId: "",
+    isActive: true,
+  },
+  {
+    code: "Teklayjar",
+    name: "Teklayjar", // Match schedule
+    description: "Teknik Layanan Jaringan",
     teacherId: "",
     isActive: true,
   },
@@ -711,6 +755,11 @@ export async function seedDatabase() {
       "B. Inggris": "Fadhilah Khairani",
       "B. Indonesia": "Lina Maryana",
       Agama: "Drs. Waziruddin",
+      "Agama Islam": "Drs. Waziruddin",
+      SENAM: "Guru Olahraga",
+      UPACARA: "Guru Olahraga",
+      Adminfrajar: "Miranda",
+      Teklayjar: "Supriyanto",
     };
 
     const createdSubjects = await Promise.all(

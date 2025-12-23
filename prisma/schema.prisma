@@ -41,6 +41,8 @@ model Student {
   updatedAt  DateTime @updatedAt
 
   grades     Grade[]
+  attendances Attendance[]
+  bills      Bill[]
 }
 
 model Teacher {
@@ -75,6 +77,7 @@ model Subject {
   teacher     Teacher? @relation("TeacherSubjects", fields: [teacherId], references: [id])
   grades      Grade[]
   examSchedules ExamSchedule[]
+  attendances   Attendance[]
 
   @@index([teacherId], name: "idx_subjects_teacherId")
 }
@@ -291,4 +294,76 @@ model AcademicEvent {
   createdBy   String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model Attendance {
+  id        String   @id @default(cuid())
+  studentId String
+  subjectId String
+  date      DateTime @db.Date // YYYY-MM-DD
+  timeIn    DateTime @default(now())
+  status    String // PRESENT, LATE, SICK, PERMISSION, ALPHA
+  latitude  Float?
+  longitude Float?
+  photoUrl  String?
+  notes     String?  @db.Text
+  
+  // Verification
+  isVerified  Boolean  @default(false)
+  verifiedBy  String?  // Nama guru yang memverifikasi
+  verifiedAt  DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student Student @relation(fields: [studentId], references: [id])
+  subject Subject @relation(fields: [subjectId], references: [id])
+
+  @@unique([studentId, subjectId, date])
+}
+
+model AttendanceSettings {
+  id             String   @id @default(cuid())
+  schoolName     String   @default("SMK Madyatama")
+  latitude       Float    @default(0)
+  longitude      Float    @default(0)
+  radius         Int      @default(50) // meters
+  updatedAt      DateTime @updatedAt
+}
+
+// Finance Models
+model Bill {
+  id          String   @id @default(cuid())
+  studentId   String
+  title       String   // e.g. "SPP Januari 2024"
+  amount      Decimal  @db.Decimal(10, 2)
+  type        String   // SPP, BUILDING, EXAM, OTHER
+  status      String   // PENDING, PAID, OVERDUE, CANCELLED
+  dueDate     DateTime
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  student     Student   @relation(fields: [studentId], references: [id])
+  payments    Payment[]
+
+  @@index([studentId], name: "idx_bills_studentId")
+}
+
+model Payment {
+  id          String   @id @default(cuid())
+  billId      String
+  amount      Decimal  @db.Decimal(10, 2)
+  method      String   // CASH, TRANSFER
+  status      String   // PENDING, VERIFIED, FAILED
+  proofUrl    String?  // Bukti transfer
+  paidAt      DateTime @default(now())
+  verifiedBy  String?  // Admin name
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  bill        Bill     @relation(fields: [billId], references: [id])
+
+  @@index([billId], name: "idx_payments_billId")
 }
