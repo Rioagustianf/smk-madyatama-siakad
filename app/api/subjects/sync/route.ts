@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
       select: { subject: true },
     });
 
-    const uniqueSubjects = [...new Set(schedules.map((s) => s.subject))];
+    const uniqueSubjects = Array.from(new Set(schedules.map((s) => s.subject)));
 
     // Subject aliases for better matching
     const subjectData: Record<string, { code: string; description: string }> = {
