@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     // Check bill existence
     const bill = await prisma.bill.findUnique({
       where: { id: billId },
-      include: { payments: true },
+      include: { payments: true, student: true },
     });
 
     if (!bill) {
@@ -70,12 +70,6 @@ export async function POST(request: NextRequest) {
       bill.payments.reduce((sum, p) => sum + Number(p.amount), 0) +
       parseFloat(amount);
 
-    // Simple logic: If total paid >= bill amount, mark bill as PAID
-    // Wait, we need to check if payments are VERIFIED.
-    // For now assume admin payment is verified immediately.
-
-    // Recalculate based on VERIFIED payments only?
-    // Let's query again including the new payment
     const updatedBill = await prisma.bill.findUnique({
       where: { id: billId },
       include: { payments: true },
@@ -96,6 +90,27 @@ export async function POST(request: NextRequest) {
         where: { id: bill.id },
         data: { status: newBillStatus },
       });
+    }
+
+    // Send Notification if Bill is now PAID
+    if (newBillStatus === "PAID" && newBillStatus !== bill.status) {
+      try {
+        const { createNotification } = await import("@/lib/notifications");
+        await createNotification(
+          bill.studentId,
+          "Pembayaran Berhasil",
+          `Terima kasih ${bill.student.name}, pembayaran untuk *${
+            bill.title
+          }* sebesar *Rp ${new Intl.NumberFormat("id-ID").format(
+            Number(bill.amount)
+          )}* telah kami terima. Status: LUNAS/PAID.`,
+          "SUCCESS",
+          "/dashboard/student/finance",
+          true // Send WhatsApp
+        );
+      } catch (notifError) {
+        console.error("Notification Error:", notifError);
+      }
     }
 
     return NextResponse.json({

@@ -18,7 +18,7 @@ export default function TeacherLoginPage() {
   const [error, setError] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<"teacher" | "admin">("teacher");
+  const [role, setRole] = useState<"teacher" | "admin" | "staff">("teacher");
   const [usernameError, setUsernameError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -35,6 +35,8 @@ export default function TeacherLoginPage() {
       setTimeout(() => {
         if (role === "admin") {
           window.location.href = "/dashboard/admin";
+        } else if (role === "staff") {
+          window.location.href = "/dashboard/staff";
         } else {
           window.location.href = "/dashboard/teacher/lesson-value-input";
         }
@@ -90,10 +92,13 @@ export default function TeacherLoginPage() {
               <select
                 className="w-full border rounded-md px-3 py-2 text-sm"
                 value={role}
-                onChange={(e) => setRole(e.target.value as "teacher" | "admin")}
+                onChange={(e) =>
+                  setRole(e.target.value as "teacher" | "admin" | "staff")
+                }
               >
                 <option value="teacher">Guru</option>
                 <option value="admin">Admin</option>
+                <option value="staff">Staff Keuangan</option>
               </select>
             </div>
 

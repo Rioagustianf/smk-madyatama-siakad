@@ -102,6 +102,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Fetch student data to get the name for notification
+    const student = await prisma.student.findUnique({
+      where: { id: studentId },
+      select: { name: true, phone: true },
+    });
+
+    if (!student) {
+      return NextResponse.json(
+        { success: false, message: "Student not found" },
+        { status: 404 }
+      );
+    }
+
     const bill = await prisma.bill.create({
       data: {
         studentId,
@@ -113,6 +126,30 @@ export async function POST(request: NextRequest) {
         description,
       },
     });
+
+    // Send Notification (In-App + WhatsApp)
+    try {
+      const { createNotification } = await import("@/lib/notifications");
+      await createNotification(
+        studentId,
+        "Tagihan Baru",
+        `Halo ${
+          student.name
+        }, ada tagihan baru: *${title}* sebesar *Rp ${new Intl.NumberFormat(
+          "id-ID"
+        ).format(parseFloat(amount))}*. Jatuh tempo: ${new Date(
+          dueDate
+        ).toLocaleDateString(
+          "id-ID"
+        )}. Mohon segera lakukan pembayaran. Terima kasih.`,
+        "INFO",
+        "/dashboard/student/finance",
+        true // Send WhatsApp
+      );
+    } catch (notifError) {
+      console.error("Notification Error:", notifError);
+      // Don't fail the bill creation if notification fails
+    }
 
     return NextResponse.json({
       success: true,

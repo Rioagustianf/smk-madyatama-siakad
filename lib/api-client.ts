@@ -88,6 +88,7 @@ export const apiMethods = {
     updateAccount: (data: {
       name?: string;
       username?: string;
+      phone?: string;
       currentPassword?: string;
       newPassword?: string;
     }) => api.put(API_ENDPOINTS.AUTH.PROFILE, data),

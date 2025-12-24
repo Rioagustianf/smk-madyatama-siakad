@@ -13,13 +13,14 @@ import {
 import { useAuthQuery } from "@/lib/hooks/use-auth";
 import { apiMethods } from "@/lib/api-client";
 import { useToast } from "@/lib/contexts/toast-context";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Phone } from "lucide-react";
 
 export default function StudentAccountPage() {
   const { data: me } = useAuthQuery();
   const { addToast } = useToast();
   const [name, setName] = React.useState("");
   const [username, setUsername] = React.useState("");
+  const [phone, setPhone] = React.useState("");
   const [currentPassword, setCurrentPassword] = React.useState("");
   const [newPassword, setNewPassword] = React.useState("");
   const [isSaving, setIsSaving] = React.useState(false);
@@ -31,6 +32,7 @@ export default function StudentAccountPage() {
     if (me) {
       setName((me as any).name || "");
       setUsername((me as any).username || "");
+      setPhone((me as any).phone || "");
     }
   }, [me]);
 
@@ -41,6 +43,7 @@ export default function StudentAccountPage() {
       await apiMethods.auth.updateAccount({
         name,
         username,
+        phone,
         currentPassword: currentPassword || undefined,
         newPassword: newPassword || undefined,
       });
@@ -69,14 +72,14 @@ export default function StudentAccountPage() {
             Akun Siswa
           </h1>
           <p className="text-muted-foreground">
-            Perbarui nama, username, dan password
+            Perbarui nama, username, nomor WhatsApp, dan password
           </p>
         </div>
 
         <Card className="border border-primary-900">
           <CardHeader>
             <CardTitle>Informasi Akun</CardTitle>
-            <CardDescription>Detail login</CardDescription>
+            <CardDescription>Detail login dan kontak</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -97,6 +100,22 @@ export default function StudentAccountPage() {
                   className="border border-primary-600 mt-1"
                   placeholder="Username untuk login"
                 />
+              </div>
+              <div>
+                <label className="text-sm font-medium flex items-center gap-2">
+                  <Phone className="w-4 h-4" />
+                  Nomor WhatsApp
+                </label>
+                <Input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="border border-primary-600 mt-1"
+                  placeholder="08123456789"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Format: 08xxx atau 628xxx (untuk notifikasi tagihan & absensi)
+                </p>
               </div>
             </div>
           </CardContent>

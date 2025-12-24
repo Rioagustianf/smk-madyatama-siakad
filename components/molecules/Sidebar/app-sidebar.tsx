@@ -22,6 +22,7 @@ function useSidebarData() {
   const isStudent = pathname?.startsWith("/dashboard/student");
   const isTeacher = pathname?.startsWith("/dashboard/teacher");
   const isAdmin = pathname?.startsWith("/dashboard/admin");
+  const isStaff = pathname?.startsWith("/dashboard/staff");
 
   if (isStudent) {
     return {
@@ -50,6 +51,10 @@ function useSidebarData() {
         {
           title: "Absensi",
           url: "/dashboard/teacher/attendance",
+        },
+        {
+          title: "Profil",
+          url: "/dashboard/teacher/profile",
         },
       ],
     };
@@ -114,6 +119,24 @@ function useSidebarData() {
           items: [
             { title: "Profil Sekolah", url: "/dashboard/admin/profile" },
             { title: "Tendik", url: "/dashboard/admin/staff" },
+          ],
+        },
+      ],
+    };
+  }
+
+  if (isStaff) {
+    return {
+      navMain: [
+        { title: "Dashboard", url: "/dashboard/staff" },
+        {
+          title: "Keuangan",
+          url: "#",
+          items: [
+            {
+              title: "Tagihan & Pembayaran",
+              url: "/dashboard/staff/finance/bills",
+            },
           ],
         },
       ],

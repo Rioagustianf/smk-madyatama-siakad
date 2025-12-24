@@ -6,7 +6,7 @@ const JWT_SECRET =
 
 export interface TokenPayload {
   id: string;
-  role: "admin" | "teacher" | "student";
+  role: "admin" | "teacher" | "student" | "staff";
   name: string;
 }
 
@@ -51,4 +51,3 @@ export function verifyAdminToken(request: NextRequest) {
 export function createToken(payload: TokenPayload): string {
   return jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
 }
-

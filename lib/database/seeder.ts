@@ -623,22 +623,38 @@ export async function seedDatabase() {
     console.log("🌱 Starting database seeding with Prisma/MySQL...");
 
     // Clear existing data (in reverse order of dependencies)
+    // Delete child tables first (tables with foreign keys)
     console.log("🗑️  Clearing existing data...");
+
+    // Delete tables that reference Student
+    await prisma.payment.deleteMany({});
+    await prisma.bill.deleteMany({});
+    await prisma.attendance.deleteMany({});
+    await prisma.grade.deleteMany({});
+
+    // Delete tables that reference Subject/Class/Teacher
     await prisma.examSchedule.deleteMany({});
     await prisma.schedule.deleteMany({});
-    await prisma.grade.deleteMany({});
+
+    // Delete tables that reference InternshipPartner
+    await prisma.internshipSchedule.deleteMany({});
+
+    // Now safe to delete parent tables
     await prisma.student.deleteMany({});
     await prisma.subject.deleteMany({});
     await prisma.schoolClass.deleteMany({});
     await prisma.teacher.deleteMany({});
     await prisma.major.deleteMany({});
     await prisma.admin.deleteMany({});
+    await prisma.staff.deleteMany({});
+    await prisma.internshipPartner.deleteMany({});
+
+    // Delete standalone tables
     await prisma.announcement.deleteMany({});
     await prisma.gallery.deleteMany({});
     await prisma.activity.deleteMany({});
-    await prisma.staff.deleteMany({});
-    await prisma.internshipPartner.deleteMany({});
-    await prisma.internshipSchedule.deleteMany({});
+    await prisma.notification.deleteMany({});
+    await prisma.academicEvent.deleteMany({});
 
     console.log("✅ Cleared existing data");
 
@@ -890,6 +906,24 @@ export async function seedDatabase() {
     });
     console.log("✅ Seeded default admin");
 
+    // Seed default finance staff
+    console.log("👤 Seeding finance staff...");
+    const hashedStaffPassword = await bcrypt.hash("staff123", 10);
+    const staff = await prisma.staff.create({
+      data: {
+        name: "Staff Keuangan",
+        username: "staff_keuangan",
+        password: hashedStaffPassword,
+        role: "finance",
+        position: "Staff Keuangan",
+        department: "Keuangan",
+        email: "keuangan@smkmadyatama.sch.id",
+        phone: "081234567800",
+        isActive: true,
+      } as any,
+    });
+    console.log("✅ Seeded default finance staff");
+
     console.log(
       "🎉 Database seeding completed successfully with Prisma/MySQL!"
     );
@@ -902,6 +936,7 @@ export async function seedDatabase() {
       classes: createdClasses.length,
       schedules: createdSchedules.count,
       admins: 1,
+      staff: 1,
     };
   } catch (error) {
     console.error("❌ Error seeding database:", error);
