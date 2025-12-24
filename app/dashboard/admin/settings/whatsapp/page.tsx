@@ -30,6 +30,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import Image from "next/image";
 
 interface Device {
   name: string;
@@ -260,7 +261,7 @@ export default function WhatsappSettingsPage() {
         <CardContent>
           {devices.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              No devices found. Click "Add New Device" to get started.
+              No devices found. Click &quot;Add New Device&quot; to get started.
             </div>
           ) : (
             <Table>
@@ -357,7 +358,7 @@ export default function WhatsappSettingsPage() {
               </DialogDescription>
             </DialogHeader>
             <div className="flex justify-center py-4">
-              <img
+              <Image
                 src={`data:image/png;base64,${qrCode}`}
                 alt="QR Code"
                 className="w-64 h-64 border rounded-lg"

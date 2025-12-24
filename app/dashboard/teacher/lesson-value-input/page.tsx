@@ -1,22 +1,9 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { TeacherGradeForm } from "@/components/molecules/TeacherGradeForm/TeacherGradeForm";
-// import { GradesTable, type GradeRow } from "@/components/molecules/GradesTable/GradesTable";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { AdminHeader } from "@/components/molecules/AdminPage/AdminHeader";
-import { AdminTableCard } from "@/components/molecules/AdminTable/AdminTableCard";
-import { Search, Plus, NotebookPen } from "lucide-react";
 import {
   Select,
   SelectTrigger,

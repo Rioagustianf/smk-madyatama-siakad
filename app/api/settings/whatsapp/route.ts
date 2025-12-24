@@ -195,7 +195,7 @@ export async function POST(req: Request) {
 
       // If this device is currently linked, clear from database
       const settings = await prisma.siteSettings.findFirst();
-      if (settings?.whatsappToken === deviceToken) {
+      if (settings && settings.whatsappToken === deviceToken) {
         await prisma.siteSettings.update({
           where: { id: settings.id },
           data: { whatsappToken: null, whatsappName: null },

@@ -26,6 +26,7 @@ import { MapPin, Camera, Clock, Loader2 } from "lucide-react";
 import { useToast } from "@/lib/contexts/toast-context";
 import { ImageUpload } from "@/components/molecules/ImageUpload/ImageUpload";
 import { fileUpload } from "@/lib/supabase-client";
+import Image from "next/image";
 
 export default function StudentAttendancePage() {
   const { data: scheduleData, isLoading } = useTodaySchedule();
@@ -367,7 +368,7 @@ export default function StudentAttendancePage() {
 
               <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
                 {imgSrc ? (
-                  <img
+                  <Image
                     src={imgSrc}
                     alt="Selfie"
                     className="w-full h-full object-cover"

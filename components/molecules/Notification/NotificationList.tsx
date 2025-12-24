@@ -89,7 +89,7 @@ export default function NotificationList({
         <h4 className="font-semibold text-sm">Notifications</h4>
         <Button
           variant="ghost"
-          size="xs"
+          size="sm"
           onClick={markAllRead}
           className="text-xs h-auto py-1"
         >
