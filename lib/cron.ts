@@ -8,39 +8,27 @@ import {
 let cronInitialized = false;
 
 // Run at 6 PM daily (18:00)
-const holidayJob = cron.schedule(
-  "0 18 * * *",
-  async () => {
-    console.log("[CRON] Running holiday and school entry notifications...");
-    try {
-      await checkHolidayNotifications();
-      await checkSchoolEntryNotifications();
-      console.log("[CRON] Holiday notifications completed");
-    } catch (error) {
-      console.error("[CRON] Error in holiday notifications:", error);
-    }
-  },
-  {
-    scheduled: false, // Don't start automatically
+const holidayJob = cron.schedule("0 18 * * *", async () => {
+  console.log("[CRON] Running holiday and school entry notifications...");
+  try {
+    await checkHolidayNotifications();
+    await checkSchoolEntryNotifications();
+    console.log("[CRON] Holiday notifications completed");
+  } catch (error) {
+    console.error("[CRON] Error in holiday notifications:", error);
   }
-);
+});
 
 // Run at 7 PM daily (19:00)
-const absenceJob = cron.schedule(
-  "0 19 * * *",
-  async () => {
-    console.log("[CRON] Running consecutive absence check...");
-    try {
-      await checkConsecutiveAbsences();
-      console.log("[CRON] Absence check completed");
-    } catch (error) {
-      console.error("[CRON] Error in absence check:", error);
-    }
-  },
-  {
-    scheduled: false, // Don't start automatically
+const absenceJob = cron.schedule("0 19 * * *", async () => {
+  console.log("[CRON] Running consecutive absence check...");
+  try {
+    await checkConsecutiveAbsences();
+    console.log("[CRON] Absence check completed");
+  } catch (error) {
+    console.error("[CRON] Error in absence check:", error);
   }
-);
+});
 
 export function initCronJobs() {
   if (cronInitialized) {
@@ -48,8 +36,7 @@ export function initCronJobs() {
     return;
   }
 
-  holidayJob.start();
-  absenceJob.start();
+  // Jobs are already started automatically by node-cron
   cronInitialized = true;
 
   console.log("[CRON] ✓ Cron jobs initialized");
