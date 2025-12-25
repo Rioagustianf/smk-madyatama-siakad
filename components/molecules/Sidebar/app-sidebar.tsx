@@ -114,6 +114,16 @@ function useSidebarData() {
           ],
         },
         {
+          title: "Pengaturan",
+          url: "#",
+          items: [
+            {
+              title: "Pengaturan Notifikasi",
+              url: "/dashboard/admin/settings/whatsapp",
+            },
+          ],
+        },
+        {
           title: "Profil & Tendik",
           url: "#",
           items: [

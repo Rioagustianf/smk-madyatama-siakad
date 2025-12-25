@@ -1,115 +1,361 @@
-## SMK School Management – Next.js 13 App Router
+# SMK Madyatama - Sistem Informasi Akademik
 
-Aplikasi manajemen sekolah (dashboard admin/guru/siswa) berbasis Next.js 13 (App Router), MongoDB, React Query, dan Tailwind. Panduan ini membantu Anda menjalankan project secara lokal hingga siap produksi.
+Aplikasi manajemen sekolah (SIAKAD) berbasis Next.js 13 dengan fitur dashboard admin, guru, siswa, dan staff keuangan. Dilengkapi dengan sistem notifikasi WhatsApp otomatis untuk informasi hari libur, masuk sekolah, dan peringatan ketidakhadiran.
 
-### 1) Prasyarat
+---
 
-- Node.js >= 18.17.0 (cek: `node -v`)
-- npm (bundled dengan Node) (cek: `npm -v`)
-- MongoDB instance (lokal atau Atlas)
-- Opsional: Akun Supabase jika ingin fitur upload/storage berjalan
+## 📋 Fitur Utama
 
-### 2) Clone & Instalasi
+- 🎓 **Manajemen Akademik**: Jurusan, Kelas, Mata Pelajaran, Jadwal
+- 👥 **Multi-Role Dashboard**: Admin, Guru, Siswa, Staff Keuangan
+- 📊 **Nilai & Absensi**: Input nilai, absensi dengan GPS & foto
+- 💰 **Keuangan**: Tagihan, pembayaran, laporan
+- 📅 **Kalender Akademik**: Event, hari libur, kegiatan sekolah
+- 📱 **Notifikasi WhatsApp Otomatis**:
+  - Informasi hari libur (H-1)
+  - Reminder masuk sekolah setelah libur
+  - Peringatan alfa 3 hari berturut-turut
+
+---
+
+## 🔧 Prasyarat
+
+- **Node.js** >= 18.17.0 (cek: `node -v`)
+- **npm** (bundled dengan Node) (cek: `npm -v`)
+- **MySQL** database (lokal atau cloud)
+
+---
+
+## 🚀 Instalasi
+
+### 1. Clone Repository
 
 ```bash
 git clone <repo-url>
 cd project
+```
+
+### 2. Install Dependencies
+
+```bash
 npm install
 ```
 
-### 3) Konfigurasi Environment
+### 3. Konfigurasi Environment
 
-Buat file `.env.local` di root project, lalu isi variabel berikut sesuai lingkungan Anda.
+Buat file `.env.local` di root project:
 
 ```bash
-# MongoDB
-MONGODB_URI=mongodb://localhost:27017
-MONGODB_DB_NAME=smk_database
+# Database (MySQL via Prisma)
+DATABASE_URL="mysql://user:password@localhost:3306/smk_database"
 
-# Base URL API (frontend akan memanggil ini)
+# Base URL
 NEXT_PUBLIC_API_URL=http://localhost:3000
 
-# Opsional: Supabase (untuk upload gambar/dokumen)
-NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+# WhatsApp Fonnte (Opsional - untuk notifikasi)
+FONNTE_ACCOUNT_TOKEN=your-account-token-here
+
+# JWT Secret
+JWT_SECRET=your-secret-key-here
 ```
 
-Catatan:
+**Catatan**:
 
-- `MONGODB_URI` wajib. Jika menggunakan MongoDB Atlas, pakai connection string Atlas.
-- `MONGODB_DB_NAME` bersifat opsional (default `smk_database` bila tidak diisi; sesuai `lib/database/mongodb.ts`).
-- `NEXT_PUBLIC_API_URL` default ke `http://localhost:3000` bila tidak diset (lihat `lib/api-client.ts`).
-- Jika tidak memakai Supabase, fitur unggah file tidak aktif; sisakan nilai kosong atau lewati variabelnya, tetapi hindari memanggil fitur upload.
+- `DATABASE_URL` wajib diisi dengan connection string MySQL
+- `FONNTE_ACCOUNT_TOKEN` diperlukan untuk fitur notifikasi WhatsApp
+- `JWT_SECRET` untuk authentication (generate random string)
 
-### 4) Menjalankan dalam Mode Pengembangan
+### 4. Setup Database
 
-Pastikan MongoDB sudah berjalan, kemudian:
+```bash
+# Generate Prisma Client
+npx prisma generate
+
+# Run migrations
+npx prisma migrate dev
+
+# Seed database (data awal)
+npm run seed
+```
+
+### 5. Jalankan Development Server
 
 ```bash
 npm run dev
 ```
 
-Aplikasi akan berjalan di `http://localhost:3000`.
+Aplikasi akan berjalan di `http://localhost:3000`
 
-### 5) Seed Database (Data Awal)
+---
 
-Seeder akan memanggil endpoint `POST /api/seed` di server dev, sehingga server harus aktif saat proses seeding.
+## 📱 Konfigurasi WhatsApp Notifikasi
 
-Langkah:
+### 1. Tambah Device WhatsApp
 
-1. Jalankan server dev di terminal pertama:
-   ```bash
-   npm run dev
-   ```
-2. Di terminal kedua, jalankan:
-   ```bash
-   npm run seed
-   ```
+1. Login sebagai **Admin**
+2. Buka menu **Pengaturan** → **Pengaturan Notifikasi**
+3. Klik **Add New Device**
+4. Isi form:
+   - **Device Name**: Nama device (contoh: SMK Madyatama)
+   - **Device Number**: Nomor unik 8-15 digit (contoh: 08123456789)
+5. Klik **Create Device**
+6. **Scan QR Code** yang muncul dengan WhatsApp Anda:
+   - Buka WhatsApp → **Linked Devices** → **Link a Device**
+   - Scan QR code
+7. Status akan berubah menjadi **Connected**
+8. Klik **Use This** untuk mengaktifkan device
 
-Jika berhasil, Anda akan melihat ringkasan jumlah data yang diinsert (majors, students, teachers, subjects, classes, schedules, admins).
+### 2. Initialize Cron Jobs (Notifikasi Otomatis)
 
-Troubleshooting seeding:
+Setelah WhatsApp terkoneksi, aktifkan cron jobs:
 
-- Pastikan `npm run dev` sudah berjalan (seeder memanggil `http://localhost:3000/api/seed`).
-- Pastikan `MONGODB_URI` benar dan MongoDB dapat diakses.
-- Pastikan `.env.local` sudah dibuat dan berisi variabel yang diperlukan.
+**Via Browser**:
 
-### 6) Build untuk Produksi
-
-```bash
-npm run build
-npm start
+```
+http://localhost:3000/api/cron/init
 ```
 
-Server produksi juga memerlukan variabel environment yang sama seperti `.env.local`.
+**Via curl**:
 
-### 7) Struktur Proyek (ringkas)
+```bash
+curl http://localhost:3000/api/cron/init
+```
 
-- `app/` — Halaman (App Router) dan API routes (`app/api/...`).
-- `components/` — UI components (atoms/molecules/organisms/ui).
-- `lib/` — Klien API, hooks, context, database client (`mongodb.ts`), supabase client, tipe, utilitas.
-- `scripts/seed.js` — Script CLI untuk menjalankan proses seeding via endpoint API.
+**Response Sukses**:
 
-### 8) Skrip npm
+```json
+{
+  "success": true,
+  "message": "Cron jobs initialized successfully"
+}
+```
 
-- `npm run dev` — Menjalankan dev server Next.js.
-- `npm run build` — Build production.
-- `npm run start` — Menjalankan server production.
-- `npm run lint` — Menjalankan ESLint.
-- `npm run typecheck` — Cek tipe TypeScript.
-- `npm run seed` — Menjalankan seeding database (butuh dev server aktif).
+**Console Logs**:
 
-### 9) Catatan Keamanan & Deploy
+```
+[CRON] ✓ Cron jobs initialized
+[CRON] ✓ Holiday notifications: Daily at 18:00
+[CRON] ✓ Absence alerts: Daily at 19:00
+```
 
-- Jangan commit `.env.local` ke repo publik.
-- Pada deployment (Vercel/dll), set variabel environment yang sama di dashboard deploy.
-- Jika menggunakan Supabase Storage, pastikan bucket dan policy publik telah dikonfigurasi sesuai kebutuhan aplikasi.
+### 4. Jadwal Notifikasi Otomatis
 
-### 10) FAQ Singkat
+Setelah cron jobs aktif, notifikasi akan terkirim otomatis:
 
-- Q: Perlu mengubah nama database?  
-  A: Ganti `MONGODB_DB_NAME` di `.env.local` atau biarkan default `smk_database`.
-- Q: Seeding gagal karena 404/ECONNREFUSED?  
-  A: Jalankan `npm run dev` dulu, lalu jalankan `npm run seed` di terminal terpisah.
-- Q: Di mana konfigurasi MongoDB berada?  
-  A: Lihat `lib/database/mongodb.ts`.
+| Waktu     | Notifikasi           | Kondisi                                  |
+| --------- | -------------------- | ---------------------------------------- |
+| **18:00** | Informasi Hari Libur | Jika besok ada hari libur (bukan Minggu) |
+| **18:00** | Masuk Sekolah        | Jika hari ini libur dan besok masuk      |
+| **19:00** | Peringatan Alfa      | Jika siswa alfa 3 hari berturut-turut    |
+
+---
+
+## 🧪 Test Notifikasi WhatsApp
+
+Sebelum mengandalkan notifikasi otomatis, test terlebih dahulu:
+
+### Via Browser (Postman/Thunder Client)
+
+**Endpoint**: `POST http://localhost:3000/api/notifications/test`
+
+**Headers**:
+
+```
+Content-Type: application/json
+```
+
+**Body**:
+
+```json
+{
+  "type": "holiday",
+  "phoneNumber": "081234567890"
+}
+```
+
+**Tipe Notifikasi**:
+
+- `Tagihan` - Test notifikasi tagihan
+- `Konfirmasi Pembayaran` - Test notifikasi konfirmasi pembayaran
+- `Hari Libur` - Test notifikasi hari libur
+- `Masuk Sekolah` - Test notifikasi masuk sekolah
+- `Alfa` - Test peringatan ketidakhadiran
+
+### Via curl
+
+```bash
+# Test Notifikasi Hari Libur
+curl -X POST http://localhost:3000/api/notifications/test \
+  -H "Content-Type: application/json" \
+  -d '{
+    "type": "holiday",
+    "phoneNumber": "masukan nomor wa yg ingin dikirim tes notifikasi"
+  }'
+
+# Test Notifikasi Masuk Sekolah
+curl -X POST http://localhost:3000/api/notifications/test \
+  -H "Content-Type: application/json" \
+  -d '{
+    "type": "school_entry",
+    "phoneNumber": "masukan nomor wa yg ingin dikirim tes notifikasi"
+  }'
+
+# Test Peringatan Alfa
+curl -X POST http://localhost:3000/api/notifications/test \
+  -H "Content-Type: application/json" \
+  -d '{
+    "type": "absence",
+    "phoneNumber": "masukan nomor wa yg ingin dikirim tes notifikasi"
+  }'
+```
+
+**Response Sukses**:
+
+```json
+{
+  "success": true,
+  "pesan": "Notifikasi Hari Libur berhasil dikirim!",
+  "data": {
+    "tipe": "holiday",
+    "namaNotifikasi": "Notifikasi Hari Libur",
+    "nomorTujuan": "masukan nomor wa yg ingin dikirim tes notifikasi",
+    "waktu": "25/12/2025, 16.00.00"
+  }
+}
+```
+
+WhatsApp akan diterima dalam beberapa detik!
+
+---
+
+## 📚 Penggunaan Aplikasi
+
+### Input Hari Libur (untuk Notifikasi)
+
+1. Login sebagai **Admin**
+2. Buka **Kalender Akademik**
+3. Klik **Add Event**
+4. Isi form:
+   - **Title**: Nama hari libur (contoh: Hari Kemerdekaan RI)
+   - **Type**: Pilih **HOLIDAY**
+   - **Start Date**: Tanggal libur
+   - **End Date**: Tanggal libur
+   - **Published**: ✅ Centang
+5. Klik **Save**
+
+Notifikasi akan otomatis terkirim H-1 jam 18:00!
+
+### Input Data Guru & Siswa
+
+Pastikan nomor WhatsApp terisi agar notifikasi terkirim:
+
+1. Buka menu **Guru** atau **Siswa**
+2. Edit data
+3. Isi field **Phone** dengan nomor WhatsApp (format: 081234567890)
+4. Save
+
+---
+
+## 📦 Struktur Project
+
+```
+project/
+├── app/                    # Next.js App Router
+│   ├── api/               # API Routes
+│   │   ├── cron/         # Cron initialization
+│   │   └── notifications/ # Test notifications
+│   └── dashboard/        # Dashboard pages
+├── components/            # React Components
+├── lib/                   # Libraries
+│   ├── scheduler.ts      # Notification scheduler
+│   ├── cron.ts          # Cron jobs configuration
+│   └── whatsapp.ts      # WhatsApp integration
+├── prisma/               # Database schema
+└── .env.local           # Environment variables
+```
+
+---
+
+## 🛠️ NPM Scripts
+
+```bash
+npm run dev          # Development server
+npm run build        # Production build
+npm start            # Production server
+npm run lint         # ESLint
+npm run typecheck    # TypeScript check
+npm run seed         # Seed database
+```
+
+---
+
+## 🔒 Keamanan & Deployment
+
+### Development
+
+- Jangan commit `.env.local` ke repository
+- Gunakan `.env.example` sebagai template
+
+### Production
+
+1. **Build aplikasi**:
+
+   ```bash
+   npm run build
+   npm start
+   ```
+
+2. **Set environment variables** di hosting provider
+
+3. **Initialize cron jobs** setelah deploy:
+
+   ```bash
+   curl https://your-domain.com/api/cron/init
+   ```
+
+4. **Keep server running 24/7** agar cron jobs berjalan
+
+---
+
+## ❓ FAQ
+
+### Q: Notifikasi WhatsApp tidak terkirim?
+
+**A**: Pastikan:
+
+- WhatsApp device terkoneksi di menu Pengaturan
+- Nomor telepon guru/siswa terisi di database
+- Cron jobs sudah di-initialize (`/api/cron/init`)
+- Server tetap running
+
+### Q: Bagaimana cara test notifikasi?
+
+**A**: Gunakan endpoint `/api/notifications/test` dengan nomor WhatsApp Anda sendiri
+
+### Q: Cron jobs tidak berjalan?
+
+**A**:
+
+- Pastikan sudah call `/api/cron/init`
+- Server harus tetap running (jangan close terminal)
+- Cek console logs untuk error
+
+### Q: Format nomor WhatsApp?
+
+**A**: Gunakan format `081234567890` (tanpa +62, tanpa spasi)
+
+### Q: Notifikasi terkirim double?
+
+**A**: Jangan call `/api/cron/init` lebih dari sekali. Restart server jika terjadi.
+
+---
+
+## 📞 Support
+
+Untuk pertanyaan atau issue, silakan buat issue di repository atau hubungi developer.
+
+---
+
+## 📄 License
+
+Proprietary - RIO AGUSTIAN © 2025
