@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Loader2, Plus, Copy, Send, Trash2 } from "lucide-react";
+import { Loader2, Plus, Copy, Send, Trash2, Unplug } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import {
   Table,
@@ -53,6 +53,13 @@ export default function WhatsappSettingsPage() {
   const [linkedDevice, setLinkedDevice] = useState<any>(null);
   const [qrCode, setQrCode] = useState<string | null>(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deleteDeviceToken, setDeleteDeviceToken] = useState<string | null>(
+    null
+  );
+  const [deleteDeviceName, setDeleteDeviceName] = useState<string>("");
+  const [otp, setOtp] = useState("");
+  const [otpRequested, setOtpRequested] = useState(false);
 
   useEffect(() => {
     fetchDevices();
@@ -178,6 +185,74 @@ export default function WhatsappSettingsPage() {
       }
     } catch (e) {
       toast.error("Error disconnecting");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const openDeleteDialog = (token: string, name: string) => {
+    setDeleteDeviceToken(token);
+    setDeleteDeviceName(name);
+    setOtp("");
+    setOtpRequested(false);
+    setShowDeleteDialog(true);
+  };
+
+  const handleRequestDeleteOtp = async () => {
+    if (!deleteDeviceToken) return;
+    setLoading(true);
+    try {
+      const res = await fetch("/api/settings/whatsapp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "delete_device",
+          token: deleteDeviceToken,
+        }),
+      });
+      const data = await res.json();
+      if (data.success && data.otpRequested) {
+        setOtpRequested(true);
+        toast.success(data.message);
+      } else {
+        toast.error(data.message || "Gagal request OTP");
+      }
+    } catch (e) {
+      toast.error("Error requesting OTP");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteDevice = async () => {
+    if (!deleteDeviceToken || !otp) {
+      toast.error("Masukkan kode OTP");
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch("/api/settings/whatsapp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "delete_device",
+          token: deleteDeviceToken,
+          otp,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success(data.message || "Device berhasil dihapus");
+        setShowDeleteDialog(false);
+        setDeleteDeviceToken(null);
+        setOtp("");
+        setOtpRequested(false);
+        fetchDevices();
+      } else {
+        toast.error(data.message || "Gagal menghapus device");
+      }
+    } catch (e) {
+      toast.error("Error deleting device");
     } finally {
       setLoading(false);
     }
@@ -314,13 +389,24 @@ export default function WhatsappSettingsPage() {
                         {device.status === "connect" && (
                           <Button
                             size="sm"
-                            variant="destructive"
+                            variant="outline"
                             onClick={() => handleDisconnect(device.token)}
                           >
-                            <Trash2 className="w-3 h-3 mr-1" />
+                            <Unplug className="w-3 h-3 mr-1" />
                             Disconnect
                           </Button>
                         )}
+
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() =>
+                            openDeleteDialog(device.token, device.name)
+                          }
+                        >
+                          <Trash2 className="w-3 h-3 mr-1" />
+                          Delete
+                        </Button>
 
                         {linkedDevice?.token !== device.token && (
                           <Button
@@ -358,15 +444,74 @@ export default function WhatsappSettingsPage() {
               </DialogDescription>
             </DialogHeader>
             <div className="flex justify-center py-4">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <Image
                 src={`data:image/png;base64,${qrCode}`}
                 alt="QR Code"
                 className="w-64 h-64 border rounded-lg"
+                width={256}
+                height={256}
               />
             </div>
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Delete Device Dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Hapus Device</DialogTitle>
+            <DialogDescription>
+              {otpRequested
+                ? "Masukkan kode OTP yang dikirim ke WhatsApp Anda"
+                : `Apakah Anda yakin ingin menghapus device "${deleteDeviceName}"? OTP akan dikirim ke nomor WhatsApp yang terdaftar.`}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {otpRequested ? (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="otp">Kode OTP</Label>
+                  <Input
+                    id="otp"
+                    placeholder="Masukkan kode OTP"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value)}
+                  />
+                </div>
+                <Button
+                  onClick={handleDeleteDevice}
+                  disabled={loading || !otp}
+                  variant="destructive"
+                  className="w-full"
+                >
+                  {loading ? (
+                    <Loader2 className="animate-spin mr-2" />
+                  ) : (
+                    <Trash2 className="w-4 h-4 mr-2" />
+                  )}
+                  Konfirmasi Hapus
+                </Button>
+              </>
+            ) : (
+              <Button
+                onClick={handleRequestDeleteOtp}
+                disabled={loading}
+                variant="destructive"
+                className="w-full"
+              >
+                {loading ? (
+                  <Loader2 className="animate-spin mr-2" />
+                ) : (
+                  <Send className="w-4 h-4 mr-2" />
+                )}
+                Kirim OTP untuk Hapus
+              </Button>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -208,6 +208,78 @@ export async function POST(req: Request) {
       });
     }
 
+    // Delete Device (2-step OTP flow)
+    if (action === "delete_device") {
+      const { token: deviceToken, otp } = body;
+
+      if (!deviceToken) {
+        return NextResponse.json(
+          { success: false, message: "Device token required" },
+          { status: 400 }
+        );
+      }
+
+      // Build form data - always include otp field (empty for request, value for confirmation)
+      const formData = new URLSearchParams();
+      formData.append("otp", otp || "");
+
+      console.log("Delete Device Request:", {
+        deviceToken,
+        otp: otp || "(empty)",
+      });
+
+      // Call Fonnte delete-device API
+      const response = await fetch("https://api.fonnte.com/delete-device", {
+        method: "POST",
+        headers: { Authorization: deviceToken },
+        body: formData,
+      });
+
+      const result = await response.json();
+      console.log("Fonnte Delete Response:", result);
+
+      // If OTP was submitted and successful, clear from database
+      if (result.status && otp) {
+        const settings = await prisma.siteSettings.findFirst();
+        if (settings && settings.whatsappToken === deviceToken) {
+          await prisma.siteSettings.update({
+            where: { id: settings.id },
+            data: { whatsappToken: null, whatsappName: null },
+          });
+        }
+
+        return NextResponse.json({
+          success: true,
+          message: result.detail || "Device deleted successfully",
+        });
+      }
+
+      // If requesting OTP (otp is empty) and status is true
+      if (result.status && !otp) {
+        return NextResponse.json({
+          success: true,
+          otpRequested: true,
+          message:
+            "OTP telah dikirim ke nomor WhatsApp yang terdaftar di Fonnte",
+        });
+      }
+
+      // Handle errors
+      let errorMessage =
+        result.reason || result.detail || "Failed to delete device";
+
+      // Provide clearer message for common errors
+      if (result.reason === "invalid confirmation") {
+        errorMessage =
+          "Nomor konfirmasi belum diatur di akun Fonnte. Silakan atur nomor WhatsApp untuk menerima OTP di dashboard Fonnte.";
+      }
+
+      return NextResponse.json({
+        success: false,
+        message: errorMessage,
+      });
+    }
+
     return NextResponse.json(
       { success: false, message: "Invalid action" },
       { status: 400 }
