@@ -605,9 +605,10 @@ export default function StaffBillsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Hapus Tagihan?</AlertDialogTitle>
             <AlertDialogDescription>
-              Apakah Anda yakin ingin menghapus tagihan "{billToDelete?.title}"
-              untuk siswa {billToDelete?.student?.name}? Tindakan ini tidak
-              dapat dibatalkan.
+              Apakah Anda yakin ingin menghapus tagihan &quot;
+              {billToDelete?.title}&quot; untuk siswa{" "}
+              {billToDelete?.student?.name}? Tindakan ini tidak dapat
+              dibatalkan.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
