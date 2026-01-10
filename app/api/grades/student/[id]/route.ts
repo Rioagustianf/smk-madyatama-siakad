@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { handleDatabaseError } from "@/lib/database/errors";
-import { getGradesRepository, getSubjectsRepository } from "@/lib/database/repository";
+import {
+  getGradesRepository,
+  getSubjectsRepository,
+} from "@/lib/database/repository";
+import { prisma } from "@/lib/database/prisma";
 
 export async function GET(
   req: NextRequest,
@@ -47,7 +51,47 @@ export async function GET(
         "",
     }));
 
-    return NextResponse.json({ success: true, data });
+    // Fetch Homeroom Teacher & Headmaster
+    let homeroomTeacherName = "";
+    let headmasterName = ""; // Default empty per user request
+
+    try {
+      // 1. Get Homeroom Teacher
+      const student = await prisma.student.findUnique({
+        where: { id },
+        select: { class: true }, // Student has 'class' string field
+      });
+
+      if (student?.class) {
+        // Find class by name (assuming student.class stores class name)
+        const classInfo = await prisma.schoolClass.findUnique({
+          where: { name: student.class },
+          include: { homeroomTeacher: true },
+        });
+
+        if (classInfo?.homeroomTeacher?.name) {
+          homeroomTeacherName = classInfo.homeroomTeacher.name;
+        }
+      }
+
+      // 2. Get Headmaster from Profile
+      const profile = await prisma.profile.findFirst({
+        where: { singleton: true },
+      });
+      if (profile?.principalName) {
+        headmasterName = profile.principalName;
+      }
+    } catch (e) {
+      console.error("Error fetching additional report data:", e);
+      // Continue without failing the main grades request
+    }
+
+    return NextResponse.json({
+      success: true,
+      data,
+      homeroomTeacher: homeroomTeacherName,
+      headmaster: headmasterName,
+    });
   } catch (error) {
     const errorResponse = handleDatabaseError(error);
     return NextResponse.json(

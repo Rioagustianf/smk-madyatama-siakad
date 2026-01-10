@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { roundNumber } from "@/lib/utils";
 import { useAuth } from "@/lib/contexts/auth-context";
 import { useStudentGrades } from "@/lib/hooks/use-api";
 import {
@@ -15,18 +14,79 @@ import {
 
 type GradeItem = any;
 
+import dynamic from "next/dynamic";
+import { Button } from "@/components/ui/button";
+import { Download, Loader2 } from "lucide-react";
+import { StudentReportDocument } from "@/components/reports/StudentReportDocument";
+
+const PDFDownloadLink = dynamic(
+  () => import("@react-pdf/renderer").then((mod) => mod.PDFDownloadLink),
+  {
+    ssr: false,
+    loading: () => <p>Loading PDF...</p>,
+  }
+);
+
 export default function StudentGradesPage() {
   const { state } = useAuth();
   const studentId =
     (state.user as any)?._id ||
     (state.user as any)?.id ||
     (state.user as any)?.studentId;
-  const { data, isLoading } = useStudentGrades(studentId);
-  const grades: GradeItem[] = ((data as any)?.data || []) as any[];
+
+  const { data: apiResponse, isLoading } = useStudentGrades(studentId);
+  const responseData = apiResponse as any;
+  const grades: GradeItem[] = (responseData?.data || []) as any[];
+  const homeroomTeacher = responseData?.homeroomTeacher || "";
+  const headmaster = responseData?.headmaster || "";
 
   return (
     <div className="rounded-xl border border-primary-900 bg-white p-5">
-      <h1 className="text-xl font-semibold mb-3">Nilai Saya</h1>
+      <div className="flex justify-between items-center mb-5">
+        <h1 className="text-xl font-semibold">Nilai Saya</h1>
+
+        {/* Tombol Cetak PDF dengan Loading State */}
+        {!isLoading && grades.length > 0 && (
+          <PDFDownloadLink
+            document={
+              <StudentReportDocument
+                studentName={(state.user as any)?.name || "Siswa"}
+                nisn={
+                  (state.user as any)?.nisn ||
+                  responseData?.data?.[0]?.studentId ||
+                  ""
+                }
+                className={(state.user as any)?.class || "12 TKJ 1"}
+                semester="1 (Ganjil)"
+                grades={grades}
+                homeroomTeacher={homeroomTeacher}
+                headmaster={headmaster}
+              />
+            }
+            fileName={`Rapor_${(state.user as any)?.name || "Siswa"}.pdf`}
+          >
+            {({ blob, url, loading, error }) => (
+              <Button
+                disabled={loading}
+                className="bg-primary-950 text-white gap-2"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Menyiapkan PDF...
+                  </>
+                ) : (
+                  <>
+                    <Download className="h-4 w-4" />
+                    Export PDF
+                  </>
+                )}
+              </Button>
+            )}
+          </PDFDownloadLink>
+        )}
+      </div>
+
       <Table>
         <TableHeader>
           <TableRow className="bg-primary-950/90 hover:bg-primary-950/90">

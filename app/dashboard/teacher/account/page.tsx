@@ -1,6 +1,7 @@
 "use client";
 
-import React from "react";
+import React, { useRef } from "react";
+import Image from "next/image";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,17 +14,22 @@ import {
 import { useAuthQuery } from "@/lib/hooks/use-auth";
 import { apiMethods } from "@/lib/api-client";
 import { useToast } from "@/lib/contexts/toast-context";
-import { Phone } from "lucide-react";
+import { fileUpload } from "@/lib/supabase-client";
+import { Phone, Camera, Loader2, User } from "lucide-react";
 
 export default function TeacherAccountPage() {
-  const { data: me } = useAuthQuery();
+  const { data: me, refetch } = useAuthQuery();
   const { addToast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [name, setName] = React.useState("");
   const [username, setUsername] = React.useState("");
   const [phone, setPhone] = React.useState("");
+  const [avatar, setAvatar] = React.useState("");
   const [currentPassword, setCurrentPassword] = React.useState("");
   const [newPassword, setNewPassword] = React.useState("");
   const [isSaving, setIsSaving] = React.useState(false);
+  const [isUploading, setIsUploading] = React.useState(false);
   const [currentPwError, setCurrentPwError] = React.useState("");
 
   React.useEffect(() => {
@@ -31,8 +37,40 @@ export default function TeacherAccountPage() {
       setName((me as any).name || "");
       setUsername((me as any).username || "");
       setPhone((me as any).phone || "");
+      setAvatar((me as any).avatar || "");
     }
   }, [me]);
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      const result = await fileUpload.uploadImage(file, "madyatama", "avatars");
+      await apiMethods.auth.updateAccount({ avatar: result.url });
+      setAvatar(result.url);
+      await refetch();
+      addToast({
+        type: "success",
+        title: "Berhasil",
+        description: "Foto profil telah diperbarui",
+      });
+    } catch (error: any) {
+      addToast({
+        type: "error",
+        title: "Gagal",
+        description: error.message || "Gagal mengupload foto",
+      });
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -70,9 +108,62 @@ export default function TeacherAccountPage() {
             Akun Guru
           </h1>
           <p className="text-muted-foreground">
-            Perbarui nama, username, nomor WhatsApp, dan password
+            Perbarui foto profil, nama, username, nomor WhatsApp, dan password
           </p>
         </div>
+
+        {/* Avatar Section */}
+        <Card className="border border-primary-900">
+          <CardHeader>
+            <CardTitle>Foto Profil</CardTitle>
+            <CardDescription>Klik untuk mengganti foto profil</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-6">
+              <div className="relative group">
+                <div
+                  className="w-24 h-24 rounded-full overflow-hidden bg-primary-100 flex items-center justify-center cursor-pointer border-2 border-primary-600 hover:border-primary-800 transition-all"
+                  onClick={handleAvatarClick}
+                >
+                  {avatar ? (
+                    <Image
+                      src={avatar}
+                      alt="Avatar"
+                      width={96}
+                      height={96}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <User className="w-12 h-12 text-primary-600" />
+                  )}
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
+                    {isUploading ? (
+                      <Loader2 className="w-6 h-6 text-white animate-spin" />
+                    ) : (
+                      <Camera className="w-6 h-6 text-white" />
+                    )}
+                  </div>
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="hidden"
+                  onChange={handleFileChange}
+                  disabled={isUploading}
+                />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium">
+                  {(me as any)?.name || "Nama Guru"}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Format: JPG, PNG, atau WebP. Maks 5MB
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         <Card className="border border-primary-900">
           <CardHeader>

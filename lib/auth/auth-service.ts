@@ -198,11 +198,13 @@ export async function getUserProfile(
     // Add role-specific fields
     if (role === "admin") {
       userData.permissions = user.permissions;
+      userData.avatar = user.avatar;
     } else if (role === "teacher") {
       userData.subjects = user.subjects;
       userData.classes = user.classes;
       userData.education = user.education;
       userData.phone = user.phone;
+      userData.avatar = user.avatar;
     } else if (role === "student") {
       userData.studentId = user.studentId;
       userData.class = user.class;
@@ -218,6 +220,7 @@ export async function getUserProfile(
       userData.department = user.department;
       userData.email = user.email;
       userData.phone = user.phone;
+      userData.avatar = user.image; // Staff menggunakan field 'image'
     }
 
     return userData;
@@ -267,8 +270,14 @@ export async function updateUserProfile(
       updateDoc.username = updateData.username;
     if (typeof updateData.phone === "string")
       updateDoc.phone = updateData.phone;
-    if (typeof updateData.avatar === "string" && role === "student")
-      updateDoc.avatar = updateData.avatar;
+    // Handle avatar for all roles (staff uses 'image' field)
+    if (typeof updateData.avatar === "string") {
+      if (role === "staff") {
+        updateDoc.image = updateData.avatar;
+      } else {
+        updateDoc.avatar = updateData.avatar;
+      }
+    }
 
     if (updateData.newPassword) {
       // Validate current password if set

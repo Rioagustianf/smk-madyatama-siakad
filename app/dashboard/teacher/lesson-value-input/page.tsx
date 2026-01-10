@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/pagination";
 import { useAuth } from "@/lib/contexts/auth-context";
 import { useBulkGrades, useSchedules, useStudents } from "@/lib/hooks/use-api";
+import { apiMethods } from "@/lib/api-client";
 import { useSubjects } from "@/lib/hooks/use-subjects";
 import { useClasses } from "@/lib/hooks/use-classes";
 import { Spinner } from "@/components/ui/spinner";
@@ -61,7 +62,7 @@ export default function TeacherInputGradesPage() {
   const [className, setClassName] = useState<string>("");
   const [semester, setSemester] = useState<number>(1);
   const [year, setYear] = useState<number>(new Date().getFullYear());
-  const [subjectIds, setSubjectIds] = useState<string[]>([]);
+  const [selectedSubjectId, setSelectedSubjectId] = useState<string>("");
   const [rows, setRows] = useState<any[]>([]);
   const [page, setPage] = useState<number>(1);
   const { data: studentsResp } = useStudents({
@@ -116,6 +117,79 @@ export default function TeacherInputGradesPage() {
   }, [schedulesResp, masterSubjects]);
   const bulkMutation = useBulkGrades();
 
+  // Reset rows when class or subject changes
+  React.useEffect(() => {
+    setRows([]);
+  }, [className, selectedSubjectId]);
+
+  // Load existing grades for each student when students or subject changes
+  React.useEffect(() => {
+    // Don't load if no class or no subject selected
+    if (students.length === 0 || !selectedSubjectId) {
+      return;
+    }
+
+    const loadExistingGrades = async () => {
+      const initialRows: any[] = [];
+
+      for (const st of students) {
+        const dbStudentId = st._id || st.id;
+        try {
+          const response = await apiMethods.grades.byStudent(dbStudentId);
+          const grades = (response as any)?.data || [];
+
+          console.log(`[DEBUG] Loading grades for student ${dbStudentId}`);
+          console.log(`[DEBUG] Selected Subject ID:`, selectedSubjectId);
+          console.log(`[DEBUG] API Grades Response:`, grades);
+
+          // Find grade matching current semester, year, AND subjectId with robust comparison
+          const existingGrade = grades.find((g: any) => {
+            const semMatch = Number(g.semester) === Number(semester);
+            const yearMatch = Number(g.year) === Number(year);
+            const subjMatch = String(g.subjectId) === String(selectedSubjectId);
+
+            // Debug logging
+            if (subjMatch && !semMatch)
+              console.log("Subject match but semester mismatch", g, semester);
+            if (subjMatch && !yearMatch)
+              console.log("Subject match but year mismatch", g, year);
+
+            return semMatch && yearMatch && subjMatch;
+          });
+
+          if (existingGrade) {
+            initialRows.push({
+              studentId: dbStudentId,
+              assignments:
+                existingGrade.assignments != null
+                  ? Number(existingGrade.assignments)
+                  : undefined,
+              midterm:
+                existingGrade.midterm != null
+                  ? Number(existingGrade.midterm)
+                  : undefined,
+              final:
+                existingGrade.final != null
+                  ? Number(existingGrade.final)
+                  : undefined,
+              grade: existingGrade.grade || "",
+            });
+          }
+        } catch (error) {
+          console.error(
+            `Failed to load grades for student ${dbStudentId}:`,
+            error
+          );
+        }
+      }
+
+      // Set rows with loaded grades (replace, not merge)
+      setRows(initialRows);
+    };
+
+    loadExistingGrades();
+  }, [students, semester, year, selectedSubjectId]);
+
   // Robust homeroom check against classes collection (wali kelas = homeroomTeacherId)
   const teacherId = teacher?.id || teacher?._id;
   // Determine homeroom strictly by matching classes.homeroomTeacherId === teacherId
@@ -151,18 +225,29 @@ export default function TeacherInputGradesPage() {
   };
 
   const handleSubmitBulk = async () => {
-    const payload = rows.flatMap((r) =>
-      subjectIds.map((sid) => ({
+    if (!selectedSubjectId) return;
+
+    // Calculate total and grade for each row before submitting
+    const payload = rows.map((r) => {
+      const a = Number(r.assignments || 0);
+      const m = Number(r.midterm || 0);
+      const f = Number(r.final || 0);
+      const total = (a + m + f) / 3;
+      const grade = calculateLetterGrade(total);
+      return {
         ...r,
-        subjectId: sid,
+        subjectId: selectedSubjectId,
         semester,
         year,
         teacherId: teacher?.id || teacher?._id || teacher?.teacherId,
-      }))
-    );
+        total,
+        grade,
+      };
+    });
+
     if (payload.length === 0) return;
     await bulkMutation.mutateAsync(payload as any);
-    setRows([]);
+    // Jangan reset rows agar nilai tetap tampil setelah save
   };
 
   if (isClassesLoading) {
@@ -266,14 +351,11 @@ export default function TeacherInputGradesPage() {
                       placeholder="Tahun"
                     />
                     <Select
-                      onValueChange={(v) =>
-                        setSubjectIds((prev) =>
-                          prev.includes(v) ? prev : [...prev, v]
-                        )
-                      }
+                      value={selectedSubjectId}
+                      onValueChange={(v) => setSelectedSubjectId(v)}
                     >
                       <SelectTrigger className="border border-primary-600">
-                        <SelectValue placeholder="Tambah Mapel dari Jadwal" />
+                        <SelectValue placeholder="Pilih Mata Pelajaran" />
                       </SelectTrigger>
                       <SelectContent>
                         {subjects.map((s: any) => (
@@ -472,7 +554,7 @@ export default function TeacherInputGradesPage() {
                   <Button
                     className="bg-primary-950 text-white"
                     onClick={handleSubmitBulk}
-                    disabled={!className || subjectIds.length === 0}
+                    disabled={!className || !selectedSubjectId}
                   >
                     Simpan Nilai Massal
                   </Button>

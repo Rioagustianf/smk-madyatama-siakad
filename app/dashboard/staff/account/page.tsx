@@ -15,26 +15,28 @@ import { useAuthQuery } from "@/lib/hooks/use-auth";
 import { apiMethods } from "@/lib/api-client";
 import { useToast } from "@/lib/contexts/toast-context";
 import { fileUpload } from "@/lib/supabase-client";
-import { Camera, Loader2, User } from "lucide-react";
+import { Phone, Camera, Loader2, User } from "lucide-react";
 
-export default function AdminAccountPage() {
+export default function StaffAccountPage() {
   const { data: me, refetch } = useAuthQuery();
   const { addToast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [name, setName] = React.useState("");
   const [username, setUsername] = React.useState("");
+  const [phone, setPhone] = React.useState("");
   const [avatar, setAvatar] = React.useState("");
   const [currentPassword, setCurrentPassword] = React.useState("");
   const [newPassword, setNewPassword] = React.useState("");
   const [isSaving, setIsSaving] = React.useState(false);
   const [isUploading, setIsUploading] = React.useState(false);
-  const [currentPwError, setCurrentPwError] = React.useState<string>("");
+  const [currentPwError, setCurrentPwError] = React.useState("");
 
   React.useEffect(() => {
     if (me) {
       setName((me as any).name || "");
       setUsername((me as any).username || "");
+      setPhone((me as any).phone || "");
       setAvatar((me as any).avatar || "");
     }
   }, [me]);
@@ -77,6 +79,7 @@ export default function AdminAccountPage() {
       await apiMethods.auth.updateAccount({
         name,
         username,
+        phone,
         currentPassword: currentPassword || undefined,
         newPassword: newPassword || undefined,
       });
@@ -85,13 +88,12 @@ export default function AdminAccountPage() {
       addToast({
         type: "success",
         title: "Berhasil",
-        description: "Akun berhasil diperbarui",
+        description: "Akun diperbarui",
       });
     } catch (e: any) {
       const msg = e?.response?.data?.message || "Terjadi kesalahan";
-      if (msg.toLowerCase().includes("salah")) {
+      if (msg.toLowerCase().includes("salah"))
         setCurrentPwError("Password saat ini tidak sesuai");
-      }
       addToast({ type: "error", title: "Gagal", description: msg });
     } finally {
       setIsSaving(false);
@@ -103,10 +105,10 @@ export default function AdminAccountPage() {
       <div className="mx-auto max-w-3xl space-y-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">
-            Akun Admin
+            Akun Staff
           </h1>
           <p className="text-muted-foreground">
-            Perbarui foto profil, nama, username, dan password akun admin Anda
+            Perbarui foto profil, nama, username, nomor WhatsApp, dan password
           </p>
         </div>
 
@@ -153,9 +155,12 @@ export default function AdminAccountPage() {
               </div>
               <div className="flex-1">
                 <p className="text-sm font-medium">
-                  {(me as any)?.name || "Admin"}
+                  {(me as any)?.name || "Staff"}
                 </p>
                 <p className="text-xs text-muted-foreground">
+                  {(me as any)?.position || ""}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
                   Format: JPG, PNG, atau WebP. Maks 5MB
                 </p>
               </div>
@@ -166,7 +171,7 @@ export default function AdminAccountPage() {
         <Card className="border border-primary-900">
           <CardHeader>
             <CardTitle>Informasi Akun</CardTitle>
-            <CardDescription>Detail login dan profil dasar</CardDescription>
+            <CardDescription>Detail login dan kontak</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -188,6 +193,22 @@ export default function AdminAccountPage() {
                   placeholder="Username untuk login"
                 />
               </div>
+              <div>
+                <label className="text-sm font-medium flex items-center gap-2">
+                  <Phone className="w-4 h-4" />
+                  Nomor WhatsApp
+                </label>
+                <Input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="border border-primary-600 mt-1"
+                  placeholder="08123456789"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Format: 08xxx atau 628xxx (untuk notifikasi)
+                </p>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -196,8 +217,7 @@ export default function AdminAccountPage() {
           <CardHeader>
             <CardTitle>Ubah Password</CardTitle>
             <CardDescription>
-              Isi kedua kolom untuk memperbarui password. Biarkan kosong jika
-              tidak ingin mengubah.
+              Isi kedua kolom untuk mengubah password
             </CardDescription>
           </CardHeader>
           <CardContent>

@@ -54,6 +54,7 @@ model Teacher {
   username   String   @unique
   password   String?
   phone      String?
+  avatar     String?  // URL foto profil dari Supabase
   education  String?
   subjects   Json?
   classes    Json?
@@ -230,6 +231,7 @@ model Admin {
   name        String
   username    String   @unique
   password    String?
+  avatar      String?  // URL foto profil dari Supabase
   permissions Json?
   isActive    Boolean? @default(true)
   role        String?
