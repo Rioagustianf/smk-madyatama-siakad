@@ -211,6 +211,8 @@ export async function getUserProfile(
       userData.year = user.year;
       userData.gradeLevel = user.gradeLevel;
       userData.semester = user.semester;
+      userData.phone = user.phone;
+      userData.avatar = user.avatar;
     } else if (role === "staff") {
       userData.position = user.position;
       userData.department = user.department;
@@ -232,6 +234,7 @@ export async function updateUserProfile(
     name?: string;
     username?: string;
     phone?: string;
+    avatar?: string;
     currentPassword?: string;
     newPassword?: string;
   }
@@ -264,6 +267,8 @@ export async function updateUserProfile(
       updateDoc.username = updateData.username;
     if (typeof updateData.phone === "string")
       updateDoc.phone = updateData.phone;
+    if (typeof updateData.avatar === "string" && role === "student")
+      updateDoc.avatar = updateData.avatar;
 
     if (updateData.newPassword) {
       // Validate current password if set

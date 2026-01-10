@@ -13,8 +13,13 @@ export const gradesPrismaRepository: GradesRepository = {
     if (typeof params.semester === "number") where.semester = params.semester;
     if (typeof params.year === "number") where.year = params.year;
     const [data, total] = await Promise.all([
-      prisma.grade.findMany({ where, orderBy: { createdAt: "desc" }, skip, take: limit }),
-      prisma.grade.count({ where })
+      prisma.grade.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: limit,
+      }),
+      prisma.grade.count({ where }),
     ]);
     return { data, total };
   },
@@ -42,9 +47,11 @@ export const gradesPrismaRepository: GradesRepository = {
         const result = await prisma.grade.update({
           where: { id: existing.id },
           data: {
-            assignments: item.assignments || item.score,
-            midterm: item.midterm || item.score,
-            final: item.final || item.score,
+            assignments: item.assignments || item.score || 0,
+            midterm: item.midterm || item.score || 0,
+            final: item.final || item.score || 0,
+            total: item.total || 0,
+            grade: item.grade || "",
             updatedAt: new Date(),
           },
         });
@@ -58,9 +65,11 @@ export const gradesPrismaRepository: GradesRepository = {
             teacherId: item.teacherId,
             semester: item.semester,
             year: item.year,
-            assignments: item.assignments || item.score,
-            midterm: item.midterm || item.score,
-            final: item.final || item.score,
+            assignments: item.assignments || item.score || 0,
+            midterm: item.midterm || item.score || 0,
+            final: item.final || item.score || 0,
+            total: item.total || 0,
+            grade: item.grade || "",
             createdAt: new Date(),
             updatedAt: new Date(),
           },
@@ -71,14 +80,17 @@ export const gradesPrismaRepository: GradesRepository = {
     return results;
   },
   create(payload: any) {
-    return prisma.grade.create({ data: { ...payload, createdAt: new Date(), updatedAt: new Date() } });
+    return prisma.grade.create({
+      data: { ...payload, createdAt: new Date(), updatedAt: new Date() },
+    });
   },
   update(id: string, payload: any) {
-    return prisma.grade.update({ where: { id }, data: { ...payload, updatedAt: new Date() } });
+    return prisma.grade.update({
+      where: { id },
+      data: { ...payload, updatedAt: new Date() },
+    });
   },
   async remove(id: string) {
     await prisma.grade.delete({ where: { id } });
-  }
+  },
 };
-
-

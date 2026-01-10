@@ -82,7 +82,7 @@ export default function TeacherInputGradesPage() {
   const { data: subjectsResp } = useSubjects();
   const masterSubjects = ((subjectsResp as any)?.data || []) as any[];
   const subjects = useMemo(() => {
-    // Try to build from schedules first
+    // Try to build from schedules first, but only if we can find valid IDs
     const fromSchedules = new Map<
       string,
       { subjectId: string; subject: string }
@@ -95,20 +95,25 @@ export default function TeacherInputGradesPage() {
         const found = masterSubjects.find(
           (m: any) => String(m.name).toLowerCase() === name.toLowerCase()
         );
-        fromSchedules.set(name, {
-          subjectId: String(found?._id || name),
-          subject: found?.name || name,
-        });
+        // Hanya tambahkan jika ada ID yang valid dari masterSubjects
+        if (found && (found._id || found.id)) {
+          fromSchedules.set(name, {
+            subjectId: String(found._id || found.id),
+            subject: found.name || name,
+          });
+        }
       }
     });
     const built = Array.from(fromSchedules.values());
     if (built.length > 0) return built;
     // Fallback to all master subjects if schedules did not yield any
-    return masterSubjects.map((m: any) => ({
-      subjectId: String(m._id || m.id || m.name),
-      subject: m.name,
-    }));
-  }, [schedulesResp, subjectsResp]);
+    return masterSubjects
+      .filter((m: any) => m._id || m.id) // Hanya yang punya ID valid
+      .map((m: any) => ({
+        subjectId: String(m._id || m.id),
+        subject: m.name,
+      }));
+  }, [schedulesResp, masterSubjects]);
   const bulkMutation = useBulkGrades();
 
   // Robust homeroom check against classes collection (wali kelas = homeroomTeacherId)
@@ -122,20 +127,25 @@ export default function TeacherInputGradesPage() {
   }, [allClasses, teacherId]);
 
   const handleCellChange = (studentId: string, field: string, value: any) => {
+    const parsedValue =
+      value === ""
+        ? undefined
+        : Math.min(100, Math.max(0, parseInt(value, 10) || 0));
+
     setRows((prev) => {
       const next = [...prev];
       const idx = next.findIndex((r) => r.studentId === studentId);
       if (idx === -1) {
         next.push({
           studentId,
-          assignments: 0,
-          midterm: 0,
-          final: 0,
+          assignments: undefined,
+          midterm: undefined,
+          final: undefined,
           grade: "A",
         });
       }
       const i = idx === -1 ? next.length - 1 : idx;
-      next[i] = { ...next[i], [field]: value };
+      next[i] = { ...next[i], [field]: parsedValue };
       return next;
     });
   };
@@ -287,68 +297,95 @@ export default function TeacherInputGradesPage() {
                         </TableRow>
                       </UITableHeader>
                       <TableBody>
-                        {students.map((st: any) => (
-                          <TableRow key={st._id}>
-                            <TableCell>{st.studentId}</TableCell>
-                            <TableCell>{st.name}</TableCell>
-                            <TableCell>
-                              <Input
-                                type="number"
-                                className="w-24"
-                                onChange={(e) =>
-                                  handleCellChange(
-                                    st.studentId,
-                                    "assignments",
-                                    Number(e.target.value)
-                                  )
-                                }
-                              />
-                            </TableCell>
-                            <TableCell>
-                              <Input
-                                type="number"
-                                className="w-24"
-                                onChange={(e) =>
-                                  handleCellChange(
-                                    st.studentId,
-                                    "midterm",
-                                    Number(e.target.value)
-                                  )
-                                }
-                              />
-                            </TableCell>
-                            <TableCell>
-                              <Input
-                                type="number"
-                                className="w-24"
-                                onChange={(e) =>
-                                  handleCellChange(
-                                    st.studentId,
-                                    "final",
-                                    Number(e.target.value)
-                                  )
-                                }
-                              />
-                            </TableCell>
-                            <TableCell>
-                              {(() => {
-                                const row =
-                                  rows.find(
-                                    (r: any) => r.studentId === st.studentId
-                                  ) || {};
-                                const a = Number(row.assignments || 0);
-                                const m = Number(row.midterm || 0);
-                                const f = Number(row.final || 0);
-                                const g = calculateLetterGrade((a + m + f) / 3);
-                                return (
-                                  <div className="px-3 py-1 w-24 text-center rounded border border-primary-600 bg-primary-50">
-                                    {g}
-                                  </div>
-                                );
-                              })()}
-                            </TableCell>
-                          </TableRow>
-                        ))}
+                        {students.map((st: any) => {
+                          // Gunakan _id atau id sebagai studentId untuk database
+                          const dbStudentId = st._id || st.id;
+                          return (
+                            <TableRow key={dbStudentId}>
+                              <TableCell>{st.studentId}</TableCell>
+                              <TableCell>{st.name}</TableCell>
+                              <TableCell>
+                                <Input
+                                  type="number"
+                                  min={0}
+                                  max={100}
+                                  className="w-24"
+                                  value={
+                                    rows.find(
+                                      (r: any) => r.studentId === dbStudentId
+                                    )?.assignments ?? ""
+                                  }
+                                  onChange={(e) =>
+                                    handleCellChange(
+                                      dbStudentId,
+                                      "assignments",
+                                      e.target.value
+                                    )
+                                  }
+                                />
+                              </TableCell>
+                              <TableCell>
+                                <Input
+                                  type="number"
+                                  min={0}
+                                  max={100}
+                                  className="w-24"
+                                  value={
+                                    rows.find(
+                                      (r: any) => r.studentId === dbStudentId
+                                    )?.midterm ?? ""
+                                  }
+                                  onChange={(e) =>
+                                    handleCellChange(
+                                      dbStudentId,
+                                      "midterm",
+                                      e.target.value
+                                    )
+                                  }
+                                />
+                              </TableCell>
+                              <TableCell>
+                                <Input
+                                  type="number"
+                                  min={0}
+                                  max={100}
+                                  className="w-24"
+                                  value={
+                                    rows.find(
+                                      (r: any) => r.studentId === dbStudentId
+                                    )?.final ?? ""
+                                  }
+                                  onChange={(e) =>
+                                    handleCellChange(
+                                      dbStudentId,
+                                      "final",
+                                      e.target.value
+                                    )
+                                  }
+                                />
+                              </TableCell>
+                              <TableCell>
+                                {(() => {
+                                  const row =
+                                    rows.find(
+                                      (r: any) => r.studentId === dbStudentId
+                                    ) || {};
+                                  const a = Number(row.assignments || 0);
+                                  const m = Number(row.midterm || 0);
+                                  const f = Number(row.final || 0);
+                                  const g = calculateLetterGrade(
+                                    (a + m + f) / 3
+                                  );
+                                  return (
+                                    <div className="px-3 py-1 w-24 text-center rounded border border-primary-600 bg-primary-50">
+                                      {g}
+                                    </div>
+                                  );
+                                })()}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
                       </TableBody>
                     </Table>
                   </div>

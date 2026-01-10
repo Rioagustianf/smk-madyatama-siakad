@@ -89,6 +89,7 @@ export const apiMethods = {
       name?: string;
       username?: string;
       phone?: string;
+      avatar?: string;
       currentPassword?: string;
       newPassword?: string;
     }) => api.put(API_ENDPOINTS.AUTH.PROFILE, data),

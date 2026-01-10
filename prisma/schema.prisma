@@ -32,6 +32,7 @@ model Student {
   class      String
   major      String
   phone      String?  @default("") // WA Number
+  avatar     String?  // URL foto profil dari Supabase
 
   nisn       String?
   year       Int
