@@ -104,16 +104,6 @@ function useSidebarData() {
           ],
         },
         {
-          title: "Keuangan",
-          url: "#",
-          items: [
-            {
-              title: "Tagihan & Pembayaran",
-              url: "/dashboard/admin/finance/bills",
-            },
-          ],
-        },
-        {
           title: "Pengaturan",
           url: "#",
           items: [

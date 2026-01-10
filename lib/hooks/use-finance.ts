@@ -65,3 +65,30 @@ export function usePayBill() {
     },
   });
 }
+
+export function useDeleteBill() {
+  const queryClient = useQueryClient();
+  const { addToast } = useToast();
+
+  return useMutation({
+    mutationFn: async (billId: string) => {
+      const res = await api.delete(`/api/finance/bills?id=${billId}`);
+      return res;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["bills"] });
+      addToast({
+        type: "success",
+        title: "Berhasil",
+        description: "Tagihan berhasil dihapus",
+      });
+    },
+    onError: (error: any) => {
+      addToast({
+        type: "error",
+        title: "Gagal",
+        description: error.response?.data?.message || "Terjadi kesalahan",
+      });
+    },
+  });
+}

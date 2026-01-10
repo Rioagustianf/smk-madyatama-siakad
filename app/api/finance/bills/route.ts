@@ -164,3 +164,62 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+// DELETE - Delete Bill (Admin/Staff Only)
+export async function DELETE(request: NextRequest) {
+  try {
+    const user = await getUserFromToken(request);
+    if (!user || (user.role !== "admin" && user.role !== "staff")) {
+      return NextResponse.json(
+        { success: false, message: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const { searchParams } = new URL(request.url);
+    const billId = searchParams.get("id");
+
+    if (!billId) {
+      return NextResponse.json(
+        { success: false, message: "Bill ID is required" },
+        { status: 400 }
+      );
+    }
+
+    // Check if bill exists
+    const bill = await prisma.bill.findUnique({
+      where: { id: billId },
+      include: { payments: true },
+    });
+
+    if (!bill) {
+      return NextResponse.json(
+        { success: false, message: "Tagihan tidak ditemukan" },
+        { status: 404 }
+      );
+    }
+
+    // Delete related payments first
+    if (bill.payments.length > 0) {
+      await prisma.payment.deleteMany({
+        where: { billId: billId },
+      });
+    }
+
+    // Delete the bill
+    await prisma.bill.delete({
+      where: { id: billId },
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: "Tagihan berhasil dihapus",
+    });
+  } catch (error: any) {
+    console.error("Delete Bill Error:", error);
+    return NextResponse.json(
+      { success: false, message: error.message },
+      { status: 500 }
+    );
+  }
+}
