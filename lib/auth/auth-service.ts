@@ -135,6 +135,7 @@ export async function authenticateUser(credentials: LoginCredentials): Promise<{
       userData.classes = user.classes;
       userData.education = user.education;
       userData.phone = user.phone;
+      userData.nip = user.nip;
     } else if (userRole === "student") {
       userData.studentId = user.studentId;
       userData.class = user.class;
@@ -205,6 +206,7 @@ export async function getUserProfile(
       userData.education = user.education;
       userData.phone = user.phone;
       userData.avatar = user.avatar;
+      userData.nip = user.nip;
     } else if (role === "student") {
       userData.studentId = user.studentId;
       userData.class = user.class;

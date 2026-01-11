@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { handleDatabaseError } from "@/lib/database/errors";
 import { getTeachersRepository } from "@/lib/database/repository";
 import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
+
+const DEFAULT_PASSWORD = "password123";
 
 const JWT_SECRET =
   process.env.JWT_SECRET || "your-secret-key-change-in-production";
@@ -46,7 +49,10 @@ export async function GET(request: NextRequest) {
     const repo = getTeachersRepository();
     const { data: teachers, total } = await repo.findMany({
       search,
-      isActive: isActive === null || isActive === undefined ? undefined : isActive === "true",
+      isActive:
+        isActive === null || isActive === undefined
+          ? undefined
+          : isActive === "true",
       page,
       limit,
     });
@@ -84,7 +90,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, username, phone, education, classes } = body;
+    const { name, username, phone, education, classes, nip } = body;
 
     // Validation
     if (!name || !username) {
@@ -99,22 +105,27 @@ export async function POST(request: NextRequest) {
 
     const repo = getTeachersRepository();
     try {
+      // Hash default password
+      const hashedPassword = await bcrypt.hash(DEFAULT_PASSWORD, 10);
+
       const created = await repo.create({
         name,
         username,
+        nip: nip || "",
         phone: phone || "",
         education: education || "",
+        password: hashedPassword,
         subjects: [],
         classes: classes || [],
         isActive: true,
         role: "teacher",
       });
 
-    return NextResponse.json({
-      success: true,
-      message: "Guru berhasil ditambahkan",
-      data: created,
-    });
+      return NextResponse.json({
+        success: true,
+        message: "Guru berhasil ditambahkan",
+        data: created,
+      });
     } catch (err: any) {
       if (err?.code === "P2002") {
         return NextResponse.json(

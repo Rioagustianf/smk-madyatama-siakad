@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { handleDatabaseError } from "@/lib/database/errors";
 import { getStaffRepository } from "@/lib/database/repository";
 import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
+
+const DEFAULT_PASSWORD = "password123";
 
 const JWT_SECRET =
   process.env.JWT_SECRET || "your-secret-key-change-in-production";
@@ -97,39 +100,44 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const {
       name,
+      username,
       role,
       position,
+      department,
+      phone,
+      email,
       image,
       bio,
-      subject,
-      quote,
-      order,
       isActive,
-      level,
     } = body;
 
-    // Validation (minimal)
-    if (!name || !position) {
+    // Validation
+    if (!name || !username || !position) {
       return NextResponse.json(
         {
           success: false,
-          message: "Nama dan jabatan diperlukan",
+          message: "Nama, username, dan jabatan diperlukan",
         },
         { status: 400 }
       );
     }
 
     const repo = getStaffRepository();
+
+    // Hash default password
+    const hashedPassword = await bcrypt.hash(DEFAULT_PASSWORD, 10);
+
     const created = await repo.create({
       name,
-      role: role || "staff",
+      username,
+      password: hashedPassword,
+      role: role || "finance", // Default to finance if not specified, or allow override
       position,
+      department: department || "Keuangan",
+      phone: phone || "",
+      email: email || "",
       image: image || "",
       bio: bio || "",
-      subject: subject || "",
-      quote: quote || "",
-      order: typeof order === "number" ? order : 0,
-      level: level || "",
       isActive: isActive !== undefined ? isActive : true,
     });
 

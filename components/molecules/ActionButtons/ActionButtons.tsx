@@ -34,7 +34,7 @@ interface SubjectFormData {
 }
 
 interface Teacher {
-  _id: string;
+  id: string;
   name: string;
   education?: string;
 }

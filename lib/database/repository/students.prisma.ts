@@ -8,15 +8,17 @@ export const studentsPrismaRepository: StudentsRepository = {
     const skip = (page - 1) * limit;
     const search = params.search?.trim();
     const where: any = {};
-    if (search) where.name = { contains: search, mode: "insensitive" };
+    if (search) where.name = { contains: search };
     if (params.major) where.major = params.major;
     if (params.className) where.class = params.className;
-    if (typeof params.gradeLevel === "number") where.gradeLevel = params.gradeLevel;
+    if (typeof params.gradeLevel === "number")
+      where.gradeLevel = params.gradeLevel;
     if (typeof params.semester === "number") where.semester = params.semester;
 
-    const sortBy = params.sortBy || "class";
+    const sortBy = params.sortBy || "name";
     const sortOrder = params.sortOrder || "asc";
-    const orderBy: any = {}; orderBy[sortBy] = sortOrder;
+    const orderBy: any = {};
+    orderBy[sortBy] = sortOrder;
 
     const [data, total] = await Promise.all([
       prisma.student.findMany({ where, orderBy, skip, take: limit }),
@@ -44,5 +46,3 @@ export const studentsPrismaRepository: StudentsRepository = {
     await prisma.student.delete({ where: { id } });
   },
 };
-
-

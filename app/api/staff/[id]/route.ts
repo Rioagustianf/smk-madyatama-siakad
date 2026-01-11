@@ -102,13 +102,14 @@ export async function PUT(
     const body = await request.json();
     const {
       name,
+      username,
       role,
       position,
+      department,
+      phone,
+      email,
       image,
       bio,
-      subject,
-      quote,
-      order,
       isActive,
     } = body;
 
@@ -146,13 +147,14 @@ export async function PUT(
 
     const updated = await repo.update(id, {
       name,
+      username: username || existingStaff.username,
       role: role || existingStaff.role || "staff",
       position,
+      department: department || existingStaff.department || "",
+      phone: phone || existingStaff.phone || "",
+      email: email || existingStaff.email || "",
       image: image || "",
       bio: bio || "",
-      subject: subject || "",
-      quote: quote || "",
-      order: typeof order === "number" ? order : existingStaff.order ?? 0,
       isActive:
         isActive !== undefined ? isActive : existingStaff.isActive ?? true,
     });

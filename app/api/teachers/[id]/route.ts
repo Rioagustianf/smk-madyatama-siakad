@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { handleDatabaseError } from "@/lib/database/errors";
-import { getTeachersRepository, getClassesRepository } from "@/lib/database/repository";
+import {
+  getTeachersRepository,
+  getClassesRepository,
+} from "@/lib/database/repository";
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET =
@@ -92,7 +95,7 @@ export async function PUT(
     const { id } = params;
 
     const body = await request.json();
-    const { name, username, phone, education, classes } = body;
+    const { name, username, phone, education, classes, nip } = body;
 
     // Validation
     if (!name || !username) {
@@ -118,16 +121,17 @@ export async function PUT(
       const updated = await repo.update(id, {
         name,
         username,
+        nip: nip || "",
         phone: phone || "",
         education: education || "",
         classes: classes || [],
       });
 
-    return NextResponse.json({
-      success: true,
-      message: "Guru berhasil diperbarui",
-      data: updated,
-    });
+      return NextResponse.json({
+        success: true,
+        message: "Guru berhasil diperbarui",
+        data: updated,
+      });
     } catch (err: any) {
       if (err?.code === "P2002") {
         return NextResponse.json(

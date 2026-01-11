@@ -20,7 +20,7 @@ export interface SubjectFormData {
 }
 
 interface Teacher {
-  _id: string;
+  id: string;
   name: string;
   education?: string;
 }
@@ -82,12 +82,14 @@ export function SubjectForm({
           <SelectTrigger className="border border-primary-600">
             <SelectValue placeholder="Pilih Guru Pengampu" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="max-h-[300px] z-[9999]">
             <SelectItem value="none">Tidak ada guru</SelectItem>
             {teachers.map((teacher) => (
-              <SelectItem key={teacher._id} value={teacher._id}>
-                {teacher.name}{" "}
-                {teacher.education ? `(${teacher.education})` : ""}
+              <SelectItem key={teacher.id} value={teacher.id}>
+                <span>
+                  {teacher.name}{" "}
+                  {teacher.education ? `(${teacher.education})` : ""}
+                </span>
               </SelectItem>
             ))}
           </SelectContent>

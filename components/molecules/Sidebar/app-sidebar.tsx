@@ -110,6 +110,24 @@ function useSidebarData() {
           ],
         },
         {
+          title: "Data Pengguna",
+          url: "#",
+          items: [
+            {
+              title: "Manajemen Siswa",
+              url: "/dashboard/admin/manage-students",
+            },
+            {
+              title: "Manajemen Guru",
+              url: "/dashboard/admin/manage-teachers",
+            },
+            {
+              title: "Manajemen Staff Keuangan",
+              url: "/dashboard/admin/manage-staff",
+            },
+          ],
+        },
+        {
           title: "Profil & Tendik",
           url: "#",
           items: [

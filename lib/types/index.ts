@@ -29,6 +29,7 @@ export interface Teacher extends User {
   classes: string[]; // Array of Class names
   education?: string;
   phone?: string;
+  nip?: string;
 }
 
 // Admin specific types
@@ -370,5 +371,8 @@ export interface SearchFilters {
   semester?: number | string;
   gradeLevel?: number | string;
   class?: string;
+  major?: string;
   teacherId?: string;
+  isActive?: boolean | string;
+  role?: string;
 }

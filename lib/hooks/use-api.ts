@@ -42,7 +42,7 @@ export const useCreateMutation = <T, D>(
   const queryClient = useQueryClient();
   const { addToast } = useToast();
 
-  return useMutation({
+  return useMutation<T, any, D>({
     mutationFn: apiMethod,
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: key });
@@ -220,7 +220,10 @@ export const useStudentGrades = (studentId: string) => {
 };
 
 export const useCreateStudent = () => {
-  return useCreateMutation(queryKeys.students.all, apiMethods.students.create);
+  return useCreateMutation<any, any>(
+    queryKeys.students.all,
+    apiMethods.students.create
+  );
 };
 
 export const useUpdateStudent = () => {

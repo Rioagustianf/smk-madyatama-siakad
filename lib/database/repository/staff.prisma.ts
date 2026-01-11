@@ -7,16 +7,22 @@ export const staffPrismaRepository: StaffRepository = {
     const limit = Math.max(1, params.limit || 10);
     const skip = (page - 1) * limit;
     const where: any = {};
-    if (params.search) where.OR = [
-      { name: { contains: params.search, mode: "insensitive" } },
-      { position: { contains: params.search, mode: "insensitive" } },
-      { department: { contains: params.search, mode: "insensitive" } },
-    ];
+    if (params.search)
+      where.OR = [
+        { name: { contains: params.search } },
+        { position: { contains: params.search } },
+        { department: { contains: params.search } },
+      ];
     if (params.department) where.department = params.department;
     if (typeof params.isActive === "boolean") where.isActive = params.isActive;
     const [data, total] = await Promise.all([
-      prisma.staff.findMany({ where, orderBy: { createdAt: "desc" }, skip, take: limit }),
-      prisma.staff.count({ where })
+      prisma.staff.findMany({
+        where,
+        orderBy: { name: "asc" },
+        skip,
+        take: limit,
+      }),
+      prisma.staff.count({ where }),
     ]);
     return { data, total };
   },
@@ -24,14 +30,17 @@ export const staffPrismaRepository: StaffRepository = {
     return prisma.staff.findUnique({ where: { id } });
   },
   create(payload: any) {
-    return prisma.staff.create({ data: { ...payload, createdAt: new Date(), updatedAt: new Date() } });
+    return prisma.staff.create({
+      data: { ...payload, createdAt: new Date(), updatedAt: new Date() },
+    });
   },
   update(id: string, payload: any) {
-    return prisma.staff.update({ where: { id }, data: { ...payload, updatedAt: new Date() } });
+    return prisma.staff.update({
+      where: { id },
+      data: { ...payload, updatedAt: new Date() },
+    });
   },
   async remove(id: string) {
     await prisma.staff.delete({ where: { id } });
-  }
+  },
 };
-
-
