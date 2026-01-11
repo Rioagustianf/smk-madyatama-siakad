@@ -382,9 +382,13 @@ export const StudentReportDocument: React.FC<StudentReportDocumentProps> = ({
           }}
         >
           <View style={{ width: "45%", alignItems: "center" }}>
+            {/* Placeholder untuk sejajar dengan tanggal */}
+            <Text> </Text>
             <Text>Orang Tua/Wali,</Text>
             <View style={styles.signatureSpace} />
             <Text style={styles.signatureName}>{parentName || " "}</Text>
+            {/* Placeholder untuk sejajar dengan NIP */}
+            <Text style={styles.signatureLabel}> </Text>
           </View>
           <View style={{ width: "45%", alignItems: "center" }}>
             <Text>
