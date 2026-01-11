@@ -53,14 +53,21 @@ export async function GET(
 
     // Fetch Homeroom Teacher & Headmaster
     let homeroomTeacherName = "";
+    let homeroomTeacherNip = "";
     let headmasterName = ""; // Default empty per user request
+    let headmasterNip = "";
+    let parentName = "";
 
     try {
-      // 1. Get Homeroom Teacher
+      // 1. Get Homeroom Teacher and parentName
       const student = await prisma.student.findUnique({
         where: { id },
-        select: { class: true }, // Student has 'class' string field
+        select: { class: true, parentName: true },
       });
+
+      if (student?.parentName) {
+        parentName = student.parentName;
+      }
 
       if (student?.class) {
         // Find class by name (assuming student.class stores class name)
@@ -72,14 +79,18 @@ export async function GET(
         if (classInfo?.homeroomTeacher?.name) {
           homeroomTeacherName = classInfo.homeroomTeacher.name;
         }
+        if (classInfo?.homeroomTeacher?.nip) {
+          homeroomTeacherNip = classInfo.homeroomTeacher.nip;
+        }
       }
 
       // 2. Get Headmaster from Profile
-      const profile = await prisma.profile.findFirst({
-        where: { singleton: true },
-      });
+      const profile = await prisma.profile.findFirst();
       if (profile?.principalName) {
         headmasterName = profile.principalName;
+      }
+      if (profile?.principalNip) {
+        headmasterNip = profile.principalNip;
       }
     } catch (e) {
       console.error("Error fetching additional report data:", e);
@@ -89,8 +100,11 @@ export async function GET(
     return NextResponse.json({
       success: true,
       data,
+      parentName: parentName,
       homeroomTeacher: homeroomTeacherName,
+      homeroomTeacherNip: homeroomTeacherNip,
       headmaster: headmasterName,
+      headmasterNip: headmasterNip,
     });
   } catch (error) {
     const errorResponse = handleDatabaseError(error);

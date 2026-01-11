@@ -215,6 +215,7 @@ export async function getUserProfile(
       userData.semester = user.semester;
       userData.phone = user.phone;
       userData.avatar = user.avatar;
+      userData.parentName = user.parentName;
     } else if (role === "staff") {
       userData.position = user.position;
       userData.department = user.department;
@@ -237,6 +238,8 @@ export async function updateUserProfile(
     name?: string;
     username?: string;
     phone?: string;
+    nip?: string;
+    parentName?: string;
     avatar?: string;
     currentPassword?: string;
     newPassword?: string;
@@ -270,6 +273,12 @@ export async function updateUserProfile(
       updateDoc.username = updateData.username;
     if (typeof updateData.phone === "string")
       updateDoc.phone = updateData.phone;
+    // NIP only for teachers
+    if (role === "teacher" && typeof updateData.nip === "string")
+      updateDoc.nip = updateData.nip;
+    // parentName only for students
+    if (role === "student" && typeof updateData.parentName === "string")
+      updateDoc.parentName = updateData.parentName;
     // Handle avatar for all roles (staff uses 'image' field)
     if (typeof updateData.avatar === "string") {
       if (role === "staff") {

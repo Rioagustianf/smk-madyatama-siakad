@@ -23,6 +23,8 @@ export default function AdminProfilePage() {
     historyImage: "",
     vision: "",
     mission: "",
+    principalName: "",
+    principalNip: "",
     facilities: [] as { name: string; description: string; image: string }[],
     organization: [] as { role: string; name: string; image?: string }[],
     address: {
@@ -73,6 +75,8 @@ export default function AdminProfilePage() {
         historyImage: p.historyImage || "",
         vision: p.vision || "",
         mission: p.mission || "",
+        principalName: p.principalName || "",
+        principalNip: p.principalNip || "",
         facilities: p.facilities || [],
         organization: p.organization || [],
         address: p.address || prev.address,
@@ -127,6 +131,51 @@ export default function AdminProfilePage() {
                 onChange={(e) => update("mission", e.target.value)}
                 className="border border-primary-600"
               />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Kepala Sekolah - untuk Rapor */}
+        <Card className="border border-primary-900">
+          <CardHeader>
+            <CardTitle>Kepala Sekolah</CardTitle>
+            <CardDescription>
+              Data ini akan ditampilkan di rapor siswa
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">
+                  Nama Kepala Sekolah
+                </label>
+                <Input
+                  placeholder="Nama lengkap dengan gelar"
+                  value={form.principalName}
+                  onChange={(e) => update("principalName", e.target.value)}
+                  className="border border-primary-600 mt-1"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">
+                  NIP Kepala Sekolah
+                </label>
+                <Input
+                  placeholder="18 digit NIP"
+                  value={form.principalNip}
+                  onChange={(e) => {
+                    const value = e.target.value
+                      .replace(/\D/g, "")
+                      .slice(0, 18);
+                    update("principalNip", value);
+                  }}
+                  maxLength={18}
+                  className="border border-primary-600 mt-1"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  NIP harus 18 digit (akan ditampilkan di rapor)
+                </p>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -248,7 +297,7 @@ export default function AdminProfilePage() {
                     }}
                     className="border border-primary-600"
                   />
-              <div>
+                  <div>
                     <ImageUpload
                       label="Foto (opsional)"
                       value={o.image || ""}
@@ -375,7 +424,7 @@ export default function AdminProfilePage() {
                 onChange={(e) => update("contact.youtube", e.target.value)}
                 className="border border-primary-600"
               />
-              </div>
+            </div>
           </CardContent>
         </Card>
 

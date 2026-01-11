@@ -52,10 +52,6 @@ function useSidebarData() {
           title: "Absensi",
           url: "/dashboard/teacher/attendance",
         },
-        {
-          title: "Profil",
-          url: "/dashboard/teacher/profile",
-        },
       ],
     };
   }

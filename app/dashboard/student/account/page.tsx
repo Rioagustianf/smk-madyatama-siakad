@@ -25,6 +25,7 @@ export default function StudentAccountPage() {
   const [name, setName] = React.useState("");
   const [username, setUsername] = React.useState("");
   const [phone, setPhone] = React.useState("");
+  const [parentName, setParentName] = React.useState("");
   const [avatar, setAvatar] = React.useState("");
   const [currentPassword, setCurrentPassword] = React.useState("");
   const [newPassword, setNewPassword] = React.useState("");
@@ -39,6 +40,7 @@ export default function StudentAccountPage() {
       setName((me as any).name || "");
       setUsername((me as any).username || "");
       setPhone((me as any).phone || "");
+      setParentName((me as any).parentName || "");
       setAvatar((me as any).avatar || "");
     }
   }, [me]);
@@ -93,11 +95,13 @@ export default function StudentAccountPage() {
         name,
         username,
         phone,
+        parentName,
         currentPassword: currentPassword || undefined,
         newPassword: newPassword || undefined,
       });
       setCurrentPassword("");
       setNewPassword("");
+      await refetch(); // Refetch to update form data
       addToast({
         type: "success",
         title: "Berhasil",
@@ -224,6 +228,20 @@ export default function StudentAccountPage() {
                 />
                 <p className="text-xs text-muted-foreground mt-1">
                   Format: 08xxx atau 628xxx (untuk notifikasi tagihan & absensi)
+                </p>
+              </div>
+              <div>
+                <label className="text-sm font-medium">
+                  Nama Orang Tua/Wali
+                </label>
+                <Input
+                  value={parentName}
+                  onChange={(e) => setParentName(e.target.value)}
+                  className="border border-primary-600 mt-1"
+                  placeholder="Nama orang tua atau wali"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Nama ini akan ditampilkan di rapor
                 </p>
               </div>
             </div>

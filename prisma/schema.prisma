@@ -33,6 +33,7 @@ model Student {
   major      String
   phone      String?  @default("") // WA Number
   avatar     String?  // URL foto profil dari Supabase
+  parentName String?  // Nama Orang Tua/Wali
 
   nisn       String?
   year       Int
@@ -54,6 +55,7 @@ model Teacher {
   username   String   @unique
   password   String?
   phone      String?
+  nip        String?  // Nomor Induk Pegawai
   avatar     String?  // URL foto profil dari Supabase
   education  String?
   subjects   Json?
@@ -253,6 +255,7 @@ model Profile {
   vision           String? @db.Text
   mission          String? @db.Text
   principalName    String?
+  principalNip     String?
   principalImage   String?
   principalMessage String? @db.Text
   facilities       Json?

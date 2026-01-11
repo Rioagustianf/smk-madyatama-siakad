@@ -7,13 +7,15 @@ export const profilePrismaRepository: ProfileRepository = {
   },
   async upsert(payload: any) {
     const existing = await prisma.profile.findFirst();
-    
+
     // Prepare data for Prisma
     const data = {
       history: payload.history,
       historyImage: payload.historyImage,
       vision: payload.vision,
       mission: payload.mission,
+      principalName: payload.principalName || null,
+      principalNip: payload.principalNip || null,
       facilities: payload.facilities || null,
       organization: payload.organization || null,
       address: payload.address || null,
@@ -21,13 +23,11 @@ export const profilePrismaRepository: ProfileRepository = {
     };
 
     if (existing) {
-      return prisma.profile.update({ 
-        where: { id: existing.id }, 
-        data 
+      return prisma.profile.update({
+        where: { id: existing.id },
+        data,
       });
     }
     return prisma.profile.create({ data });
-  }
+  },
 };
-
-

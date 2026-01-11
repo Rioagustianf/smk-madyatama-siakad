@@ -132,12 +132,11 @@ const styles = StyleSheet.create({
     height: 70,
   },
   signatureName: {
-    borderBottomWidth: 1,
-    borderBottomColor: "#000",
     width: "100%",
     paddingBottom: 2,
     fontFamily: "Helvetica-Bold",
     fontWeight: "bold",
+    textAlign: "center",
   },
   signatureLabel: {
     fontSize: 9,
@@ -161,8 +160,11 @@ interface StudentReportDocumentProps {
   className: string;
   semester: string | number;
   grades: GradeItem[];
+  parentName?: string;
   homeroomTeacher?: string;
+  homeroomTeacherNip?: string;
   headmaster?: string;
+  headmasterNip?: string;
 }
 
 export const StudentReportDocument: React.FC<StudentReportDocumentProps> = ({
@@ -171,8 +173,11 @@ export const StudentReportDocument: React.FC<StudentReportDocumentProps> = ({
   className,
   semester,
   grades,
+  parentName,
   homeroomTeacher,
+  homeroomTeacherNip,
   headmaster,
+  headmasterNip,
 }) => {
   return (
     <Document>
@@ -368,28 +373,39 @@ export const StudentReportDocument: React.FC<StudentReportDocumentProps> = ({
           (Tugas)
         </Text>
 
-        <View style={styles.footer}>
-          <View style={styles.signatureBlock}>
+        {/* Baris Atas: Orang Tua (Kiri) dan Wali Kelas (Kanan) */}
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            marginTop: 30,
+          }}
+        >
+          <View style={{ width: "45%", alignItems: "center" }}>
             <Text>Orang Tua/Wali,</Text>
             <View style={styles.signatureSpace} />
-            <Text style={styles.signatureName}> </Text>
+            <Text style={styles.signatureName}>{parentName || " "}</Text>
           </View>
-
-          <View style={styles.signatureBlock}>
-            <Text>Wali Kelas,</Text>
-            <View style={styles.signatureSpace} />
-            <Text style={styles.signatureName}>{homeroomTeacher || " "}</Text>
-          </View>
-
-          <View style={styles.signatureBlock}>
+          <View style={{ width: "45%", alignItems: "center" }}>
             <Text>
               Palembang, {format(new Date(), "d MMMM yyyy", { locale: id })}
             </Text>
-            <Text>Kepala Sekolah,</Text>
+            <Text>Wali Kelas,</Text>
             <View style={styles.signatureSpace} />
-            <Text style={styles.signatureName}>{headmaster || " "}</Text>
-            <Text style={styles.signatureLabel}>NIP. -</Text>
+            <Text style={styles.signatureName}>{homeroomTeacher || " "}</Text>
+            <Text style={styles.signatureLabel}>
+              NIP. {homeroomTeacherNip || "-"}
+            </Text>
           </View>
+        </View>
+
+        {/* Baris Bawah: Kepala Sekolah (Tengah) */}
+        <View style={{ alignItems: "center", marginTop: 30 }}>
+          <Text>Mengetahui,</Text>
+          <Text>Kepala Sekolah,</Text>
+          <View style={styles.signatureSpace} />
+          <Text style={styles.signatureName}>{headmaster || " "}</Text>
+          <Text style={styles.signatureLabel}>NIP. {headmasterNip || "-"}</Text>
         </View>
       </Page>
     </Document>

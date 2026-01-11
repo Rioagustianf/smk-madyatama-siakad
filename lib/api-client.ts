@@ -89,6 +89,8 @@ export const apiMethods = {
       name?: string;
       username?: string;
       phone?: string;
+      nip?: string;
+      parentName?: string;
       avatar?: string;
       currentPassword?: string;
       newPassword?: string;

@@ -25,18 +25,21 @@ export default function TeacherAccountPage() {
   const [name, setName] = React.useState("");
   const [username, setUsername] = React.useState("");
   const [phone, setPhone] = React.useState("");
+  const [nip, setNip] = React.useState("");
   const [avatar, setAvatar] = React.useState("");
   const [currentPassword, setCurrentPassword] = React.useState("");
   const [newPassword, setNewPassword] = React.useState("");
   const [isSaving, setIsSaving] = React.useState(false);
   const [isUploading, setIsUploading] = React.useState(false);
   const [currentPwError, setCurrentPwError] = React.useState("");
+  const [nipError, setNipError] = React.useState("");
 
   React.useEffect(() => {
     if (me) {
       setName((me as any).name || "");
       setUsername((me as any).username || "");
       setPhone((me as any).phone || "");
+      setNip((me as any).nip || "");
       setAvatar((me as any).avatar || "");
     }
   }, [me]);
@@ -75,16 +78,27 @@ export default function TeacherAccountPage() {
   const handleSave = async () => {
     setIsSaving(true);
     setCurrentPwError("");
+    setNipError("");
+
+    // Validate NIP: must be exactly 18 digits or empty
+    if (nip && !/^\d{18}$/.test(nip)) {
+      setNipError("NIP harus terdiri dari 18 digit angka");
+      setIsSaving(false);
+      return;
+    }
+
     try {
       await apiMethods.auth.updateAccount({
         name,
         username,
         phone,
+        nip,
         currentPassword: currentPassword || undefined,
         newPassword: newPassword || undefined,
       });
       setCurrentPassword("");
       setNewPassword("");
+      await refetch(); // Refetch to update form data
       addToast({
         type: "success",
         title: "Berhasil",
@@ -205,6 +219,34 @@ export default function TeacherAccountPage() {
                 <p className="text-xs text-muted-foreground mt-1">
                   Format: 08xxx atau 628xxx (untuk notifikasi)
                 </p>
+              </div>
+              <div>
+                <label className="text-sm font-medium">
+                  NIP (Nomor Induk Pegawai)
+                </label>
+                <Input
+                  value={nip}
+                  onChange={(e) => {
+                    // Only allow digits and max 18 characters
+                    const value = e.target.value
+                      .replace(/\D/g, "")
+                      .slice(0, 18);
+                    setNip(value);
+                    if (nipError) setNipError("");
+                  }}
+                  className={`border mt-1 ${
+                    nipError ? "border-red-500" : "border-primary-600"
+                  }`}
+                  placeholder="123456789012345678"
+                  maxLength={18}
+                />
+                {nipError ? (
+                  <p className="text-xs text-red-600 mt-1">{nipError}</p>
+                ) : (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    NIP harus 18 digit (akan ditampilkan di rapor siswa)
+                  </p>
+                )}
               </div>
             </div>
           </CardContent>
