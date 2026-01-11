@@ -94,10 +94,38 @@ export async function GET(request: NextRequest) {
     );
 
     // Enrich with Subject ID
+    // Enrich with Subject ID
     const enriched = await Promise.all(
       uniqueSchedules.map(async (sched) => {
+        // Subject name mapping for legacy schedule names (Must match student API)
+        const subjectAliases: Record<string, string> = {
+          SENAM: "SENAM",
+          UPACARA: "UPACARA",
+          Adminfrajar: "AIJ",
+          Teklayjar: "TLJ",
+          Agama: "Agama",
+          "Agama Islam": "Agama",
+          "B. Inggris": "B. Inggris",
+          "B. Indonesia": "B. Indonesia",
+          MTK: "MTK",
+          PKK: "PKK",
+          PKN: "PKN",
+          ASJ: "ASJ",
+          TLJ: "TLJ",
+          AIJ: "AIJ",
+        };
+
+        const searchName = subjectAliases[sched.subject] || sched.subject;
+
         const subject = await prisma.subject.findFirst({
-          where: { name: sched.subject },
+          where: {
+            OR: [
+              { name: sched.subject },
+              { name: searchName },
+              { code: sched.subject },
+            ],
+          },
+          orderBy: { name: "asc" }, // Deterministic sort
         });
         return {
           ...sched,

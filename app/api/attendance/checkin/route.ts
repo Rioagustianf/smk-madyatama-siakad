@@ -106,7 +106,17 @@ export async function POST(request: NextRequest) {
       }
 
       // 2. Validate Time Window (based on schedule time)
-      if (scheduleTime) {
+      // Skip validation if SKIP_SCHEDULE_VALIDATION=true (for testing only)
+      console.log("Environment Check:", {
+        SKIP: process.env.SKIP_SCHEDULE_VALIDATION,
+        NEXT_PUBLIC_SKIP: process.env.NEXT_PUBLIC_SKIP_SCHEDULE_VALIDATION,
+      });
+
+      const skipScheduleValidation =
+        process.env.SKIP_SCHEDULE_VALIDATION === "true" ||
+        process.env.NEXT_PUBLIC_SKIP_SCHEDULE_VALIDATION === "true";
+
+      if (scheduleTime && !skipScheduleValidation) {
         // Parse scheduleTime format: "07:00-08:00" or "07:00 - 08:00"
         const timeMatch = scheduleTime.match(
           /(\d{2}):(\d{2})\s*-\s*(\d{2}):(\d{2})/
@@ -142,8 +152,27 @@ export async function POST(request: NextRequest) {
     }
 
     // 3. Check Duplicate
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    // ROBUST WIB (Asia/Jakarta) Calculation
+    const nowCtx = new Date();
+    const formatter = new Intl.DateTimeFormat("en-US", {
+      timeZone: "Asia/Jakarta",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+    const parts = formatter.formatToParts(nowCtx);
+    const year = parts.find((p) => p.type === "year")?.value;
+    const month = parts.find((p) => p.type === "month")?.value;
+    const day = parts.find((p) => p.type === "day")?.value;
+
+    // Force create 00:00:00 UTC Date for the WIB day
+    const today = new Date(`${year}-${month}-${day}T00:00:00.000Z`);
+
+    console.log("DEBUG DATE CHECK (ROBUST):", {
+      serverTimeUTC: nowCtx.toISOString(),
+      wibParts: { year, month, day },
+      finalDateToDB: today.toISOString(),
+    });
 
     const existing = await prisma.attendance.findFirst({
       where: {
@@ -161,20 +190,31 @@ export async function POST(request: NextRequest) {
     }
 
     // 4. Create Attendance
-    const attendance = await prisma.attendance.create({
-      data: {
-        studentId: studentUser.id,
-        subjectId: subjectId,
-        date: today,
-        timeIn: new Date(),
-        status: status, // PRESENT, SICK, PERMISSION
-        latitude: status === "PRESENT" ? parseFloat(latitude) : null,
-        longitude: status === "PRESENT" ? parseFloat(longitude) : null,
-        photoUrl: photoUrl || null,
-        notes: notes || null,
-        isVerified: false,
-      },
-    });
+    let attendance;
+    try {
+      attendance = await prisma.attendance.create({
+        data: {
+          studentId: studentUser.id,
+          subjectId: subjectId,
+          date: today,
+          timeIn: new Date(),
+          status: status, // PRESENT, SICK, PERMISSION
+          latitude: status === "PRESENT" ? parseFloat(latitude) : null,
+          longitude: status === "PRESENT" ? parseFloat(longitude) : null,
+          photoUrl: photoUrl || null,
+          notes: notes || null,
+          isVerified: false,
+        },
+      });
+    } catch (e: any) {
+      if (e.code === "P2002") {
+        return NextResponse.json(
+          { success: false, message: "Sudah absen untuk mapel ini hari ini" },
+          { status: 400 }
+        );
+      }
+      throw e;
+    }
 
     return NextResponse.json({
       success: true,

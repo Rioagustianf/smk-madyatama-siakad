@@ -48,52 +48,127 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    // ROBUST WIB (Asia/Jakarta) Calculation
+    const nowCtx = new Date();
+    const formatter = new Intl.DateTimeFormat("en-US", {
+      timeZone: "Asia/Jakarta",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+    const parts = formatter.formatToParts(nowCtx);
+    const year = parts.find((p) => p.type === "year")?.value;
+    const month = parts.find((p) => p.type === "month")?.value;
+    const day = parts.find((p) => p.type === "day")?.value;
+
+    // Force create 00:00:00 UTC Date for the WIB day
+    const today = new Date(`${year}-${month}-${day}T00:00:00.000Z`);
 
     let updated;
 
     if (attendanceId) {
-      // Update existing
-      updated = await prisma.attendance.update({
+      // First check if the record exists
+      const existingRecord = await prisma.attendance.findUnique({
         where: { id: attendanceId },
-        data: {
-          status: status,
-          isVerified: isVerified,
-          verifiedBy: teacherUser.name || "Teacher",
-          verifiedAt: new Date(),
-          notes: notes, // Allow updating notes if provided
-        },
       });
-    } else {
-      // Upsert (Create or Update if exists by unique constraint)
-      updated = await prisma.attendance.upsert({
-        where: {
-          studentId_subjectId_date: {
+
+      if (existingRecord) {
+        // Update existing record
+        updated = await prisma.attendance.update({
+          where: { id: attendanceId },
+          data: {
+            status: status,
+            isVerified: isVerified,
+            verifiedBy: teacherUser.name || "Teacher",
+            verifiedAt: new Date(),
+            notes: notes,
+          },
+        });
+      } else if (studentId && subjectId) {
+        // Record not found by ID, try to find by studentId + subjectId + date or create new
+        const existingByStudent = await prisma.attendance.findFirst({
+          where: {
             studentId,
             subjectId,
             date: today,
           },
-        },
-        create: {
+        });
+
+        if (existingByStudent) {
+          updated = await prisma.attendance.update({
+            where: { id: existingByStudent.id },
+            data: {
+              status: status || existingByStudent.status,
+              isVerified: isVerified,
+              verifiedBy: teacherUser.name || "Teacher",
+              verifiedAt: new Date(),
+              notes: notes,
+            },
+          });
+        } else {
+          // Create new record
+          updated = await prisma.attendance.create({
+            data: {
+              studentId,
+              subjectId,
+              date: today,
+              status: status || "ABSENT",
+              isVerified: isVerified,
+              verifiedBy: teacherUser.name || "Teacher",
+              verifiedAt: new Date(),
+              notes: notes,
+              timeIn: new Date(),
+            },
+          });
+        }
+      } else {
+        return NextResponse.json(
+          {
+            success: false,
+            message:
+              "Record attendance tidak ditemukan. Silakan berikan studentId dan subjectId untuk membuat record baru.",
+          },
+          { status: 404 }
+        );
+      }
+    } else {
+      // Try to find existing record first, then update or create
+      const existing = await prisma.attendance.findFirst({
+        where: {
           studentId,
           subjectId,
           date: today,
-          status: status || "PRESENT", // Default to PRESENT if not specified
-          isVerified: isVerified,
-          verifiedBy: teacherUser.name || "Teacher",
-          verifiedAt: new Date(),
-          notes: notes,
-          timeIn: new Date(), // Set timeIn to now
-        },
-        update: {
-          status: status,
-          isVerified: isVerified,
-          verifiedBy: teacherUser.name || "Teacher",
-          verifiedAt: new Date(),
-          notes: notes,
         },
       });
+
+      if (existing) {
+        // Update existing record
+        updated = await prisma.attendance.update({
+          where: { id: existing.id },
+          data: {
+            status: status || existing.status,
+            isVerified: isVerified,
+            verifiedBy: teacherUser.name || "Teacher",
+            verifiedAt: new Date(),
+            notes: notes,
+          },
+        });
+      } else {
+        // Create new record
+        updated = await prisma.attendance.create({
+          data: {
+            studentId,
+            subjectId,
+            date: today,
+            status: status || "ABSENT", // Default to ABSENT for teacher verification
+            isVerified: isVerified,
+            verifiedBy: teacherUser.name || "Teacher",
+            verifiedAt: new Date(),
+            notes: notes,
+            timeIn: new Date(),
+          },
+        });
+      }
     }
 
     return NextResponse.json({

@@ -49,16 +49,28 @@ export async function GET(request: NextRequest) {
     if (dateStr) {
       dateFilter = new Date(dateStr);
     }
-    dateFilter.setHours(0, 0, 0, 0);
+
+    // Create Start and End of Day for safer range querying (handles timezone shifts)
+    const startOfDay = new Date(dateFilter);
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date(dateFilter);
+    endOfDay.setHours(23, 59, 59, 999);
 
     // 3. Get Attendances
     const attendances = await prisma.attendance.findMany({
       where: {
         subjectId: subjectId,
-        date: dateFilter,
-        student: { class: className },
+        date: {
+          gte: startOfDay,
+          lte: endOfDay,
+        },
+        // Removed redundant class filter. We map by studentId anyway,
+        // and we only display students from this class.
       },
     });
+
+    console.log(`Found ${attendances.length} attendance records.`);
 
     // 4. Map
     const result = students.map((student) => {

@@ -65,8 +65,20 @@ export async function GET(request: NextRequest) {
     });
 
     // 4. Enrich with Subject ID and Attendance Status
-    const todayDate = new Date();
-    todayDate.setHours(0, 0, 0, 0);
+    // ROBUST WIB (Asia/Jakarta) Calculation for Searching
+    const nowCtx = new Date();
+    const formatter = new Intl.DateTimeFormat("en-US", {
+      timeZone: "Asia/Jakarta",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+    const parts = formatter.formatToParts(nowCtx);
+    const year = parts.find((p) => p.type === "year")?.value;
+    const month = parts.find((p) => p.type === "month")?.value;
+    const day = parts.find((p) => p.type === "day")?.value;
+
+    const todayDate = new Date(`${year}-${month}-${day}T00:00:00.000Z`);
 
     const enrichedSchedules = await Promise.all(
       schedules.map(async (sched) => {
@@ -102,6 +114,7 @@ export async function GET(request: NextRequest) {
           include: {
             teacher: true,
           },
+          orderBy: { name: "asc" }, // Deterministic sort
         });
 
         let attendance = null;

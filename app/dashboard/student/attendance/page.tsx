@@ -114,7 +114,11 @@ export default function StudentAttendancePage() {
   };
 
   // Helper function to check if current time is within schedule time (with 15 min buffer before)
+  // Skip validation if NEXT_PUBLIC_SKIP_SCHEDULE_VALIDATION=true (for testing only)
   const isWithinScheduleTime = (scheduleTime: string) => {
+    // Skip validation for testing
+    if (process.env.NEXT_PUBLIC_SKIP_SCHEDULE_VALIDATION === "true")
+      return true;
     if (!scheduleTime) return true;
 
     const timeMatch = scheduleTime.match(
@@ -332,7 +336,7 @@ export default function StudentAttendancePage() {
 
       {/* Absen Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Absensi: {selectedSubject?.subject}</DialogTitle>
             <DialogDescription>
@@ -372,6 +376,8 @@ export default function StudentAttendancePage() {
                     src={imgSrc}
                     alt="Selfie"
                     className="w-full h-full object-cover"
+                    width={640}
+                    height={480}
                   />
                 ) : (
                   <Webcam
