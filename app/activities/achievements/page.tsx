@@ -4,9 +4,9 @@ import React from "react";
 import { motion } from "framer-motion";
 import { PageHeader } from "@/components/molecules/PageHeader";
 import { Typography } from "@/components/atoms/Typography/Typography";
-import { Button } from "@/components/ui/button";
-import { Trophy, Bell } from "lucide-react";
+import { Trophy } from "lucide-react";
 import { useAchievements } from "@/lib/hooks/use-activities";
+import Image from "next/image";
 
 export default function AchievementsPage() {
   const { data, isLoading, error } = useAchievements();
@@ -15,6 +15,7 @@ export default function AchievementsPage() {
     year: a.year || "",
     category: a.category || "",
     description: a.description || "",
+    image: a.image || "",
   }));
   return (
     <div>
@@ -48,21 +49,34 @@ export default function AchievementsPage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.6, delay: index * 0.05 }}
-                  className="rounded-2xl border border-primary-100 p-6 bg-white shadow"
+                  className="rounded-2xl border border-primary-100 bg-white shadow overflow-hidden"
                 >
-                  <Typography
-                    variant="overline"
-                    color="primary"
-                    className="mb-2"
-                  >
-                    {item.category} • {item.year}
-                  </Typography>
-                  <Typography variant="h5" className="mb-2">
-                    {item.title}
-                  </Typography>
-                  <Typography variant="body2" color="muted">
-                    {item.description}
-                  </Typography>
+                  {item.image && (
+                    <div className="relative w-full h-48">
+                      <Image
+                        src={item.image}
+                        alt={item.title}
+                        fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        className="object-cover"
+                      />
+                    </div>
+                  )}
+                  <div className="p-6">
+                    <Typography
+                      variant="overline"
+                      color="primary"
+                      className="mb-2"
+                    >
+                      {item.category} • {item.year}
+                    </Typography>
+                    <Typography variant="h5" className="mb-2">
+                      {item.title}
+                    </Typography>
+                    <Typography variant="body2" color="muted">
+                      {item.description}
+                    </Typography>
+                  </div>
                 </motion.div>
               ))}
             {!isLoading && !error && achievements.length === 0 && (

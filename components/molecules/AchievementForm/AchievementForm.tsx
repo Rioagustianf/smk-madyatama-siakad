@@ -4,12 +4,14 @@ import React from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import { ImageUpload } from "@/components/molecules/ImageUpload/ImageUpload";
 
 interface AchievementFormData {
   title: string;
   category: string;
   year: string;
   description: string;
+  image: string;
 }
 
 interface AchievementFormProps {
@@ -56,6 +58,14 @@ export function AchievementForm({
           value={formData.description}
           onChange={(e) => onInputChange("description", e.target.value)}
           className="border border-primary-600"
+        />
+        <ImageUpload
+          value={formData.image}
+          onChange={(value) => onInputChange("image", value)}
+          label="Gambar Prestasi"
+          placeholder="Upload atau masukkan URL gambar"
+          disabled={isLoading}
+          storagePath="achievements"
         />
       </div>
       <div className="flex justify-end sm:flex-row gap-3 pt-4">

@@ -70,6 +70,7 @@ export default function AdminActivitiesPage() {
   const [achCategory, setAchCategory] = useState("");
   const [achYear, setAchYear] = useState("");
   const [achDesc, setAchDesc] = useState("");
+  const [achImage, setAchImage] = useState("");
 
   // Extracurricular form state
   const [exName, setExName] = useState("");
@@ -117,6 +118,7 @@ export default function AdminActivitiesPage() {
     setAchCategory("");
     setAchYear("");
     setAchDesc("");
+    setAchImage("");
     setExName("");
     setExDesc("");
     setSelectedId(null);
@@ -134,6 +136,7 @@ export default function AdminActivitiesPage() {
     setAchCategory(item.category || "");
     setAchYear(item.year || "");
     setAchDesc(item.description || "");
+    setAchImage(item.image || "");
     setIsAddOpen(false);
     setIsEditOpen(true);
     setActiveTab("achievements");
@@ -156,6 +159,7 @@ export default function AdminActivitiesPage() {
         category: achCategory,
         year: achYear,
         description: achDesc,
+        image: achImage,
       });
     } else {
       await createExtracurricular.mutateAsync({
@@ -178,6 +182,7 @@ export default function AdminActivitiesPage() {
           category: achCategory,
           year: achYear,
           description: achDesc,
+          image: achImage,
         },
       });
     } else {
@@ -228,12 +233,16 @@ export default function AdminActivitiesPage() {
             </div>
             <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
               <DialogTrigger asChild>
-                <Button className="gap-2" onClick={openAdd} disabled={isBusy}>
+                <Button
+                  className="gap-2 bg-primary-950 text-white"
+                  onClick={openAdd}
+                  disabled={isBusy}
+                >
                   <Plus className="h-4 w-4" />
                   Tambah
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-md">
+              <DialogContent className="sm:max-w-md max-h-[80vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2">
                     <Trophy className="h-5 w-5" />
@@ -261,12 +270,14 @@ export default function AdminActivitiesPage() {
                       category: achCategory,
                       year: achYear,
                       description: achDesc,
+                      image: achImage,
                     }}
                     onInputChange={(field, value) => {
                       if (field === "title") setAchTitle(value);
                       if (field === "category") setAchCategory(value);
                       if (field === "year") setAchYear(value);
                       if (field === "description") setAchDesc(value);
+                      if (field === "image") setAchImage(value);
                     }}
                     onSubmit={onSubmitAdd}
                     isLoading={isBusy}
@@ -289,7 +300,7 @@ export default function AdminActivitiesPage() {
               </DialogContent>
             </Dialog>
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-              <DialogContent className="sm:max-w-md">
+              <DialogContent className="sm:max-w-md max-h-[80vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2">
                     <Edit className="h-5 w-5" />
@@ -311,12 +322,14 @@ export default function AdminActivitiesPage() {
                       category: achCategory,
                       year: achYear,
                       description: achDesc,
+                      image: achImage,
                     }}
                     onInputChange={(field, value) => {
                       if (field === "title") setAchTitle(value);
                       if (field === "category") setAchCategory(value);
                       if (field === "year") setAchYear(value);
                       if (field === "description") setAchDesc(value);
+                      if (field === "image") setAchImage(value);
                     }}
                     onSubmit={onSubmitEdit}
                     isLoading={isBusy}
@@ -352,21 +365,21 @@ export default function AdminActivitiesPage() {
           </TabsList>
 
           <TabsContent value="achievements">
-        <AdminTableCard
+            <AdminTableCard
               title="Daftar Prestasi"
               description="Kelola data prestasi"
-        >
-          <div className="rounded-md border">
-            <Table className="bg-white">
-              <TableHeader className="rounded-md">
-                <TableRow className="bg-primary-900 hover:bg-primary-900">
-                  <TableHead className="text-white">Judul</TableHead>
-                  <TableHead className="text-white">Kategori</TableHead>
+            >
+              <div className="rounded-md border">
+                <Table className="bg-white">
+                  <TableHeader className="rounded-md">
+                    <TableRow className="bg-primary-900 hover:bg-primary-900">
+                      <TableHead className="text-white">Judul</TableHead>
+                      <TableHead className="text-white">Kategori</TableHead>
                       <TableHead className="text-white">Tahun</TableHead>
-                  <TableHead className="w-20 text-white">Aksi</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+                      <TableHead className="w-20 text-white">Aksi</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
                     {isAchLoading ? (
                       <TableRow>
                         <TableCell colSpan={4}>Memuat...</TableCell>
@@ -388,7 +401,7 @@ export default function AdminActivitiesPage() {
                           </TableCell>
                           <TableCell>{a.category || "-"}</TableCell>
                           <TableCell>{a.year || "-"}</TableCell>
-                    <TableCell>
+                          <TableCell>
                             <div className="flex items-center gap-2">
                               <Button
                                 variant="ghost"
@@ -416,7 +429,7 @@ export default function AdminActivitiesPage() {
                                     className="text-destructive hover:text-destructive"
                                   >
                                     <Trash2 className="h-4 w-4" />
-                          </Button>
+                                  </Button>
                                 }
                               />
                             </div>
@@ -496,19 +509,19 @@ export default function AdminActivitiesPage() {
                                     size="sm"
                                     className="text-destructive hover:text-destructive"
                                   >
-                            <Trash2 className="h-4 w-4" />
+                                    <Trash2 className="h-4 w-4" />
                                   </Button>
                                 }
                               />
                             </div>
-                    </TableCell>
-                  </TableRow>
+                          </TableCell>
+                        </TableRow>
                       ))
                     )}
-              </TableBody>
-            </Table>
-          </div>
-        </AdminTableCard>
+                  </TableBody>
+                </Table>
+              </div>
+            </AdminTableCard>
           </TabsContent>
         </Tabs>
       </div>

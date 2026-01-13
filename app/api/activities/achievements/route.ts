@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
       );
 
     const body = await request.json();
-    const { title, category, description, year } = body;
+    const { title, category, description, year, image } = body;
     if (!title)
       return NextResponse.json(
         { success: false, message: "Judul diperlukan" },
@@ -88,6 +88,7 @@ export async function POST(request: NextRequest) {
       category: category || "",
       description: description || "",
       year: year || "",
+      image: image || "",
       kind: "achievement",
     });
     return NextResponse.json({

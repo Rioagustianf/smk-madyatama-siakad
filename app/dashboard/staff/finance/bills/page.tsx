@@ -4,6 +4,7 @@ import * as React from "react";
 import { useState, useMemo, useRef, useEffect } from "react";
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
+import dynamic from "next/dynamic";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -51,6 +52,8 @@ import {
   Calendar,
   Trash2,
   X,
+  Download,
+  FileText,
 } from "lucide-react";
 import {
   useBills,
@@ -61,11 +64,31 @@ import {
 import { useStudents } from "@/lib/hooks/use-api";
 import { AvatarWithInitials } from "@/components/ui/avatar-with-initials";
 import { cn } from "@/lib/utils";
+import { FinanceReportDocument } from "@/components/reports/FinanceReportDocument";
+
+const PDFDownloadLink = dynamic(
+  () => import("@react-pdf/renderer").then((mod) => mod.PDFDownloadLink),
+  {
+    ssr: false,
+    loading: () => (
+      <span className="text-sm text-muted-foreground">Memuat...</span>
+    ),
+  }
+);
 
 export default function StaffBillsPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
+
+  // Export filter state
+  const currentDate = new Date();
+  const [exportMonth, setExportMonth] = useState(
+    currentDate.getMonth().toString()
+  );
+  const [exportYear, setExportYear] = useState(
+    currentDate.getFullYear().toString()
+  );
 
   // Student search state
   const [studentSearch, setStudentSearch] = useState("");
@@ -652,6 +675,73 @@ export default function StaffBillsPage() {
                   <SelectItem value="OVERDUE">Jatuh Tempo</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+
+            {/* Export PDF Section */}
+            <div className="flex gap-2 items-center">
+              <Select value={exportMonth} onValueChange={setExportMonth}>
+                <SelectTrigger className="w-[130px]">
+                  <Calendar className="mr-2 h-4 w-4" />
+                  <SelectValue placeholder="Bulan" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="0">Januari</SelectItem>
+                  <SelectItem value="1">Februari</SelectItem>
+                  <SelectItem value="2">Maret</SelectItem>
+                  <SelectItem value="3">April</SelectItem>
+                  <SelectItem value="4">Mei</SelectItem>
+                  <SelectItem value="5">Juni</SelectItem>
+                  <SelectItem value="6">Juli</SelectItem>
+                  <SelectItem value="7">Agustus</SelectItem>
+                  <SelectItem value="8">September</SelectItem>
+                  <SelectItem value="9">Oktober</SelectItem>
+                  <SelectItem value="10">November</SelectItem>
+                  <SelectItem value="11">Desember</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={exportYear} onValueChange={setExportYear}>
+                <SelectTrigger className="w-[100px]">
+                  <SelectValue placeholder="Tahun" />
+                </SelectTrigger>
+                <SelectContent>
+                  {[2024, 2025, 2026, 2027].map((year) => (
+                    <SelectItem key={year} value={year.toString()}>
+                      {year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {billsData?.data && (
+                <PDFDownloadLink
+                  document={
+                    <FinanceReportDocument
+                      month={parseInt(exportMonth)}
+                      year={parseInt(exportYear)}
+                      bills={billsData.data}
+                    />
+                  }
+                  fileName={`Laporan_Keuangan_${format(
+                    new Date(parseInt(exportYear), parseInt(exportMonth), 1),
+                    "MMMM_yyyy",
+                    { locale: idLocale }
+                  )}.pdf`}
+                >
+                  {({ loading }) => (
+                    <Button
+                      variant="outline"
+                      className="gap-2"
+                      disabled={loading}
+                    >
+                      {loading ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <FileText className="h-4 w-4" />
+                      )}
+                      Export PDF
+                    </Button>
+                  )}
+                </PDFDownloadLink>
+              )}
             </div>
           </div>
         </CardHeader>

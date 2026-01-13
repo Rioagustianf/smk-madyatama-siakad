@@ -16,6 +16,7 @@ interface ImageUploadProps {
   placeholder?: string;
   disabled?: boolean;
   maxSizeMB?: number;
+  storagePath?: string;
 }
 
 export function ImageUpload({
@@ -25,6 +26,7 @@ export function ImageUpload({
   placeholder = "Pilih gambar atau masukkan URL",
   disabled = false,
   maxSizeMB = 5,
+  storagePath = "uploads",
 }: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(value || null);
@@ -60,7 +62,7 @@ export function ImageUpload({
       const uploadResult = await fileUpload.uploadImage(
         file,
         "madyatama", // bucket name
-        "majors" // path
+        storagePath // configurable path
       );
 
       // Update form with new URL

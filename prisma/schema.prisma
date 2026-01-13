@@ -200,6 +200,8 @@ model Activity {
   image        String?
   category     String?
   level        String?
+  year         String?
+  kind         String?
   date         DateTime?
   participants Json?
   isPublished  Boolean? @default(false)
