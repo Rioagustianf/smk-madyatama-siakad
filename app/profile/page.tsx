@@ -56,8 +56,7 @@ function useDynamicStats() {
     ),
     isLoading: majorsLoading,
   } as const;
-  // Prefer staff API (role: teacher). Fallback to teachers API if needed.
-  // Teachers: prefer teachers collection directly
+
   const teachersQ = useTeachers({ page: 1, limit: 1 });
   const teachers = {
     data:
@@ -118,9 +117,6 @@ export default function ProfilePage() {
                   `SMK Madyatama didirikan dengan visi menjadi
 lembaga pendidikan kejuruan terdepan yang menghasilkan lulusan berkualitas dan siap kerja.`}
               </Typography>
-              <Button variant="gradient" size="lg">
-                Pelajari Lebih Lanjut
-              </Button>
             </motion.div>
 
             <motion.div
@@ -132,11 +128,8 @@ lembaga pendidikan kejuruan terdepan yang menghasilkan lulusan berkualitas dan s
             >
               <div className="relative h-96 rounded-2xl overflow-hidden shadow-2xl">
                 <Image
-                  src={
-                    profile.historyImage ||
-                    "https://images.pexels.com/photos/207691/pexels-photo-207691.jpeg"
-                  }
-                  alt="Sejarah SMK SIAKAD"
+                  src="/assets/lobi.jpeg"
+                  alt="Sejarah SMK"
                   fill
                   className="object-cover"
                 />
@@ -156,7 +149,10 @@ lembaga pendidikan kejuruan terdepan yang menghasilkan lulusan berkualitas dan s
       </section>
 
       {/* Visi & Misi */}
-      <section className="section-padding bg-gradient-to-br from-primary-50 to-secondary-50">
+      <section
+        id="visi-misi"
+        className="section-padding bg-gradient-to-br from-primary-50 to-secondary-50"
+      >
         <div className="container-custom">
           <motion.div
             initial={{ opacity: 0, y: 30 }}

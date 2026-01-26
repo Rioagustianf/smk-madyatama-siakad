@@ -97,6 +97,31 @@ export async function GET(
       // Continue without failing the main grades request
     }
 
+    // Get academic year from grade data or student data
+    let academicYear = "";
+    let currentSemester = 1;
+
+    try {
+      // Get from grade data if available
+      if (data.length > 0 && data[0].year) {
+        const year = data[0].year;
+        academicYear = `${year}/${year + 1}`;
+        currentSemester = data[0].semester || 1;
+      } else {
+        // Fallback: get from student data
+        const studentData = await prisma.student.findUnique({
+          where: { id },
+          select: { year: true, semester: true },
+        });
+        if (studentData?.year) {
+          academicYear = `${studentData.year}/${studentData.year + 1}`;
+          currentSemester = studentData.semester || 1;
+        }
+      }
+    } catch (e) {
+      console.error("Error fetching academic year:", e);
+    }
+
     return NextResponse.json({
       success: true,
       data,
@@ -105,6 +130,8 @@ export async function GET(
       homeroomTeacherNip: homeroomTeacherNip,
       headmaster: headmasterName,
       headmasterNip: headmasterNip,
+      academicYear: academicYear,
+      semester: currentSemester,
     });
   } catch (error) {
     const errorResponse = handleDatabaseError(error);

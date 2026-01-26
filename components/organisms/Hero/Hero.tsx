@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { Typography } from "@/components/atoms/Typography/Typography";
 import { Button } from "@/components/atoms/Button/Button";
 import { school } from "@/lib/school";
+import Link from "next/link";
 
 const container = {
   hidden: { opacity: 0 },
@@ -72,7 +73,7 @@ export const Hero: React.FC = () => {
               className="bg-primary-950 hover:bg-primary-800 text-white font-bold hover:text-white"
               asChild
             >
-              <a href="#fitur">Profil Sekolah</a>
+              <Link href="/profile">Profil Sekolah</Link>
             </Button>
           </motion.div>
 

@@ -22,12 +22,12 @@ export interface ClassFormData {
 }
 
 interface Major {
-  _id: string;
+  id: string;
   name: string;
 }
 
 interface Teacher {
-  _id: string;
+  id: string;
   name: string;
   education?: string;
 }
@@ -81,7 +81,7 @@ export default function ClassForm({
           <SelectContent>
             <SelectItem value="none">Tidak ada jurusan</SelectItem>
             {majors.map((major) => (
-              <SelectItem key={major._id} value={major._id}>
+              <SelectItem key={major.id} value={major.id}>
                 {major.name}
               </SelectItem>
             ))}
@@ -103,7 +103,7 @@ export default function ClassForm({
           <SelectContent>
             <SelectItem value="none">Tidak ada wali kelas</SelectItem>
             {teachers.map((teacher) => (
-              <SelectItem key={teacher._id} value={teacher._id}>
+              <SelectItem key={teacher.id} value={teacher.id}>
                 {teacher.name}{" "}
                 {teacher.education ? `(${teacher.education})` : ""}
               </SelectItem>

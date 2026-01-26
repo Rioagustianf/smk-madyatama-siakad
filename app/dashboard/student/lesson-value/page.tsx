@@ -42,6 +42,8 @@ export default function StudentGradesPage() {
   const homeroomTeacherNip = responseData?.homeroomTeacherNip || "";
   const headmaster = responseData?.headmaster || "";
   const headmasterNip = responseData?.headmasterNip || "";
+  const academicYear = responseData?.academicYear || "";
+  const semesterFromApi = responseData?.semester || 1;
 
   return (
     <div className="rounded-xl border border-primary-900 bg-white p-5">
@@ -60,13 +62,14 @@ export default function StudentGradesPage() {
                   ""
                 }
                 className={(state.user as any)?.class || "12 TKJ 1"}
-                semester="1 (Ganjil)"
+                semester={semesterFromApi === 1 ? "1 (Ganjil)" : "2 (Genap)"}
                 grades={grades}
                 parentName={parentName}
                 homeroomTeacher={homeroomTeacher}
                 homeroomTeacherNip={homeroomTeacherNip}
                 headmaster={headmaster}
                 headmasterNip={headmasterNip}
+                academicYear={academicYear}
               />
             }
             fileName={`Rapor_${(state.user as any)?.name || "Siswa"}.pdf`}

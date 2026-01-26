@@ -16,18 +16,55 @@ import { id } from "date-fns/locale";
 const styles = StyleSheet.create({
   page: {
     padding: 30,
-    paddingTop: 40,
+    paddingTop: 30,
     fontFamily: "Helvetica",
     fontSize: 10,
     lineHeight: 1.4,
   },
   header: {
-    marginBottom: 25,
+    marginBottom: 20,
     borderBottomWidth: 3,
     borderBottomColor: "#000",
     borderStyle: "solid",
     paddingBottom: 10,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  headerLogoLeft: {
+    width: 55,
+    height: 55,
+    marginRight: 10,
+  },
+  headerLogoRight: {
+    width: 50,
+    height: 60,
+    marginLeft: 10,
+  },
+  headerTextContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headerDinas: {
+    fontSize: 9,
+    fontWeight: "bold",
+    textTransform: "uppercase",
+    fontFamily: "Helvetica-Bold",
     textAlign: "center",
+    marginBottom: 1,
+  },
+  headerSchoolName: {
+    fontSize: 14,
+    fontWeight: "bold",
+    textTransform: "uppercase",
+    fontFamily: "Helvetica-Bold",
+    textAlign: "center",
+    marginBottom: 1,
+  },
+  headerAddress: {
+    fontSize: 8,
+    textAlign: "center",
+    marginBottom: 1,
   },
   headerTitle: {
     fontSize: 14,
@@ -165,6 +202,7 @@ interface StudentReportDocumentProps {
   homeroomTeacherNip?: string;
   headmaster?: string;
   headmasterNip?: string;
+  academicYear?: string;
 }
 
 export const StudentReportDocument: React.FC<StudentReportDocumentProps> = ({
@@ -178,15 +216,46 @@ export const StudentReportDocument: React.FC<StudentReportDocumentProps> = ({
   homeroomTeacherNip,
   headmaster,
   headmasterNip,
+  academicYear,
 }) => {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {/* Kop Surat */}
         <View style={styles.header}>
+          {/* Logo Dinas Pendidikan (Kiri) */}
+          <Image style={styles.headerLogoLeft} src="/assets/logo dinas.png" />
+
+          {/* Text Tengah */}
+          <View style={styles.headerTextContainer}>
+            <Text style={styles.headerDinas}>
+              PEMERINTAH PROVINSI SUMATERA SELATAN
+            </Text>
+            <Text style={styles.headerDinas}>
+              DINAS PENDIDIKAN DAN KEBUDAYAAN
+            </Text>
+            <Text style={styles.headerSchoolName}>SMK MADYATAMA PALEMBANG</Text>
+            <Text style={styles.headerAddress}>
+              Jl. Pertahanan (Pertahanan III), 16 Ulu, Seberang Ulu II, Kota
+              Palembang, Sumatera Selatan
+            </Text>
+            <Text style={styles.headerAddress}>
+              Telp: (0711) 418500 | Email: smkmadyatama@gmail.com
+            </Text>
+          </View>
+
+          {/* Logo SMK (Kanan) */}
+          <Image style={styles.headerLogoRight} src="/assets/logo.png" />
+        </View>
+
+        {/* Judul Dokumen */}
+        <View style={{ alignItems: "center", marginBottom: 15 }}>
           <Text style={styles.headerTitle}>
-            Laporan Hasil Belajar Peserta Didik
+            LAPORAN HASIL BELAJAR PESERTA DIDIK
           </Text>
-          <Text style={styles.headerSubtitle}>SMK MADYATAMA PALEMBANG</Text>
+          <Text style={{ fontSize: 10, marginTop: 2 }}>
+            Tahun Pelajaran {academicYear || "-"}
+          </Text>
         </View>
 
         <View style={styles.infoContainer}>

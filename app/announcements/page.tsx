@@ -10,7 +10,7 @@ import { useAnnouncements } from "@/lib/hooks/use-announcements";
 import Image from "next/image";
 
 interface Announcement {
-  _id: string;
+  id: string;
   title: string;
   content: string;
   excerpt?: string;
@@ -143,7 +143,7 @@ export default function AnnouncementsPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-8">
               {announcements.map((announcement, index) => (
                 <motion.div
-                  key={announcement._id}
+                  key={announcement.id}
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: index * 0.1 }}
@@ -210,7 +210,7 @@ export default function AnnouncementsPage() {
                         className="w-full bg-primary-950 hover:bg-primary-900 group-hover:text-white transition-colors"
                         asChild
                       >
-                        <a href={`/announcements/${announcement._id}`}>
+                        <a href={`/announcements/${announcement.id}`}>
                           Baca Selengkapnya
                         </a>
                       </Button>

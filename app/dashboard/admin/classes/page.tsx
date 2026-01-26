@@ -130,7 +130,7 @@ export default function AdminClassesPage() {
       if (selectedClass) {
         // Update
         await updateClassMutation.mutateAsync({
-          id: selectedClass._id,
+          id: selectedClass.id,
           data: formData,
         });
         setIsEditDialogOpen(false);
@@ -156,7 +156,7 @@ export default function AdminClassesPage() {
   const handleDeleteConfirm = async () => {
     if (selectedClass) {
       try {
-        await deleteClassMutation.mutateAsync(selectedClass._id);
+        await deleteClassMutation.mutateAsync(selectedClass.id);
         setSelectedClass(null);
       } catch (error) {
         console.error("Error deleting class:", error);
@@ -251,7 +251,7 @@ export default function AdminClassesPage() {
                   </TableRow>
                 ) : (
                   classes.map((c: any) => (
-                    <TableRow key={c._id}>
+                    <TableRow key={c.id}>
                       <TableCell className="font-medium">{c.name}</TableCell>
                       <TableCell>{c.majorName || "-"}</TableCell>
                       <TableCell>{c.homeroomTeacherName || "-"}</TableCell>
