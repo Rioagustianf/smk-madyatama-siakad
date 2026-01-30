@@ -3,6 +3,7 @@
 import React, { useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 import {
   Table,
   TableBody,
@@ -39,11 +40,19 @@ import {
   MoreHorizontal,
   Edit,
   Trash2,
+  Eye,
+  Calendar,
+  Clock,
+  User,
+  Users,
 } from "lucide-react";
 import { AdminTableCard } from "@/components/molecules/AdminTable/AdminTableCard";
 import { DeleteConfirmation } from "@/components/molecules/DeleteConfirmation/DeleteConfirmation";
 import { AchievementForm } from "@/components/molecules/AchievementForm/AchievementForm";
-import { ExtracurricularForm } from "@/components/molecules/ExtracurricularForm/ExtracurricularForm";
+import {
+  ExtracurricularForm,
+  ExtracurricularFormData,
+} from "@/components/molecules/ExtracurricularForm/ExtracurricularForm";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   useAchievements,
@@ -63,7 +72,9 @@ export default function AdminActivitiesPage() {
   >("achievements");
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedDetail, setSelectedDetail] = useState<any>(null);
 
   // Achievement form state
   const [achTitle, setAchTitle] = useState("");
@@ -75,10 +86,15 @@ export default function AdminActivitiesPage() {
   // Extracurricular form state
   const [exName, setExName] = useState("");
   const [exDesc, setExDesc] = useState("");
+  const [exImage, setExImage] = useState("");
+  const [exCoach, setExCoach] = useState("");
+  const [exTrainer, setExTrainer] = useState("");
+  const [exScheduleDay, setExScheduleDay] = useState("");
+  const [exScheduleTime, setExScheduleTime] = useState("");
 
   // Queries
   const { data: achievementsData, isLoading: isAchLoading } = useAchievements(
-    search ? { search } : undefined
+    search ? { search } : undefined,
   );
   const achievements = achievementsData?.data || [];
 
@@ -121,6 +137,11 @@ export default function AdminActivitiesPage() {
     setAchImage("");
     setExName("");
     setExDesc("");
+    setExImage("");
+    setExCoach("");
+    setExTrainer("");
+    setExScheduleDay("");
+    setExScheduleTime("");
     setSelectedId(null);
   };
 
@@ -131,7 +152,7 @@ export default function AdminActivitiesPage() {
   };
 
   const openEditAchievement = (item: any) => {
-    setSelectedId(item._id);
+    setSelectedId(item.id || item._id);
     setAchTitle(item.title || "");
     setAchCategory(item.category || "");
     setAchYear(item.year || "");
@@ -143,12 +164,22 @@ export default function AdminActivitiesPage() {
   };
 
   const openEditExtracurricular = (item: any) => {
-    setSelectedId(item._id);
-    setExName(item.name || "");
+    setSelectedId(item.id || item._id);
+    setExName(item.name || item.title || "");
     setExDesc(item.description || "");
+    setExImage(item.image || "");
+    setExCoach(item.coach || "");
+    setExTrainer(item.trainer || "");
+    setExScheduleDay(item.scheduleDay || "");
+    setExScheduleTime(item.scheduleTime || "");
     setIsAddOpen(false);
     setIsEditOpen(true);
     setActiveTab("extracurriculars");
+  };
+
+  const openDetail = (item: any) => {
+    setSelectedDetail(item);
+    setIsDetailOpen(true);
   };
 
   const onSubmitAdd = async (e: React.FormEvent) => {
@@ -165,6 +196,11 @@ export default function AdminActivitiesPage() {
       await createExtracurricular.mutateAsync({
         name: exName,
         description: exDesc,
+        image: exImage,
+        coach: exCoach,
+        trainer: exTrainer,
+        scheduleDay: exScheduleDay,
+        scheduleTime: exScheduleTime,
       });
     }
     setIsAddOpen(false);
@@ -191,6 +227,11 @@ export default function AdminActivitiesPage() {
         data: {
           name: exName,
           description: exDesc,
+          image: exImage,
+          coach: exCoach,
+          trainer: exTrainer,
+          scheduleDay: exScheduleDay,
+          scheduleTime: exScheduleTime,
         },
       });
     }
@@ -200,13 +241,37 @@ export default function AdminActivitiesPage() {
 
   const onDelete = async (
     item: any,
-    category: "achievements" | "extracurriculars"
+    category: "achievements" | "extracurriculars",
   ) => {
+    const itemId = item.id || item.id;
     if (category === "achievements") {
-      await deleteAchievement.mutateAsync(item._id);
+      await deleteAchievement.mutateAsync(itemId);
     } else {
-      await deleteExtracurricular.mutateAsync(item._id);
+      await deleteExtracurricular.mutateAsync(itemId);
     }
+  };
+
+  const extracurricularFormData: ExtracurricularFormData = {
+    name: exName,
+    description: exDesc,
+    image: exImage,
+    coach: exCoach,
+    trainer: exTrainer,
+    scheduleDay: exScheduleDay,
+    scheduleTime: exScheduleTime,
+  };
+
+  const handleExInputChange = (
+    field: keyof ExtracurricularFormData,
+    value: string,
+  ) => {
+    if (field === "name") setExName(value);
+    if (field === "description") setExDesc(value);
+    if (field === "image") setExImage(value);
+    if (field === "coach") setExCoach(value);
+    if (field === "trainer") setExTrainer(value);
+    if (field === "scheduleDay") setExScheduleDay(value);
+    if (field === "scheduleTime") setExScheduleTime(value);
   };
 
   return (
@@ -242,7 +307,7 @@ export default function AdminActivitiesPage() {
                   Tambah
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-md max-h-[80vh] overflow-y-auto">
+              <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2">
                     <Trophy className="h-5 w-5" />
@@ -286,11 +351,8 @@ export default function AdminActivitiesPage() {
                   />
                 ) : (
                   <ExtracurricularForm
-                    formData={{ name: exName, description: exDesc }}
-                    onInputChange={(field, value) => {
-                      if (field === "name") setExName(value);
-                      if (field === "description") setExDesc(value);
-                    }}
+                    formData={extracurricularFormData}
+                    onInputChange={handleExInputChange}
                     onSubmit={onSubmitAdd}
                     isLoading={isBusy}
                     submitText="Simpan"
@@ -300,7 +362,7 @@ export default function AdminActivitiesPage() {
               </DialogContent>
             </Dialog>
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-              <DialogContent className="sm:max-w-md max-h-[80vh] overflow-y-auto">
+              <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2">
                     <Edit className="h-5 w-5" />
@@ -338,11 +400,8 @@ export default function AdminActivitiesPage() {
                   />
                 ) : (
                   <ExtracurricularForm
-                    formData={{ name: exName, description: exDesc }}
-                    onInputChange={(field, value) => {
-                      if (field === "name") setExName(value);
-                      if (field === "description") setExDesc(value);
-                    }}
+                    formData={extracurricularFormData}
+                    onInputChange={handleExInputChange}
                     onSubmit={onSubmitEdit}
                     isLoading={isBusy}
                     submitText="Simpan Perubahan"
@@ -453,19 +512,20 @@ export default function AdminActivitiesPage() {
                   <TableHeader className="rounded-md">
                     <TableRow className="bg-primary-900 hover:bg-primary-900">
                       <TableHead className="text-white">Nama</TableHead>
-                      <TableHead className="text-white">Deskripsi</TableHead>
-                      <TableHead className="w-20 text-white">Aksi</TableHead>
+                      <TableHead className="text-white">Pembina</TableHead>
+                      <TableHead className="text-white">Jadwal</TableHead>
+                      <TableHead className="w-32 text-white">Aksi</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {isExLoading ? (
                       <TableRow>
-                        <TableCell colSpan={3}>Memuat...</TableCell>
+                        <TableCell colSpan={4}>Memuat...</TableCell>
                       </TableRow>
                     ) : extracurriculars.length === 0 ? (
                       <TableRow>
                         <TableCell
-                          colSpan={3}
+                          colSpan={4}
                           className="text-center text-muted-foreground"
                         >
                           Belum ada data
@@ -475,13 +535,23 @@ export default function AdminActivitiesPage() {
                       extracurriculars.map((x: any) => (
                         <TableRow key={x._id} className="hover:bg-muted/50">
                           <TableCell className="font-medium">
-                            {x.name}
+                            {x.name || x.title}
                           </TableCell>
-                          <TableCell className="max-w-[500px] truncate">
-                            {x.description || "-"}
+                          <TableCell>{x.coach || "-"}</TableCell>
+                          <TableCell>
+                            {x.scheduleDay && x.scheduleTime
+                              ? `${x.scheduleDay}, ${x.scheduleTime}`
+                              : x.scheduleDay || x.scheduleTime || "-"}
                           </TableCell>
                           <TableCell>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => openDetail(x)}
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -495,14 +565,13 @@ export default function AdminActivitiesPage() {
                                   openEditExtracurricular(x);
                                 }}
                               >
-                                <Edit className="h-4 w-4 mr-1" />
-                                Edit
+                                <Edit className="h-4 w-4" />
                               </Button>
                               <DeleteConfirmation
                                 onConfirm={() =>
                                   onDelete(x, "extracurriculars")
                                 }
-                                itemName={x.name}
+                                itemName={x.name || x.title}
                                 trigger={
                                   <Button
                                     variant="ghost"
@@ -524,6 +593,103 @@ export default function AdminActivitiesPage() {
             </AdminTableCard>
           </TabsContent>
         </Tabs>
+
+        {/* Detail Modal for Extracurricular */}
+        <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
+          <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-xl">
+                {selectedDetail?.name || selectedDetail?.title}
+              </DialogTitle>
+            </DialogHeader>
+            {selectedDetail && (
+              <div className="space-y-4">
+                {selectedDetail.image && (
+                  <div className="relative w-full h-48 rounded-lg overflow-hidden bg-muted">
+                    <Image
+                      src={selectedDetail.image}
+                      alt={selectedDetail.name || selectedDetail.title}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                )}
+
+                {selectedDetail.description && (
+                  <div>
+                    <h4 className="font-semibold text-sm text-muted-foreground mb-1">
+                      Deskripsi
+                    </h4>
+                    <p className="text-sm">{selectedDetail.description}</p>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-4">
+                  {selectedDetail.coach && (
+                    <div className="flex items-center gap-2">
+                      <User className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">Pembina</p>
+                        <p className="text-sm font-medium">
+                          {selectedDetail.coach}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  {selectedDetail.trainer && (
+                    <div className="flex items-center gap-2">
+                      <Users className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">Pelatih</p>
+                        <p className="text-sm font-medium">
+                          {selectedDetail.trainer}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  {selectedDetail.scheduleDay && (
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">
+                          Hari Latihan
+                        </p>
+                        <p className="text-sm font-medium">
+                          {selectedDetail.scheduleDay}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  {selectedDetail.scheduleTime && (
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">
+                          Jam Latihan
+                        </p>
+                        <p className="text-sm font-medium">
+                          {selectedDetail.scheduleTime}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setIsDetailOpen(false)}
+                className="border border-primary-600"
+              >
+                Tutup
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

@@ -29,46 +29,51 @@ async function verifyAdminToken(request: NextRequest) {
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const repo = getActivitiesRepository();
     const doc = await repo.findById(id);
     if (!doc)
       return NextResponse.json(
         { success: false, message: "Data tidak ditemukan" },
-        { status: 404 }
+        { status: 404 },
       );
     return NextResponse.json({ success: true, data: doc });
   } catch (error) {
     const err = handleDatabaseError(error);
     return NextResponse.json(
       { success: false, message: err.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const auth = await verifyAdminToken(request);
     if (auth.error)
       return NextResponse.json(
         { success: false, message: auth.error },
-        { status: auth.status }
+        { status: auth.status },
       );
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
+    // Convert name to title since Activity model uses 'title' field
+    const { name, ...rest } = body;
+    const updateData = name
+      ? { ...rest, title: name, kind: "extracurricular" }
+      : { ...rest, kind: "extracurricular" };
     const repo = getActivitiesRepository();
-    const updated = await repo.update(id, { ...body, kind: "extracurricular" });
+    const updated = await repo.update(id, updateData);
     if (!updated)
       return NextResponse.json(
         { success: false, message: "Data tidak ditemukan" },
-        { status: 404 }
+        { status: 404 },
       );
     return NextResponse.json({
       success: true,
@@ -78,27 +83,27 @@ export async function PUT(
     const err = handleDatabaseError(error);
     return NextResponse.json(
       { success: false, message: err.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const auth = await verifyAdminToken(request);
     if (auth.error)
       return NextResponse.json(
         { success: false, message: auth.error },
-        { status: auth.status }
+        { status: auth.status },
       );
-    const { id } = params;
+    const { id } = await params;
     if (!id)
       return NextResponse.json(
         { success: false, message: "ID tidak valid" },
-        { status: 400 }
+        { status: 400 },
       );
     const repo = getActivitiesRepository();
     await repo.remove(id);
@@ -110,7 +115,7 @@ export async function DELETE(
     const err = handleDatabaseError(error);
     return NextResponse.json(
       { success: false, message: err.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

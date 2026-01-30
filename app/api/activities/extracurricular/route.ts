@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
     const err = handleDatabaseError(error);
     return NextResponse.json(
       { success: false, message: err.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -66,19 +66,32 @@ export async function POST(request: NextRequest) {
     if (auth.error)
       return NextResponse.json(
         { success: false, message: auth.error },
-        { status: auth.status }
+        { status: auth.status },
       );
     const body = await request.json();
-    const { name, description } = body;
+    const {
+      name,
+      description,
+      image,
+      coach,
+      trainer,
+      scheduleDay,
+      scheduleTime,
+    } = body;
     if (!name)
       return NextResponse.json(
         { success: false, message: "Nama diperlukan" },
-        { status: 400 }
+        { status: 400 },
       );
     const repo = getActivitiesRepository();
     const created = await repo.create({
-      name,
+      title: name, // Activity model uses 'title' field
       description: description || "",
+      image: image || "",
+      coach: coach || "",
+      trainer: trainer || "",
+      scheduleDay: scheduleDay || "",
+      scheduleTime: scheduleTime || "",
       kind: "extracurricular",
     });
     return NextResponse.json({
@@ -90,7 +103,7 @@ export async function POST(request: NextRequest) {
     const err = handleDatabaseError(error);
     return NextResponse.json(
       { success: false, message: err.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
