@@ -3,6 +3,7 @@ export type FindStaffParams = {
   department?: string;
   position?: string;
   role?: string;
+  excludeRole?: string; // Exclude specific role
   level?: string;
   isActive?: boolean;
   page?: number;
@@ -16,5 +17,3 @@ export interface StaffRepository {
   update(id: string, payload: any): Promise<any>;
   remove(id: string): Promise<void>;
 }
-
-

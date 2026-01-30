@@ -375,4 +375,5 @@ export interface SearchFilters {
   teacherId?: string;
   isActive?: boolean | string;
   role?: string;
+  excludeRole?: string; // Exclude specific role
 }

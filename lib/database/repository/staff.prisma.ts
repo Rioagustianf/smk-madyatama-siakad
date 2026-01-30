@@ -14,6 +14,8 @@ export const staffPrismaRepository: StaffRepository = {
         { department: { contains: params.search } },
       ];
     if (params.department) where.department = params.department;
+    if (params.role) where.role = params.role;
+    if (params.excludeRole) where.NOT = { role: params.excludeRole };
     if (typeof params.isActive === "boolean") where.isActive = params.isActive;
     const [data, total] = await Promise.all([
       prisma.staff.findMany({

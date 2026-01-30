@@ -73,6 +73,7 @@ export default function AdminStaffPage() {
     search,
     page: 1,
     limit: 50,
+    excludeRole: "finance", // Exclude finance staff - they are managed in manage-staff page
   });
   const staffList: Staff[] = (data as any)?.data || [];
   const createMutation = useCreateStaff();

@@ -45,6 +45,7 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get("search") || "";
     const position = searchParams.get("position") || "";
     const role = searchParams.get("role") || ""; // e.g., teacher
+    const excludeRole = searchParams.get("excludeRole") || ""; // Exclude specific role
     const level = searchParams.get("level") || ""; // organizational level
     const isActive = searchParams.get("isActive");
     const page = parseInt(searchParams.get("page") || "1");
@@ -56,6 +57,7 @@ export async function GET(request: NextRequest) {
       search,
       position: position || undefined,
       role: role || undefined,
+      excludeRole: excludeRole || undefined,
       level: level || undefined,
       isActive:
         isActive !== null && isActive !== undefined
