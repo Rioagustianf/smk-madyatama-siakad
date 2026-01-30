@@ -16,9 +16,9 @@ export const schedulesPrismaRepository: SchedulesRepository = {
     if (params.day) where.day = params.day;
     if (params.search) {
       where.OR = [
-        { class: { contains: params.search, mode: "insensitive" } },
-        { subject: { contains: params.search, mode: "insensitive" } },
-        { teacher: { contains: params.search, mode: "insensitive" } },
+        { class: { contains: params.search } },
+        { subject: { contains: params.search } },
+        { teacher: { contains: params.search } },
       ];
     }
     

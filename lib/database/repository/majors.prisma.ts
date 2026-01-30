@@ -11,9 +11,9 @@ export const majorsPrismaRepository: MajorsRepository = {
     const where = search
       ? {
           OR: [
-            { name: { contains: search, mode: "insensitive" } },
-            { code: { contains: search, mode: "insensitive" } },
-            { description: { contains: search, mode: "insensitive" } },
+            { name: { contains: search } },
+            { code: { contains: search } },
+            { description: { contains: search } },
           ],
         }
       : {};
@@ -60,15 +60,27 @@ export const majorsPrismaRepository: MajorsRepository = {
           code: payload.code,
           description: payload.description || "",
           image: payload.image || "",
-          facilities: Array.isArray(payload.facilities) ? payload.facilities : [],
-          careerProspects: Array.isArray(payload.careerProspects) ? payload.careerProspects : [],
+          facilities: Array.isArray(payload.facilities)
+            ? payload.facilities
+            : [],
+          careerProspects: Array.isArray(payload.careerProspects)
+            ? payload.careerProspects
+            : [],
+          headName: payload.headName || "",
+          headPhoto: payload.headPhoto || "",
+          vision: payload.vision || "",
+          mission: payload.mission || "",
+          totalAlumni: Number(payload.totalAlumni) || 0,
+          employedAlumni: Number(payload.employedAlumni) || 0,
           totalStudents: 0,
         },
       });
       return created;
     } catch (err: any) {
       if (err?.code === "P2002") {
-        const field = Array.isArray(err?.meta?.target) ? err.meta.target[0] : (err?.meta?.target || "code");
+        const field = Array.isArray(err?.meta?.target)
+          ? err.meta.target[0]
+          : err?.meta?.target || "code";
         const dup = new Error("Unique constraint failed");
         (dup as any).code = 11000;
         (dup as any).keyPattern = { [field]: 1 };
@@ -87,7 +99,15 @@ export const majorsPrismaRepository: MajorsRepository = {
         description: payload.description || "",
         image: payload.image || "",
         facilities: Array.isArray(payload.facilities) ? payload.facilities : [],
-        careerProspects: Array.isArray(payload.careerProspects) ? payload.careerProspects : [],
+        careerProspects: Array.isArray(payload.careerProspects)
+          ? payload.careerProspects
+          : [],
+        headName: payload.headName || "",
+        headPhoto: payload.headPhoto || "",
+        vision: payload.vision || "",
+        mission: payload.mission || "",
+        totalAlumni: Number(payload.totalAlumni) || 0,
+        employedAlumni: Number(payload.employedAlumni) || 0,
         updatedAt: new Date(),
       },
     });
@@ -97,5 +117,3 @@ export const majorsPrismaRepository: MajorsRepository = {
     await prisma.major.delete({ where: { id } });
   },
 };
-
-

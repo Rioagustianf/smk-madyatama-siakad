@@ -62,8 +62,20 @@ export async function PUT(
 
     const { id } = await params;
     const body = await request.json();
-    const { name, code, description, image, facilities, careerProspects } =
-      body;
+    const {
+      name,
+      code,
+      description,
+      image,
+      facilities,
+      careerProspects,
+      headName,
+      headPhoto,
+      vision,
+      mission,
+      totalAlumni,
+      employedAlumni,
+    } = body;
 
     // Validation
     if (!name || !code) {
@@ -95,6 +107,12 @@ export async function PUT(
       image: image || "",
       facilities: facilities || [],
       careerProspects: careerProspects || [],
+      headName: headName || "",
+      headPhoto: headPhoto || "",
+      vision: vision || "",
+      mission: mission || "",
+      totalAlumni: totalAlumni || 0,
+      employedAlumni: employedAlumni || 0,
     };
 
     const updatedMajor = await repo.update(id, updateData);

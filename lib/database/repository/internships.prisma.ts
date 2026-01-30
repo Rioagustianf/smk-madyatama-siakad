@@ -13,9 +13,9 @@ export const internshipPartnersPrismaRepository: InternshipPartnersRepository = 
     const skip = (page - 1) * limit;
     const where: any = {};
     if (params.search) where.OR = [
-      { name: { contains: params.search, mode: "insensitive" } },
-      { address: { contains: params.search, mode: "insensitive" } },
-      { contact: { contains: params.search, mode: "insensitive" } },
+      { name: { contains: params.search } },
+      { address: { contains: params.search } },
+      { contact: { contains: params.search } },
     ];
     if (typeof params.isActive === "boolean") where.isActive = params.isActive;
     const [data, total] = await Promise.all([

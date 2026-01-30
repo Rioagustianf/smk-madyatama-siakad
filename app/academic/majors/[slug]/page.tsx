@@ -21,15 +21,14 @@ export default function MajorDetailPage() {
   const majors = data?.data || [];
 
   const major = useMemo(() => {
-    // Match by code (converted from slug) or by normalized name
     const codeGuess = fromSlug(slug);
     const byCode = majors.find(
-      (m: any) => (m.code || "").toLowerCase() === codeGuess.toLowerCase()
+      (m: any) => (m.code || "").toLowerCase() === codeGuess.toLowerCase(),
     );
     if (byCode) return byCode;
     const normalized = slug.replace(/-/g, " ");
     return majors.find(
-      (m: any) => (m.name || "").toLowerCase() === normalized.toLowerCase()
+      (m: any) => (m.name || "").toLowerCase() === normalized.toLowerCase(),
     );
   }, [majors, slug]);
 
@@ -87,6 +86,85 @@ export default function MajorDetailPage() {
                 <Typography variant="body1" color="muted" className="mb-8">
                   {major.description}
                 </Typography>
+
+                {/* Sambutan Ketua Program Studi */}
+                {(major as any).headName && (
+                  <div className="mb-10 bg-gradient-to-br from-primary-50 to-white rounded-2xl p-6 border border-primary-100">
+                    <Typography variant="h3" className="mb-6 text-primary-900">
+                      Sambutan Ketua Program Studi
+                    </Typography>
+                    <div className="grid md:grid-cols-[300px,1fr] gap-6">
+                      {/* Foto Ketua Prodi */}
+                      {(major as any).headPhoto && (
+                        <div className="relative w-full aspect-[3/4] rounded-xl overflow-hidden shadow-lg">
+                          <Image
+                            src={(major as any).headPhoto}
+                            alt={(major as any).headName}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                      )}
+
+                      {/* Konten */}
+                      <div className="space-y-4">
+                        <div>
+                          <Typography
+                            variant="h4"
+                            className="text-primary-900 mb-1"
+                          >
+                            {(major as any).headName}
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            color="muted"
+                            className="italic"
+                          >
+                            Ketua Program Studi {major.name}
+                          </Typography>
+                        </div>
+
+                        {/* Visi */}
+                        {(major as any).vision && (
+                          <div className="space-y-2">
+                            <Typography
+                              variant="subtitle2"
+                              className="text-primary-800 font-semibold"
+                            >
+                              Visi
+                            </Typography>
+                            <Typography
+                              variant="body2"
+                              color="muted"
+                              className="leading-relaxed italic"
+                            >
+                              "{(major as any).vision}"
+                            </Typography>
+                          </div>
+                        )}
+
+                        {/* Misi */}
+                        {(major as any).mission && (
+                          <div className="space-y-2">
+                            <Typography
+                              variant="subtitle2"
+                              className="text-primary-800 font-semibold"
+                            >
+                              Misi
+                            </Typography>
+                            <Typography
+                              variant="body2"
+                              color="muted"
+                              className="leading-relaxed whitespace-pre-line"
+                            >
+                              {(major as any).mission}
+                            </Typography>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Subjects */}
                 {Array.isArray(major.subjects) && major.subjects.length > 0 && (

@@ -7,7 +7,7 @@ export const classesPrismaRepository: ClassesRepository = {
     const limit = Math.max(1, params.limit || 10);
     const skip = (page - 1) * limit;
     const where: any = {};
-    if (params.search) where.name = { contains: params.search, mode: "insensitive" };
+    if (params.search) where.name = { contains: params.search };
     if (params.majorId) where.majorId = params.majorId;
     if (params.homeroomTeacherId) where.homeroomTeacherId = params.homeroomTeacherId;
     if (typeof params.isActive === "boolean") where.isActive = params.isActive;

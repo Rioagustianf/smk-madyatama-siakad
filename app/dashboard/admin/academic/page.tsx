@@ -19,7 +19,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Search, Plus, GraduationCap, Edit, Loader2 } from "lucide-react";
+import {
+  Search,
+  Plus,
+  GraduationCap,
+  Edit,
+  Loader2,
+  Users,
+} from "lucide-react";
 import { AdminTableCard } from "@/components/molecules/AdminTable/AdminTableCard";
 import { MajorForm } from "@/components/molecules/MajorForm/MajorForm";
 import { ActionButtons } from "@/components/molecules/ActionButtons/ActionButtons";
@@ -38,13 +45,25 @@ export default function AdminAcademicPage() {
   const [selectedMajor, setSelectedMajor] = useState<Major | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isAlumniDialogOpen, setIsAlumniDialogOpen] = useState(false);
+  const [alumniStats, setAlumniStats] = useState<{
+    totalAlumni: number | string;
+    employedAlumni: number | string;
+  }>({
+    totalAlumni: 0,
+    employedAlumni: 0,
+  });
   const [formData, setFormData] = useState({
     name: "",
     code: "",
     description: "",
     image: "",
-    facilities: [] as string[],
-    careerProspects: [] as string[],
+    facilities: "",
+    careerProspects: "",
+    headName: "",
+    headPhoto: "",
+    vision: "",
+    mission: "",
   });
 
   // API hooks
@@ -68,7 +87,20 @@ export default function AdminAcademicPage() {
   const handleCreateMajor = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await createMajorMutation.mutateAsync(formData as any);
+      const payload = {
+        ...formData,
+        facilities: formData.facilities
+          //@ts-ignore
+          .split(",")
+          .map((item) => item.trim())
+          .filter(Boolean),
+        careerProspects: formData.careerProspects
+          //@ts-ignore
+          .split(",")
+          .map((item) => item.trim())
+          .filter(Boolean),
+      };
+      await createMajorMutation.mutateAsync(payload as any);
       resetForm();
       setIsAddDialogOpen(false);
     } catch (error) {
@@ -82,9 +114,22 @@ export default function AdminAcademicPage() {
 
     try {
       const majorId = selectedMajor.id || (selectedMajor as any)._id;
+      const payload = {
+        ...formData,
+        facilities: formData.facilities
+          //@ts-ignore
+          .split(",")
+          .map((item) => item.trim())
+          .filter(Boolean),
+        careerProspects: formData.careerProspects
+          //@ts-ignore
+          .split(",")
+          .map((item) => item.trim())
+          .filter(Boolean),
+      };
       await updateMajorMutation.mutateAsync({
         id: majorId,
-        data: formData,
+        data: payload as any,
       });
       // Reset form and close dialog
       setFormData({
@@ -92,8 +137,12 @@ export default function AdminAcademicPage() {
         code: "",
         description: "",
         image: "",
-        facilities: [],
-        careerProspects: [],
+        facilities: "",
+        careerProspects: "",
+        headName: "",
+        headPhoto: "",
+        vision: "",
+        mission: "",
       });
       setSelectedMajor(null);
       setIsEditDialogOpen(false);
@@ -115,14 +164,65 @@ export default function AdminAcademicPage() {
       code: major.code,
       description: major.description,
       image: major.image || "",
-      facilities: Array.isArray(major.facilities) ? major.facilities : [],
+      facilities: Array.isArray(major.facilities)
+        ? major.facilities.join(", ")
+        : "",
       careerProspects: Array.isArray(major.careerProspects)
-        ? major.careerProspects
-        : [],
+        ? major.careerProspects.join(", ")
+        : "",
+      headName: (major as any).headName || "",
+      headPhoto: (major as any).headPhoto || "",
+      vision: (major as any).vision || "",
+      mission: (major as any).mission || "",
     };
     await debugLog("Setting form data to", newFormData);
     setFormData(newFormData);
     setIsEditDialogOpen(true);
+  };
+
+  const handleOpenAlumniDialog = (major: Major) => {
+    setSelectedMajor(major);
+    setAlumniStats({
+      totalAlumni: Number((major as any).totalAlumni) || 0,
+      employedAlumni: Number((major as any).employedAlumni) || 0,
+    });
+    setIsAlumniDialogOpen(true);
+  };
+
+  const handleUpdateAlumniStats = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedMajor) return;
+
+    try {
+      const majorId = selectedMajor.id || (selectedMajor as any)._id;
+      // Construct payload ensuring existing data persists
+      const payload = {
+        name: selectedMajor.name,
+        code: selectedMajor.code,
+        description: selectedMajor.description,
+        image: selectedMajor.image || "",
+        facilities: Array.isArray(selectedMajor.facilities)
+          ? selectedMajor.facilities
+          : [],
+        careerProspects: Array.isArray(selectedMajor.careerProspects)
+          ? selectedMajor.careerProspects
+          : [],
+        headName: (selectedMajor as any).headName || "",
+        headPhoto: (selectedMajor as any).headPhoto || "",
+        vision: (selectedMajor as any).vision || "",
+        mission: (selectedMajor as any).mission || "",
+        totalAlumni: Number(alumniStats.totalAlumni),
+        employedAlumni: Number(alumniStats.employedAlumni),
+      };
+
+      await updateMajorMutation.mutateAsync({
+        id: majorId,
+        data: payload as any,
+      });
+
+      setIsAlumniDialogOpen(false);
+      setSelectedMajor(null);
+    } catch (error) {}
   };
 
   const handleEditDialogChange = async (open: boolean) => {
@@ -140,8 +240,12 @@ export default function AdminAcademicPage() {
       code: "",
       description: "",
       image: "",
-      facilities: [],
-      careerProspects: [],
+      facilities: "",
+      careerProspects: "",
+      headName: "",
+      headPhoto: "",
+      vision: "",
+      mission: "",
     });
     setSelectedMajor(null);
     setIsAddDialogOpen(false);
@@ -206,6 +310,82 @@ export default function AdminAcademicPage() {
                 />
               </DialogContent>
             </Dialog>
+
+            <Dialog
+              open={isAlumniDialogOpen}
+              onOpenChange={setIsAlumniDialogOpen}
+            >
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Update Statistik Alumni</DialogTitle>
+                  <DialogDescription>
+                    Perbarui data statistik alumni untuk jurusan{" "}
+                    {selectedMajor?.name}
+                  </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={handleUpdateAlumniStats} className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">
+                        Total Alumni
+                      </label>
+                      <Input
+                        type="number"
+                        min="0"
+                        value={alumniStats.totalAlumni}
+                        onChange={(e) =>
+                          setAlumniStats((prev) => ({
+                            ...prev,
+                            totalAlumni:
+                              e.target.value === ""
+                                ? ""
+                                : parseInt(e.target.value),
+                          }))
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">
+                        Alumni Bekerja
+                      </label>
+                      <Input
+                        type="number"
+                        min="0"
+                        value={alumniStats.employedAlumni}
+                        onChange={(e) =>
+                          setAlumniStats((prev) => ({
+                            ...prev,
+                            employedAlumni:
+                              e.target.value === ""
+                                ? ""
+                                : parseInt(e.target.value),
+                          }))
+                        }
+                      />
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-3 pt-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setIsAlumniDialogOpen(false)}
+                    >
+                      Batal
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={updateMajorMutation.isPending}
+                      className="bg-primary-950 text-white"
+                    >
+                      {updateMajorMutation.isPending && (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      )}
+                      Simpan
+                    </Button>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
 
@@ -237,6 +417,9 @@ export default function AdminAcademicPage() {
                   <TableHead className="text-white">Nama</TableHead>
                   <TableHead className="text-white">Kode</TableHead>
                   <TableHead className="text-white">Deskripsi</TableHead>
+                  <TableHead className="text-white w-48">
+                    Statistik Alumni
+                  </TableHead>
                   <TableHead className="w-20 text-white">Aksi</TableHead>
                 </TableRow>
               </TableHeader>
@@ -266,6 +449,27 @@ export default function AdminAcademicPage() {
                       </TableCell>
                       <TableCell className="max-w-xs truncate">
                         {major.description || "-"}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center justify-between gap-2 p-2 bg-muted/30 rounded-md border border-border">
+                          <div className="flex flex-col text-xs">
+                            <span className="font-medium text-primary">
+                              Total: {(major as any).totalAlumni || 0}
+                            </span>
+                            <span className="text-green-600">
+                              Kerja: {(major as any).employedAlumni || 0}
+                            </span>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleOpenAlumniDialog(major)}
+                            className="h-6 w-6 hover:bg-white hover:shadow-sm"
+                            title="Update Statistik"
+                          >
+                            <Edit className="h-3 w-3 text-muted-foreground" />
+                          </Button>
+                        </div>
                       </TableCell>
                       <TableCell>
                         <ActionButtons

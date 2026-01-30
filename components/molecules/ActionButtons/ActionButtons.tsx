@@ -22,8 +22,12 @@ interface MajorFormData {
   code: string;
   description: string;
   image: string;
-  facilities: string[];
-  careerProspects: string[];
+  facilities: string;
+  careerProspects: string;
+  headName: string;
+  headPhoto: string;
+  vision: string;
+  mission: string;
 }
 
 interface SubjectFormData {
@@ -102,15 +106,15 @@ export function ActionButtons({
               {isSubject
                 ? "Edit Mata Pelajaran"
                 : isGallery
-                ? "Edit Galeri"
-                : "Edit Program Keahlian"}
+                  ? "Edit Galeri"
+                  : "Edit Program Keahlian"}
             </DialogTitle>
             <DialogDescription>
               {isSubject
                 ? "Perbarui informasi mata pelajaran"
                 : isGallery
-                ? "Perbarui informasi galeri"
-                : "Perbarui informasi program keahlian"}
+                  ? "Perbarui informasi galeri"
+                  : "Perbarui informasi program keahlian"}
             </DialogDescription>
           </DialogHeader>
           {isSubject ? (

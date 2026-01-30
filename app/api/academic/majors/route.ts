@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
     const errorResponse = handleDatabaseError(error);
     return NextResponse.json(
       { success: false, message: errorResponse.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -45,13 +45,25 @@ export async function POST(request: NextRequest) {
     if (authResult.error) {
       return NextResponse.json(
         { success: false, message: authResult.error },
-        { status: authResult.status }
+        { status: authResult.status },
       );
     }
 
     const body = await request.json();
-    const { name, code, description, image, facilities, careerProspects } =
-      body;
+    const {
+      name,
+      code,
+      description,
+      image,
+      facilities,
+      careerProspects,
+      headName,
+      headPhoto,
+      vision,
+      mission,
+      totalAlumni,
+      employedAlumni,
+    } = body;
 
     // Validation
     if (!name || !code) {
@@ -60,7 +72,7 @@ export async function POST(request: NextRequest) {
           success: false,
           message: "Nama dan kode program keahlian diperlukan",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -73,6 +85,12 @@ export async function POST(request: NextRequest) {
       image,
       facilities,
       careerProspects,
+      headName,
+      headPhoto,
+      vision,
+      mission,
+      totalAlumni,
+      employedAlumni,
     });
 
     return NextResponse.json({
@@ -85,7 +103,7 @@ export async function POST(request: NextRequest) {
     const errorResponse = handleDatabaseError(error);
     return NextResponse.json(
       { success: false, message: errorResponse.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

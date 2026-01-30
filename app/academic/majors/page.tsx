@@ -33,7 +33,7 @@ export default function MajorsPage() {
   const totalStudents = majors.reduce(
     (acc: number, m: any) =>
       acc + (typeof m.totalStudents === "number" ? m.totalStudents : 0),
-    0
+    0,
   );
 
   return (
@@ -223,6 +223,26 @@ export default function MajorsPage() {
                           </div>
                         )}
 
+                      {/* Alumni Stats */}
+                      <div className="grid grid-cols-2 gap-4 mb-6 pt-4 border-t border-border">
+                        <div className="text-center p-2 bg-primary/5 rounded-lg">
+                          <div className="text-xl font-bold text-primary">
+                            {major.totalAlumni || 0}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            Alumni Lulus
+                          </div>
+                        </div>
+                        <div className="text-center p-2 bg-green-500/10 rounded-lg">
+                          <div className="text-xl font-bold text-green-600">
+                            {major.employedAlumni || 0}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            Sudah Bekerja
+                          </div>
+                        </div>
+                      </div>
+
                       {/* CTA Button */}
                       <Button
                         variant="outline"
@@ -231,7 +251,7 @@ export default function MajorsPage() {
                       >
                         <Link
                           href={`/academic/majors/${toSlug(
-                            major.code || major.name
+                            major.code || major.name,
                           )}`}
                         >
                           <div className="flex items-center justify-center">

@@ -8,9 +8,9 @@ export const teachersPrismaRepository: TeachersRepository = {
     const where: any = { };
     if (search) {
       where.OR = [
-        { name: { contains: search, mode: "insensitive" } },
-        { username: { contains: search, mode: "insensitive" } },
-        { education: { contains: search, mode: "insensitive" } },
+        { name: { contains: search } },
+        { username: { contains: search } },
+        { education: { contains: search } },
       ];
     }
     if (typeof isActive === "boolean") where.isActive = isActive;

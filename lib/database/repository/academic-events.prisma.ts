@@ -13,8 +13,8 @@ export const academicEventsPrismaRepository: AcademicEventsRepository = {
 
     if (params.search) {
       where.OR = [
-        { title: { contains: params.search, mode: "insensitive" } },
-        { description: { contains: params.search, mode: "insensitive" } },
+        { title: { contains: params.search } },
+        { description: { contains: params.search } },
       ];
     }
 

@@ -15,6 +15,12 @@ model Major {
   image           String?
   facilities      Json?
   careerProspects Json?
+  headName        String?  // Nama Ketua Program Studi
+  headPhoto       String?  // Foto Ketua Program Studi
+  vision          String?  @db.Text // Visi Program Studi
+  mission         String?  @db.Text // Misi Program Studi
+  totalAlumni     Int      @default(0) // Jumlah seluruh alumni
+  employedAlumni  Int      @default(0) // Jumlah alumni yang sudah bekerja
   totalStudents   Int      @default(0)
   isActive        Boolean? @default(true)
   createdAt       DateTime @default(now())

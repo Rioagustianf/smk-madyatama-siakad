@@ -8,8 +8,8 @@ export const adminsPrismaRepository: AdminsRepository = {
     const skip = (page - 1) * limit;
     const where: any = {};
     if (params.search) where.OR = [
-      { name: { contains: params.search, mode: "insensitive" } },
-      { username: { contains: params.search, mode: "insensitive" } },
+      { name: { contains: params.search } },
+      { username: { contains: params.search } },
     ];
     if (typeof params.isActive === "boolean") where.isActive = params.isActive;
     const [data, total] = await Promise.all([

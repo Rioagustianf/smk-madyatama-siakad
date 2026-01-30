@@ -13,8 +13,12 @@ interface MajorFormData {
   code: string;
   description: string;
   image: string;
-  facilities: string[];
-  careerProspects: string[];
+  facilities: string;
+  careerProspects: string;
+  headName: string;
+  headPhoto: string;
+  vision: string;
+  mission: string;
 }
 
 interface MajorFormProps {
@@ -60,6 +64,7 @@ export function MajorForm({
           onChange={(value) => onInputChange("image", value)}
           label="Gambar Program Keahlian"
           placeholder="Pilih gambar atau masukkan URL"
+          storagePath="majors"
         />
         <Input
           placeholder="Deskripsi Program"
@@ -67,19 +72,65 @@ export function MajorForm({
           onChange={(e) => onInputChange("description", e.target.value)}
           className="border border-primary-600"
         />
+
+        {/* Ketua Program Studi Section */}
+        <div className="space-y-3 border-t pt-4 mt-2">
+          <h3 className="font-semibold text-sm text-gray-700">
+            Informasi Ketua Program Studi
+          </h3>
+          <Input
+            placeholder="Nama Ketua Program Studi"
+            value={formData.headName}
+            onChange={(e) => onInputChange("headName", e.target.value)}
+            className="border border-primary-600"
+          />
+          <ImageUpload
+            value={formData.headPhoto}
+            onChange={(value) => onInputChange("headPhoto", value)}
+            label="Foto Ketua Program Studi"
+            placeholder="Pilih foto atau masukkan URL"
+            storagePath="majors/heads"
+          />
+        </div>
+
+        {/* Visi & Misi Section */}
+        <div className="space-y-3 border-t pt-4 mt-2">
+          <h3 className="font-semibold text-sm text-gray-700">Visi & Misi</h3>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">
+              Visi Program Studi
+            </label>
+            <Textarea
+              placeholder="Contoh: Menjadi program studi unggulan di bidang..."
+              value={formData.vision}
+              onChange={(e) => onInputChange("vision", e.target.value)}
+              rows={4}
+              className="border border-primary-600"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">
+              Misi Program Studi
+            </label>
+            <Textarea
+              placeholder="Contoh: 1. Menyelenggarakan pendidikan berkualitas&#10;2. Mengembangkan..."
+              value={formData.mission}
+              onChange={(e) => onInputChange("mission", e.target.value)}
+              rows={5}
+              className="border border-primary-600"
+            />
+          </div>
+        </div>
+
+        {/* Fasilitas & Prospek Karir */}
         <div className="space-y-2">
           <label className="text-sm font-medium text-gray-700">
             Fasilitas (pisahkan dengan koma)
           </label>
           <Textarea
             placeholder="Lab Komputer, Perpustakaan, Workshop, dll..."
-            value={formData.facilities.join(", ")}
-            onChange={(e) =>
-              onInputChange(
-                "facilities",
-                e.target.value.split(", ").filter((item) => item.trim())
-              )
-            }
+            value={formData.facilities}
+            onChange={(e) => onInputChange("facilities", e.target.value)}
             rows={3}
             className="border border-primary-600"
           />
@@ -90,13 +141,8 @@ export function MajorForm({
           </label>
           <Textarea
             placeholder="Software Developer, Network Administrator, dll..."
-            value={formData.careerProspects.join(", ")}
-            onChange={(e) =>
-              onInputChange(
-                "careerProspects",
-                e.target.value.split(", ").filter((item) => item.trim())
-              )
-            }
+            value={formData.careerProspects}
+            onChange={(e) => onInputChange("careerProspects", e.target.value)}
             rows={3}
             className="border border-primary-600"
           />

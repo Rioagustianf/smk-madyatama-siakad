@@ -8,9 +8,9 @@ export const galleryPrismaRepository: GalleryRepository = {
     const skip = (page - 1) * limit;
     const where: any = {};
     if (params.search) where.OR = [
-      { title: { contains: params.search, mode: "insensitive" } },
-      { description: { contains: params.search, mode: "insensitive" } },
-      { category: { contains: params.search, mode: "insensitive" } },
+      { title: { contains: params.search } },
+      { description: { contains: params.search } },
+      { category: { contains: params.search } },
     ];
     if (params.category) where.category = params.category;
     if (typeof params.isPublished === "boolean") where.isPublished = params.isPublished;
