@@ -138,7 +138,7 @@ export default function MajorDetailPage() {
                               color="muted"
                               className="leading-relaxed italic"
                             >
-                              "{(major as any).vision}"
+                              &quot;{(major as any).vision}&quot;
                             </Typography>
                           </div>
                         )}
