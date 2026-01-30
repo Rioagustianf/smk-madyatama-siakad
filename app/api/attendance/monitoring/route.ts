@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     if (!user) {
       return NextResponse.json(
         { success: false, message: "Unauthorized" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -32,16 +32,29 @@ export async function GET(request: NextRequest) {
     const dateStr = searchParams.get("date");
     const classFilter = searchParams.get("class");
 
-    // Get date
-    let dateFilter = new Date();
-    if (dateStr) {
-      dateFilter = new Date(dateStr);
-    }
-    dateFilter.setHours(0, 0, 0, 0);
+    // Parse the date string into start and end of day for proper querying
+    let startOfDay: Date;
+    let endOfDay: Date;
 
-    // Build where clause
+    if (dateStr) {
+      // Parse user input date as-is (e.g., "2026-01-30")
+      // Create date range for the entire day
+      startOfDay = new Date(dateStr + "T00:00:00.000Z");
+      endOfDay = new Date(dateStr + "T23:59:59.999Z");
+    } else {
+      // Default to today
+      const today = new Date();
+      const todayStr = today.toISOString().split("T")[0]; // YYYY-MM-DD
+      startOfDay = new Date(todayStr + "T00:00:00.000Z");
+      endOfDay = new Date(todayStr + "T23:59:59.999Z");
+    }
+
+    // Build where clause with date range
     const where: any = {
-      date: dateFilter,
+      date: {
+        gte: startOfDay,
+        lte: endOfDay,
+      },
     };
 
     if (classFilter) {
@@ -70,15 +83,25 @@ export async function GET(request: NextRequest) {
           },
         },
       },
-      orderBy: [{ student: { class: "asc" } }, { student: { name: "asc" } }],
+      orderBy: { timeIn: "desc" }, // Simplified orderBy - sort by time instead
     });
+
+    // Debug logging
+    console.log("Monitoring API - Date range:", {
+      start: startOfDay,
+      end: endOfDay,
+    });
+    console.log("Monitoring API - Found attendances:", attendances.length);
+    if (attendances.length > 0) {
+      console.log("Sample record:", JSON.stringify(attendances[0], null, 2));
+    }
 
     // Get summary statistics
     const total = attendances.length;
     const present = attendances.filter((a) => a.status === "PRESENT").length;
     const sick = attendances.filter((a) => a.status === "SICK").length;
     const permission = attendances.filter(
-      (a) => a.status === "PERMISSION"
+      (a) => a.status === "PERMISSION",
     ).length;
     const alpha = attendances.filter((a) => a.status === "ALPHA").length;
     const verified = attendances.filter((a) => a.isVerified).length;
@@ -101,7 +124,7 @@ export async function GET(request: NextRequest) {
     console.error("Monitoring Error:", error);
     return NextResponse.json(
       { success: false, message: error.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -34,7 +34,7 @@ import { id as localeId } from "date-fns/locale";
 
 export default function AttendanceMonitoringPage() {
   const [selectedDate, setSelectedDate] = useState(
-    format(new Date(), "yyyy-MM-dd")
+    format(new Date(), "yyyy-MM-dd"),
   );
   const [classFilter, setClassFilter] = useState("");
 
@@ -194,22 +194,26 @@ export default function AttendanceMonitoringPage() {
                 {monitoringData?.data?.map((record: any) => (
                   <TableRow key={record.id}>
                     <TableCell className="font-mono text-sm">
-                      {record.student.nisn}
+                      {record.student?.nisn || "-"}
                     </TableCell>
                     <TableCell className="font-medium">
-                      {record.student.name}
+                      {record.student?.name || "Data siswa tidak tersedia"}
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline">{record.student.class}</Badge>
+                      <Badge variant="outline">
+                        {record.student?.class || "-"}
+                      </Badge>
                     </TableCell>
-                    <TableCell>{record.subject.name}</TableCell>
+                    <TableCell>{record.subject?.name || "-"}</TableCell>
                     <TableCell>
                       {renderStatusBadge(record.status, record.isVerified)}
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
-                      {format(new Date(record.timeIn), "HH:mm", {
-                        locale: localeId,
-                      })}
+                      {record.timeIn
+                        ? format(new Date(record.timeIn), "HH:mm", {
+                            locale: localeId,
+                          })
+                        : "-"}
                     </TableCell>
                     <TableCell className="text-sm">
                       {record.notes || "-"}
