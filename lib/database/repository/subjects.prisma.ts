@@ -58,6 +58,24 @@ export const subjectsPrismaRepository: SubjectsRepository = {
     });
   },
   async remove(id: string) {
-    await prisma.subject.delete({ where: { id } });
+    await prisma.$transaction(async (tx) => {
+      // Delete all grades related to this subject
+      await tx.grade.deleteMany({
+        where: { subjectId: id },
+      });
+
+      // Delete all exam schedules related to this subject
+      await tx.examSchedule.deleteMany({
+        where: { subjectId: id },
+      });
+
+      // Delete all attendance records related to this subject
+      await tx.attendance.deleteMany({
+        where: { subjectId: id },
+      });
+
+      // Finally, delete the subject itself
+      await tx.subject.delete({ where: { id } });
+    });
   },
 };
