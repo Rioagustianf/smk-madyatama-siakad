@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
     const err = handleDatabaseError(error);
     return NextResponse.json(
       { success: false, message: err.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -65,19 +65,23 @@ export async function POST(request: NextRequest) {
     if (auth.error)
       return NextResponse.json(
         { success: false, message: auth.error },
-        { status: auth.status }
+        { status: auth.status },
       );
     const body = await request.json();
-    const { name, field } = body;
+    const { name, description, address, contact, phone, isActive } = body;
     if (!name)
       return NextResponse.json(
         { success: false, message: "Nama mitra diperlukan" },
-        { status: 400 }
+        { status: 400 },
       );
     const repo = getInternshipPartnersRepository();
     const created = await repo.create({
       name,
-      field: field || "",
+      description: description || "",
+      address: address || "",
+      contact: contact || "",
+      phone: phone || "",
+      isActive: isActive !== undefined ? isActive : true,
     });
     return NextResponse.json({
       success: true,
@@ -88,7 +92,7 @@ export async function POST(request: NextRequest) {
     const err = handleDatabaseError(error);
     return NextResponse.json(
       { success: false, message: err.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

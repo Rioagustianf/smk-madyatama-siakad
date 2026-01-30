@@ -40,7 +40,7 @@ import {
 } from "@/lib/hooks/use-staff";
 
 type Staff = {
-  _id: string;
+  id: string;
   name: string;
   position: string;
   role?: string;
@@ -133,11 +133,11 @@ export default function AdminStaffPage() {
                         const existing = (staffList as any[]).some(
                           (s) =>
                             (s.role || "").toLowerCase() === "headmaster" &&
-                            s.isActive
+                            s.isActive,
                         );
                         if (existing) {
                           alert(
-                            "Sudah ada Kepala Sekolah aktif. Nonaktifkan yang lama terlebih dahulu."
+                            "Sudah ada Kepala Sekolah aktif. Nonaktifkan yang lama terlebih dahulu.",
                           );
                           return;
                         }
@@ -208,7 +208,7 @@ export default function AdminStaffPage() {
                   </TableRow>
                 ) : (
                   staffList.map((s) => (
-                    <TableRow key={s._id} className="hover:bg-muted/50">
+                    <TableRow key={s.id} className="hover:bg-muted/50">
                       <TableCell className="font-medium">{s.name}</TableCell>
                       <TableCell>{(s as any).role || "-"}</TableCell>
                       <TableCell>{s.position}</TableCell>
@@ -337,17 +337,17 @@ export default function AdminStaffPage() {
                     (s) =>
                       (s.role || "").toLowerCase() === "headmaster" &&
                       s.isActive &&
-                      s._id !== editingStaff._id
+                      s.id !== editingStaff.id,
                   );
                   if (existing) {
                     alert(
-                      "Sudah ada Kepala Sekolah aktif. Nonaktifkan yang lama terlebih dahulu."
+                      "Sudah ada Kepala Sekolah aktif. Nonaktifkan yang lama terlebih dahulu.",
                     );
                     return;
                   }
                 }
                 await updateMutation.mutateAsync({
-                  id: editingStaff._id,
+                  id: editingStaff.id,
                   data: formData,
                 });
                 setIsEditOpen(false);
@@ -384,7 +384,7 @@ export default function AdminStaffPage() {
                 variant="destructive"
                 onClick={async () => {
                   if (!deletingStaff) return;
-                  await deleteMutation.mutateAsync(deletingStaff._id);
+                  await deleteMutation.mutateAsync(deletingStaff.id);
                   setIsDeleteOpen(false);
                   setDeletingStaff(null);
                 }}

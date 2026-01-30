@@ -29,23 +29,38 @@ async function verifyAdminToken(request: NextRequest) {
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const auth = await verifyAdminToken(request);
     if (auth.error)
       return NextResponse.json(
         { success: false, message: auth.error },
-        { status: auth.status }
+        { status: auth.status },
       );
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
+    const { program, period, notes, className } = body;
+
+    // Transform frontend fields to Prisma schema fields
+    const updateData: any = {};
+
+    // program maps to class
+    if (program !== undefined || className !== undefined) {
+      updateData.class = className || program;
+    }
+
+    // Combine period and notes for storage
+    if (period !== undefined || notes !== undefined) {
+      updateData.notes = [period, notes].filter(Boolean).join(" - ");
+    }
+
     const repo = getInternshipSchedulesRepository();
-    const updated = await repo.update(id, body);
+    const updated = await repo.update(id, updateData);
     if (!updated)
       return NextResponse.json(
         { success: false, message: "Data tidak ditemukan" },
-        { status: 404 }
+        { status: 404 },
       );
     return NextResponse.json({
       success: true,
@@ -58,16 +73,16 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const auth = await verifyAdminToken(request);
     if (auth.error)
       return NextResponse.json(
         { success: false, message: auth.error },
-        { status: auth.status }
+        { status: auth.status },
       );
-    const { id } = params;
+    const { id } = await params;
     const repo = getInternshipSchedulesRepository();
     await repo.remove(id);
     return NextResponse.json({

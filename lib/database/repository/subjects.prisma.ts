@@ -7,11 +7,12 @@ export const subjectsPrismaRepository: SubjectsRepository = {
     const limit = Math.max(1, params.limit || 10);
     const skip = (page - 1) * limit;
     const where: any = {};
-    if (params.search) where.OR = [
-      { name: { contains: params.search, mode: "insensitive" } },
-      { code: { contains: params.search, mode: "insensitive" } },
-      { description: { contains: params.search, mode: "insensitive" } },
-    ];
+    if (params.search)
+      where.OR = [
+        { name: { contains: params.search } },
+        { code: { contains: params.search } },
+        { description: { contains: params.search } },
+      ];
     if (params.teacherId) where.teacherId = params.teacherId;
     if (typeof params.isActive === "boolean") where.isActive = params.isActive;
     const [data, total] = await Promise.all([
@@ -30,7 +31,7 @@ export const subjectsPrismaRepository: SubjectsRepository = {
         skip,
         take: limit,
       }),
-      prisma.subject.count({ where })
+      prisma.subject.count({ where }),
     ]);
 
     // Transform data to include teacherName
@@ -46,14 +47,17 @@ export const subjectsPrismaRepository: SubjectsRepository = {
     return prisma.subject.findUnique({ where: { id } });
   },
   create(payload: any) {
-    return prisma.subject.create({ data: { ...payload, createdAt: new Date(), updatedAt: new Date() } });
+    return prisma.subject.create({
+      data: { ...payload, createdAt: new Date(), updatedAt: new Date() },
+    });
   },
   update(id: string, payload: any) {
-    return prisma.subject.update({ where: { id }, data: { ...payload, updatedAt: new Date() } });
+    return prisma.subject.update({
+      where: { id },
+      data: { ...payload, updatedAt: new Date() },
+    });
   },
   async remove(id: string) {
     await prisma.subject.delete({ where: { id } });
-  }
+  },
 };
-
-

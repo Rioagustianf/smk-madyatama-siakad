@@ -66,8 +66,8 @@ export default function AdminInternshipPage() {
   const [selectedPartner, setSelectedPartner] = useState<any>(null);
   const [partnerForm, setPartnerForm] = useState<{
     name: string;
-    field: string;
-  }>({ name: "", field: "" });
+    description: string;
+  }>({ name: "", description: "" });
   const limit = 5;
 
   // Schedules hooks
@@ -98,12 +98,12 @@ export default function AdminInternshipPage() {
     (s: any) =>
       s.program?.toLowerCase().includes(search.toLowerCase()) ||
       s.period?.toLowerCase().includes(search.toLowerCase()) ||
-      s.notes?.toLowerCase().includes(search.toLowerCase())
+      s.notes?.toLowerCase().includes(search.toLowerCase()),
   );
   const filteredPartners = partners.filter(
     (p: any) =>
       p.name?.toLowerCase().includes(search.toLowerCase()) ||
-      p.field?.toLowerCase().includes(search.toLowerCase())
+      p.description?.toLowerCase().includes(search.toLowerCase()),
   );
 
   useEffect(() => {
@@ -116,12 +116,12 @@ export default function AdminInternshipPage() {
 
   const handleAdd = () => {
     setFormData({ program: "", period: "", notes: "" });
-    setPartnerForm({ name: "", field: "" });
+    setPartnerForm({ name: "", description: "" });
     setIsAddCombinedOpen(true);
   };
 
   const handleAddPartner = () => {
-    setPartnerForm({ name: "", field: "" });
+    setPartnerForm({ name: "", description: "" });
     setSelectedPartner(null);
     setIsAddPartnerOpen(true);
   };
@@ -151,7 +151,7 @@ export default function AdminInternshipPage() {
     setIsAddPartnerOpen(false);
     setIsEditPartnerOpen(false);
     setSelectedPartner(null);
-    setPartnerForm({ name: "", field: "" });
+    setPartnerForm({ name: "", description: "" });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -159,7 +159,7 @@ export default function AdminInternshipPage() {
     try {
       if (selectedSchedule) {
         await updateScheduleMutation.mutateAsync({
-          id: selectedSchedule._id,
+          id: selectedSchedule.id,
           data: formData,
         });
         setIsEditDialogOpen(false);
@@ -179,7 +179,7 @@ export default function AdminInternshipPage() {
     try {
       if (selectedPartner) {
         await updatePartnerMutation.mutateAsync({
-          id: selectedPartner._id,
+          id: selectedPartner.id,
           data: partnerForm,
         });
         setIsEditPartnerOpen(false);
@@ -188,7 +188,7 @@ export default function AdminInternshipPage() {
         await createPartnerMutation.mutateAsync(partnerForm);
         setIsAddPartnerOpen(false);
       }
-      setPartnerForm({ name: "", field: "" });
+      setPartnerForm({ name: "", description: "" });
     } catch (error) {
       console.error("Error submitting partner:", error);
     }
@@ -196,17 +196,18 @@ export default function AdminInternshipPage() {
 
   const handleEditPartner = (partner: any) => {
     setSelectedPartner(partner);
-    setPartnerForm({ name: partner.name || "", field: partner.field || "" });
+    setPartnerForm({
+      name: partner.name || "",
+      description: partner.description || "",
+    });
     setIsEditPartnerOpen(true);
   };
 
   const handleDeletePartner = async (id: string) => {
-    if (confirm("Apakah Anda yakin ingin menghapus mitra ini?")) {
-      try {
-        await deletePartnerMutation.mutateAsync(id);
-      } catch (error) {
-        console.error("Error deleting partner:", error);
-      }
+    try {
+      await deletePartnerMutation.mutateAsync(id);
+    } catch (error) {
+      console.error("Error deleting partner:", error);
     }
   };
 
@@ -282,11 +283,11 @@ export default function AdminInternshipPage() {
               {!isPartnersLoading &&
                 !partnersError &&
                 filteredPartners.map((partner: any) => (
-                  <TableRow key={partner._id} className="hover:bg-muted/50">
+                  <TableRow key={partner.id} className="hover:bg-muted/50">
                     <TableCell className="font-medium">
                       {partner.name || "-"}
                     </TableCell>
-                    <TableCell>{partner.field || "-"}</TableCell>
+                    <TableCell>{partner.description || "-"}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Button
@@ -297,7 +298,7 @@ export default function AdminInternshipPage() {
                           <Edit className="h-4 w-4 mr-1" /> Edit
                         </Button>
                         <DeleteConfirmation
-                          onConfirm={() => handleDeletePartner(partner._id)}
+                          onConfirm={() => handleDeletePartner(partner.id)}
                           itemName={partner.name}
                           trigger={
                             <Button
@@ -333,7 +334,7 @@ export default function AdminInternshipPage() {
                   if (formData.program?.trim()) {
                     await createScheduleMutation.mutateAsync(formData);
                   }
-                  setPartnerForm({ name: "", field: "" });
+                  setPartnerForm({ name: "", description: "" });
                   setFormData({ program: "", period: "", notes: "" });
                   setIsAddCombinedOpen(false);
                 } catch (err) {
@@ -356,9 +357,12 @@ export default function AdminInternshipPage() {
                   />
                   <Input
                     placeholder="Bidang Usaha (mis. Software & Networking)"
-                    value={partnerForm.field}
+                    value={partnerForm.description}
                     onChange={(e) =>
-                      setPartnerForm((p) => ({ ...p, field: e.target.value }))
+                      setPartnerForm((p) => ({
+                        ...p,
+                        description: e.target.value,
+                      }))
                     }
                   />
                 </div>
@@ -392,6 +396,7 @@ export default function AdminInternshipPage() {
                   type="button"
                   variant="outline"
                   onClick={() => setIsAddCombinedOpen(false)}
+                  className="border border-primary-600"
                 >
                   Batal
                 </Button>
@@ -401,6 +406,7 @@ export default function AdminInternshipPage() {
                     createPartnerMutation.isPending ||
                     createScheduleMutation.isPending
                   }
+                  className="bg-primary-950 text-white"
                 >
                   {createPartnerMutation.isPending ||
                   createScheduleMutation.isPending
@@ -444,7 +450,7 @@ export default function AdminInternshipPage() {
               {!isSchedulesLoading &&
                 !schedulesError &&
                 filteredSchedules.map((schedule: any) => (
-                  <TableRow key={schedule._id} className="hover:bg-muted/50">
+                  <TableRow key={schedule.id} className="hover:bg-muted/50">
                     <TableCell className="font-medium">
                       {schedule.program || "-"}
                     </TableCell>
@@ -461,7 +467,7 @@ export default function AdminInternshipPage() {
                           Edit
                         </Button>
                         <DeleteConfirmation
-                          onConfirm={() => handleDeleteSchedule(schedule._id)}
+                          onConfirm={() => handleDeleteSchedule(schedule.id)}
                           itemName={schedule.program}
                           trigger={
                             <Button
@@ -498,7 +504,7 @@ export default function AdminInternshipPage() {
                 </PaginationItem>
                 {Array.from(
                   { length: pagination.totalPages },
-                  (_, i) => i + 1
+                  (_, i) => i + 1,
                 ).map((page) => (
                   <PaginationItem key={page}>
                     <PaginationLink
@@ -560,6 +566,60 @@ export default function AdminInternshipPage() {
               submitText="Perbarui"
               onCancel={handleDialogClose}
             />
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit Partner Dialog */}
+        <Dialog open={isEditPartnerOpen} onOpenChange={setIsEditPartnerOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Mitra DUDI</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handlePartnerSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Nama Perusahaan</label>
+                <Input
+                  placeholder="Nama Perusahaan"
+                  value={partnerForm.name}
+                  onChange={(e) =>
+                    setPartnerForm((p) => ({ ...p, name: e.target.value }))
+                  }
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Bidang Usaha</label>
+                <Input
+                  placeholder="Bidang Usaha (mis. Software & Networking)"
+                  value={partnerForm.description}
+                  onChange={(e) =>
+                    setPartnerForm((p) => ({
+                      ...p,
+                      description: e.target.value,
+                    }))
+                  }
+                />
+              </div>
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsEditPartnerOpen(false)}
+                  className="border border-primary-600"
+                >
+                  Batal
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={updatePartnerMutation.isPending}
+                  className="bg-primary-950 text-white"
+                >
+                  {updatePartnerMutation.isPending
+                    ? "Menyimpan..."
+                    : "Perbarui"}
+                </Button>
+              </DialogFooter>
+            </form>
           </DialogContent>
         </Dialog>
       </div>

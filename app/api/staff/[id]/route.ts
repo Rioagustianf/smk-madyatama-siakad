@@ -39,15 +39,15 @@ async function verifyAdminToken(request: NextRequest) {
 // GET - Get single staff by ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     if (!id) {
       return NextResponse.json(
         { success: false, message: "ID staf diperlukan" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -57,7 +57,7 @@ export async function GET(
     if (!staff) {
       return NextResponse.json(
         { success: false, message: "Staf tidak ditemukan" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -70,7 +70,7 @@ export async function GET(
     const errorResponse = handleDatabaseError(error);
     return NextResponse.json(
       { success: false, message: errorResponse.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -78,7 +78,7 @@ export async function GET(
 // PUT - Update staff by ID
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     // Verify admin token
@@ -86,16 +86,16 @@ export async function PUT(
     if (authResult.error) {
       return NextResponse.json(
         { success: false, message: authResult.error },
-        { status: authResult.status }
+        { status: authResult.status },
       );
     }
 
-    const { id } = params;
+    const { id } = await params;
 
     if (!id) {
       return NextResponse.json(
         { success: false, message: "ID tidak valid" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -120,7 +120,7 @@ export async function PUT(
           success: false,
           message: "Nama dan jabatan diperlukan",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -129,7 +129,7 @@ export async function PUT(
     if (!existingStaff) {
       return NextResponse.json(
         { success: false, message: "Staf tidak ditemukan" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -156,7 +156,7 @@ export async function PUT(
       image: image || "",
       bio: bio || "",
       isActive:
-        isActive !== undefined ? isActive : existingStaff.isActive ?? true,
+        isActive !== undefined ? isActive : (existingStaff.isActive ?? true),
     });
 
     return NextResponse.json({
@@ -169,7 +169,7 @@ export async function PUT(
     const errorResponse = handleDatabaseError(error);
     return NextResponse.json(
       { success: false, message: errorResponse.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -177,7 +177,7 @@ export async function PUT(
 // DELETE - Delete staff by ID
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     // Verify admin token
@@ -185,16 +185,16 @@ export async function DELETE(
     if (authResult.error) {
       return NextResponse.json(
         { success: false, message: authResult.error },
-        { status: authResult.status }
+        { status: authResult.status },
       );
     }
 
-    const { id } = params;
+    const { id } = await params;
 
     if (!id) {
       return NextResponse.json(
         { success: false, message: "ID staf diperlukan" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -203,7 +203,7 @@ export async function DELETE(
     if (!existingStaff) {
       return NextResponse.json(
         { success: false, message: "Staf tidak ditemukan" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -230,7 +230,7 @@ export async function DELETE(
     const errorResponse = handleDatabaseError(error);
     return NextResponse.json(
       { success: false, message: errorResponse.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

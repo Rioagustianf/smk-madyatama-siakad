@@ -29,46 +29,56 @@ async function verifyAdminToken(request: NextRequest) {
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const auth = await verifyAdminToken(request);
     if (auth.error)
       return NextResponse.json(
         { success: false, message: auth.error },
-        { status: auth.status }
+        { status: auth.status },
       );
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
+    // Only allow valid fields
+    const { name, address, contact, phone, description, isActive } = body;
+    const updateData: any = {};
+    if (name !== undefined) updateData.name = name;
+    if (address !== undefined) updateData.address = address;
+    if (contact !== undefined) updateData.contact = contact;
+    if (phone !== undefined) updateData.phone = phone;
+    if (description !== undefined) updateData.description = description;
+    if (isActive !== undefined) updateData.isActive = isActive;
+
     const repo = getInternshipPartnersRepository();
-    const updated = await repo.update(id, body);
+    const updated = await repo.update(id, updateData);
     if (!updated)
       return NextResponse.json(
         { success: false, message: "Data tidak ditemukan" },
-        { status: 404 }
+        { status: 404 },
       );
     return NextResponse.json({ success: true, message: "Mitra diperbarui" });
   } catch (error) {
     const err = handleDatabaseError(error);
     return NextResponse.json(
       { success: false, message: err.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const auth = await verifyAdminToken(request);
     if (auth.error)
       return NextResponse.json(
         { success: false, message: auth.error },
-        { status: auth.status }
+        { status: auth.status },
       );
-    const { id } = params;
+    const { id } = await params;
     const repo = getInternshipPartnersRepository();
     await repo.remove(id);
     return NextResponse.json({ success: true, message: "Mitra dihapus" });
@@ -76,7 +86,7 @@ export async function DELETE(
     const err = handleDatabaseError(error);
     return NextResponse.json(
       { success: false, message: err.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

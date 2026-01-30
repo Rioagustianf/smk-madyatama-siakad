@@ -40,9 +40,28 @@ export async function GET(request: NextRequest) {
       page,
       limit,
     });
+
+    // Transform data to match frontend expectations
+    const transformedData = data.map((item: any) => {
+      // Split notes back into period and notes if it contains " - "
+      const noteParts = (item.notes || "").split(" - ");
+      const period = noteParts.length > 1 ? noteParts[0] : "";
+      const notes =
+        noteParts.length > 1
+          ? noteParts.slice(1).join(" - ")
+          : item.notes || "";
+
+      return {
+        ...item,
+        program: item.class || "", // Map class back to program for frontend
+        period,
+        notes,
+      };
+    });
+
     return NextResponse.json({
       success: true,
-      data,
+      data: transformedData,
       pagination: {
         page,
         limit,
@@ -54,7 +73,7 @@ export async function GET(request: NextRequest) {
     const err = handleDatabaseError(error);
     return NextResponse.json(
       { success: false, message: err.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -65,20 +84,49 @@ export async function POST(request: NextRequest) {
     if (auth.error)
       return NextResponse.json(
         { success: false, message: auth.error },
-        { status: auth.status }
+        { status: auth.status },
       );
     const body = await request.json();
-    const { program, period, notes } = body;
-    if (!program || !period)
+    const { program, period, notes, partnerId, className } = body;
+
+    // program is used as class (required field)
+    const classValue = className || program || "";
+    if (!classValue)
       return NextResponse.json(
-        { success: false, message: "Program dan periode diperlukan" },
-        { status: 400 }
+        { success: false, message: "Program/Kelas diperlukan" },
+        { status: 400 },
       );
+
+    // Get first partner if partnerId not provided
+    let finalPartnerId = partnerId;
+    if (!finalPartnerId) {
+      const { getInternshipPartnersRepository } =
+        await import("@/lib/database/repository");
+      const partnerRepo = getInternshipPartnersRepository();
+      const { data: partners } = await partnerRepo.findMany({
+        page: 1,
+        limit: 1,
+      });
+      if (partners && partners.length > 0) {
+        finalPartnerId = partners[0].id;
+      } else {
+        // Create a default partner if none exists
+        const newPartner = await partnerRepo.create({
+          name: "Mitra Default",
+          description: "Auto-created partner",
+        });
+        finalPartnerId = newPartner.id;
+      }
+    }
+
+    // Combine period and notes for storage
+    const combinedNotes = [period, notes].filter(Boolean).join(" - ");
+
     const repo = getInternshipSchedulesRepository();
     const created = await repo.create({
-      program,
-      period,
-      notes: notes || "",
+      partnerId: finalPartnerId,
+      class: classValue,
+      notes: combinedNotes || "",
     });
     return NextResponse.json({
       success: true,
@@ -89,7 +137,7 @@ export async function POST(request: NextRequest) {
     const err = handleDatabaseError(error);
     return NextResponse.json(
       { success: false, message: err.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

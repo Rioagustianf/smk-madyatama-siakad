@@ -80,7 +80,7 @@ export async function GET(request: NextRequest) {
     const errorResponse = handleDatabaseError(error);
     return NextResponse.json(
       { success: false, message: errorResponse.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
     if (authResult.error) {
       return NextResponse.json(
         { success: false, message: authResult.error },
-        { status: authResult.status }
+        { status: authResult.status },
       );
     }
 
@@ -112,15 +112,23 @@ export async function POST(request: NextRequest) {
     } = body;
 
     // Validation
-    if (!name || !username || !position) {
+    if (!name || !position) {
       return NextResponse.json(
         {
           success: false,
-          message: "Nama, username, dan jabatan diperlukan",
+          message: "Nama dan jabatan diperlukan",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
+
+    // Generate username from name if not provided
+    const generatedUsername =
+      username ||
+      `${name
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "")
+        .slice(0, 20)}_${Date.now().toString(36)}`;
 
     const repo = getStaffRepository();
 
@@ -129,7 +137,7 @@ export async function POST(request: NextRequest) {
 
     const created = await repo.create({
       name,
-      username,
+      username: generatedUsername,
       password: hashedPassword,
       role: role || "finance", // Default to finance if not specified, or allow override
       position,
@@ -151,7 +159,7 @@ export async function POST(request: NextRequest) {
     const errorResponse = handleDatabaseError(error);
     return NextResponse.json(
       { success: false, message: errorResponse.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
