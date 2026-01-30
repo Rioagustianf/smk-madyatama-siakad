@@ -19,8 +19,7 @@ model Major {
   headPhoto       String?  // Foto Ketua Program Studi
   vision          String?  @db.Text // Visi Program Studi
   mission         String?  @db.Text // Misi Program Studi
-  totalAlumni     Int      @default(0) // Jumlah seluruh alumni
-  employedAlumni  Int      @default(0) // Jumlah alumni yang sudah bekerja
+  alumni          MajorAlumni[]
   totalStudents   Int      @default(0)
   isActive        Boolean? @default(true)
   createdAt       DateTime @default(now())
@@ -239,6 +238,22 @@ model Staff {
   isActive       Boolean? @default(true)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+}
+
+
+
+model MajorAlumni {
+  id        String   @id @default(cuid())
+  name      String
+  photo     String?  @db.Text
+  workAt    String?  @db.Text // Tempat kerja atau kuliah, cth: "Wiraswasta", "BFI Finance"
+  majorId   String
+  major     Major    @relation(fields: [majorId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([majorId])
+  @@map("major_alumni")
 }
 
 model Admin {

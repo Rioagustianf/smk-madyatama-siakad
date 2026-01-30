@@ -91,3 +91,10 @@ export function getAcademicEventsRepository(): AcademicEventsRepository {
 export function getExamSchedulesRepository(): ExamSchedulesRepository {
   return examSchedulesPrismaRepository;
 }
+
+import { majorAlumniPrismaRepository } from "./major-alumni.prisma";
+import type { MajorAlumniRepository } from "./major-alumni";
+
+export function getMajorAlumniRepository(): MajorAlumniRepository {
+  return majorAlumniPrismaRepository;
+}

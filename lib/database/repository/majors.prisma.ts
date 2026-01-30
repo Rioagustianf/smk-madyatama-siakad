@@ -21,9 +21,15 @@ export const majorsPrismaRepository: MajorsRepository = {
     const [data, total] = await Promise.all([
       prisma.major.findMany({
         where,
-        orderBy: { createdAt: "desc" },
         skip,
         take: limit,
+        orderBy: { createdAt: "desc" },
+        include: {
+          alumni: {
+            take: 3,
+            orderBy: { createdAt: "desc" },
+          },
+        },
       }),
       prisma.major.count({ where }),
     ]);
@@ -70,8 +76,6 @@ export const majorsPrismaRepository: MajorsRepository = {
           headPhoto: payload.headPhoto || "",
           vision: payload.vision || "",
           mission: payload.mission || "",
-          totalAlumni: Number(payload.totalAlumni) || 0,
-          employedAlumni: Number(payload.employedAlumni) || 0,
           totalStudents: 0,
         },
       });
@@ -106,8 +110,6 @@ export const majorsPrismaRepository: MajorsRepository = {
         headPhoto: payload.headPhoto || "",
         vision: payload.vision || "",
         mission: payload.mission || "",
-        totalAlumni: Number(payload.totalAlumni) || 0,
-        employedAlumni: Number(payload.employedAlumni) || 0,
         updatedAt: new Date(),
       },
     });

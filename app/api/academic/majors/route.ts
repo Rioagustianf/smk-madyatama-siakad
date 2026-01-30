@@ -61,8 +61,6 @@ export async function POST(request: NextRequest) {
       headPhoto,
       vision,
       mission,
-      totalAlumni,
-      employedAlumni,
     } = body;
 
     // Validation
@@ -89,8 +87,6 @@ export async function POST(request: NextRequest) {
       headPhoto,
       vision,
       mission,
-      totalAlumni,
-      employedAlumni,
     });
 
     return NextResponse.json({

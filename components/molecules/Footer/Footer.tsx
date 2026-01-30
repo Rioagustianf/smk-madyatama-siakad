@@ -17,9 +17,7 @@ import {
 const footerLinks = {
   akademik: [
     { label: "Teknik Komputer & Jaringan", href: "/academic/majors/tkj" },
-    { label: "Rekayasa Perangkat Lunak", href: "/academic/majors/rpl" },
-    { label: "Multimedia", href: "/academic/majors/mm" },
-    { label: "Akuntansi", href: "/academic/majors/akl" },
+    { label: "Perhotelan", href: "/academic/majors/perhotelan" },
   ],
   informasi: [
     { label: "Profil Sekolah", href: "/profile" },

@@ -71,13 +71,16 @@ function ScheduleTable({
       : []);
 
   // Group schedules by day
-  const schedulesByDay = normalizedSchedules.reduce((acc, schedule) => {
-    if (!acc[schedule.day]) {
-      acc[schedule.day] = [];
-    }
-    acc[schedule.day].push(schedule);
-    return acc;
-  }, {} as Record<string, Schedule[]>);
+  const schedulesByDay = normalizedSchedules.reduce(
+    (acc, schedule) => {
+      if (!acc[schedule.day]) {
+        acc[schedule.day] = [];
+      }
+      acc[schedule.day].push(schedule);
+      return acc;
+    },
+    {} as Record<string, Schedule[]>,
+  );
 
   // Sort schedules within each day by time
   Object.keys(schedulesByDay).forEach((day) => {
@@ -86,7 +89,7 @@ function ScheduleTable({
 
   // Get the maximum number of time slots across all days
   const maxSlots = Math.max(
-    ...Object.values(schedulesByDay).map((daySchedules) => daySchedules.length)
+    ...Object.values(schedulesByDay).map((daySchedules) => daySchedules.length),
   );
 
   // Create rows for the table
@@ -103,7 +106,7 @@ function ScheduleTable({
           className="bg-orange-200 text-black font-bold text-center"
         >
           {day}
-        </TableHead>
+        </TableHead>,
       );
       dayHeaderRow.push(
         <TableHead
@@ -111,7 +114,7 @@ function ScheduleTable({
           className="bg-gray-200 text-black font-bold text-center"
         >
           JAM
-        </TableHead>
+        </TableHead>,
       );
     }
     rows.push(<TableRow key="day-headers">{dayHeaderRow}</TableRow>);
@@ -146,36 +149,41 @@ function ScheduleTable({
                     </Button>
                   )}
                   {onDelete && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onDelete(schedule)}
-                      className="h-7 px-2 text-red-600"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <DeleteConfirmation
+                      onConfirm={() => onDelete(schedule)}
+                      itemName={`${schedule.subject} - ${schedule.time}`}
+                      trigger={
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 px-2 text-red-600"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      }
+                    />
                   )}
                 </div>
               )}
-            </TableCell>
+            </TableCell>,
           );
           // Time cell
           scheduleRow.push(
             <TableCell key={`${day}-${slot}-time`} className="text-center">
               {schedule.time}
-            </TableCell>
+            </TableCell>,
           );
         } else {
           // Empty cells
           scheduleRow.push(
             <TableCell key={`${day}-${slot}-subject`} className="text-left">
               &nbsp;
-            </TableCell>
+            </TableCell>,
           );
           scheduleRow.push(
             <TableCell key={`${day}-${slot}-time`} className="text-center">
               &nbsp;
-            </TableCell>
+            </TableCell>,
           );
         }
       }
@@ -200,7 +208,7 @@ function ScheduleTable({
           className="bg-orange-200 text-black font-bold text-center"
         >
           {day}
-        </TableHead>
+        </TableHead>,
       );
       dayHeaderRow.push(
         <TableHead
@@ -208,7 +216,7 @@ function ScheduleTable({
           className="bg-gray-200 text-black font-bold text-center"
         >
           JAM
-        </TableHead>
+        </TableHead>,
       );
     }
     rows.push(<TableRow key="day-headers-2">{dayHeaderRow}</TableRow>);
@@ -243,36 +251,41 @@ function ScheduleTable({
                     </Button>
                   )}
                   {onDelete && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onDelete(schedule)}
-                      className="h-7 px-2 text-red-600"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <DeleteConfirmation
+                      onConfirm={() => onDelete(schedule)}
+                      itemName={`${schedule.subject} - ${schedule.time}`}
+                      trigger={
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 px-2 text-red-600"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      }
+                    />
                   )}
                 </div>
               )}
-            </TableCell>
+            </TableCell>,
           );
           // Time cell
           scheduleRow.push(
             <TableCell key={`${day}-${slot}-time`} className="text-center">
               {schedule.time}
-            </TableCell>
+            </TableCell>,
           );
         } else {
           // Empty cells
           scheduleRow.push(
             <TableCell key={`${day}-${slot}-subject`} className="text-left">
               &nbsp;
-            </TableCell>
+            </TableCell>,
           );
           scheduleRow.push(
             <TableCell key={`${day}-${slot}-time`} className="text-center">
               &nbsp;
-            </TableCell>
+            </TableCell>,
           );
         }
       }

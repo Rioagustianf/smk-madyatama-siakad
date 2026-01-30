@@ -14,6 +14,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { useMajors } from "@/lib/hooks/use-majors";
+import { useAllAlumni } from "@/lib/hooks/use-alumni";
 
 // Util to build slug from code or name
 function toSlug(nameOrCode: string): string {
@@ -28,7 +29,9 @@ function toSlug(nameOrCode: string): string {
 
 export default function MajorsPage() {
   const { data, isLoading, error } = useMajors();
+  const { data: alumniData, isLoading: isLoadingAlumni } = useAllAlumni();
   const majors = data?.data || [];
+  const alumni = (alumniData as any)?.data || [];
   const totalMajors = majors.length;
   const totalStudents = majors.reduce(
     (acc: number, m: any) =>
@@ -223,26 +226,6 @@ export default function MajorsPage() {
                           </div>
                         )}
 
-                      {/* Alumni Stats */}
-                      <div className="grid grid-cols-2 gap-4 mb-6 pt-4 border-t border-border">
-                        <div className="text-center p-2 bg-primary/5 rounded-lg">
-                          <div className="text-xl font-bold text-primary">
-                            {major.totalAlumni || 0}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            Alumni Lulus
-                          </div>
-                        </div>
-                        <div className="text-center p-2 bg-green-500/10 rounded-lg">
-                          <div className="text-xl font-bold text-green-600">
-                            {major.employedAlumni || 0}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            Sudah Bekerja
-                          </div>
-                        </div>
-                      </div>
-
                       {/* CTA Button */}
                       <Button
                         variant="outline"
@@ -292,6 +275,70 @@ export default function MajorsPage() {
               </Typography>
             </div>
           </motion.div>
+
+          {/* Alumni Section */}
+          {!isLoadingAlumni && alumni.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 1 }}
+              className="mt-20"
+            >
+              <div className="bg-gradient-to-b from-gray-50 to-white rounded-2xl py-16 px-4">
+                <Typography
+                  variant="h2"
+                  className="text-3xl font-bold text-center mb-12 text-gray-900"
+                >
+                  ALUMNI
+                </Typography>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-5xl mx-auto">
+                  {alumni.slice(0, 3).map((alum: any) => (
+                    <div
+                      key={alum.id}
+                      className="flex flex-col items-center text-center group"
+                    >
+                      <div className="relative w-48 h-48 mb-6 rounded-full overflow-hidden border-4 border-white shadow-xl group-hover:scale-105 transition-transform duration-300">
+                        {alum.photo ? (
+                          <Image
+                            src={alum.photo}
+                            alt={alum.name}
+                            fill
+                            className="object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-br from-primary-200 to-primary-400 flex items-center justify-center">
+                            <span className="text-5xl text-white font-bold uppercase">
+                              {alum.name.charAt(0)}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <Typography
+                        variant="h4"
+                        className="text-lg font-bold text-gray-900 mb-2 uppercase tracking-wide"
+                      >
+                        {alum.name}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        className="text-sm text-primary-900 font-medium leading-relaxed"
+                      >
+                        {alum.workAt}
+                      </Typography>
+                      {alum.major?.name && (
+                        <Typography
+                          variant="body2"
+                          className="text-xs text-gray-500 mt-2"
+                        >
+                          {alum.major.name}
+                        </Typography>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
         </div>
       </section>
     </div>

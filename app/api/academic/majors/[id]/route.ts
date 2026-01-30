@@ -73,8 +73,6 @@ export async function PUT(
       headPhoto,
       vision,
       mission,
-      totalAlumni,
-      employedAlumni,
     } = body;
 
     // Validation
@@ -111,8 +109,6 @@ export async function PUT(
       headPhoto: headPhoto || "",
       vision: vision || "",
       mission: mission || "",
-      totalAlumni: totalAlumni || 0,
-      employedAlumni: employedAlumni || 0,
     };
 
     const updatedMajor = await repo.update(id, updateData);

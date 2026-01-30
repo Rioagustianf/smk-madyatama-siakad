@@ -131,7 +131,7 @@ export default function AdminSchedulesPage() {
     if (selectedSchedule) {
       try {
         await deleteScheduleMutation.mutateAsync(
-          selectedSchedule.id || selectedSchedule._id
+          selectedSchedule.id || selectedSchedule._id,
         );
         setSelectedSchedule(null);
       } catch (error) {
@@ -226,8 +226,11 @@ export default function AdminSchedulesPage() {
                     schedules={group.schedules}
                     showActions={true}
                     onEdit={handleEdit}
-                    onDelete={handleDelete}
-                    onDeleteConfirm={handleDeleteConfirm}
+                    onDelete={async (item) => {
+                      await deleteScheduleMutation.mutateAsync(
+                        (item as any).id || item._id,
+                      );
+                    }}
                   />
                 </TabsContent>
               ))}
