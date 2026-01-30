@@ -9,15 +9,15 @@ export const dynamic = "force-dynamic";
 // GET - Get single major by ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     if (!id) {
       return NextResponse.json(
         { success: false, message: "ID program keahlian diperlukan" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -27,7 +27,7 @@ export async function GET(
     if (!major) {
       return NextResponse.json(
         { success: false, message: "Program keahlian tidak ditemukan" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -40,7 +40,7 @@ export async function GET(
     const errorResponse = handleDatabaseError(error);
     return NextResponse.json(
       { success: false, message: errorResponse.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -48,7 +48,7 @@ export async function GET(
 // PUT - Update major by ID
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     // Verify admin token
@@ -56,13 +56,14 @@ export async function PUT(
     if (authResult.error) {
       return NextResponse.json(
         { success: false, message: authResult.error },
-        { status: authResult.status }
+        { status: authResult.status },
       );
     }
 
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
-    const { name, code, description, image, facilities, careerProspects } = body;
+    const { name, code, description, image, facilities, careerProspects } =
+      body;
 
     // Validation
     if (!name || !code) {
@@ -71,7 +72,7 @@ export async function PUT(
           success: false,
           message: "Nama dan kode program keahlian diperlukan",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -82,7 +83,7 @@ export async function PUT(
     if (!existingMajor) {
       return NextResponse.json(
         { success: false, message: "Program keahlian tidak ditemukan" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -108,7 +109,7 @@ export async function PUT(
     const errorResponse = handleDatabaseError(error);
     return NextResponse.json(
       { success: false, message: errorResponse.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -116,7 +117,7 @@ export async function PUT(
 // DELETE - Delete major by ID
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     // Verify admin token
@@ -124,16 +125,16 @@ export async function DELETE(
     if (authResult.error) {
       return NextResponse.json(
         { success: false, message: authResult.error },
-        { status: authResult.status }
+        { status: authResult.status },
       );
     }
 
-    const { id } = params;
+    const { id } = await params;
 
     if (!id) {
       return NextResponse.json(
         { success: false, message: "ID program keahlian diperlukan" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -144,7 +145,7 @@ export async function DELETE(
     if (!existingMajor) {
       return NextResponse.json(
         { success: false, message: "Program keahlian tidak ditemukan" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -160,7 +161,7 @@ export async function DELETE(
     const errorResponse = handleDatabaseError(error);
     return NextResponse.json(
       { success: false, message: errorResponse.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
