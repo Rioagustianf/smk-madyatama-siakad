@@ -53,13 +53,32 @@ export default function TeacherInputGradesPage() {
   const { data: classesResp, isLoading: isClassesLoading } = useClasses();
   const allClasses = useMemo(
     () => ((classesResp as any)?.data || []) as any[],
-    [classesResp]
+    [classesResp],
   );
-  const classOptions: string[] = useMemo(
-    () => allClasses.map((c: any) => c.name),
-    [allClasses]
-  );
+
+  // Get teacher ID for filtering
+  const teacherId = teacher?.id || teacher?._id;
+
+  // Filter classes to only include the teacher's homeroom class
+  const classOptions: string[] = useMemo(() => {
+    if (!teacherId) return [];
+
+    // Filter classes where this teacher is the homeroom teacher
+    const homeroomClasses = allClasses.filter(
+      (c: any) => String(c.homeroomTeacherId) === String(teacherId),
+    );
+
+    return homeroomClasses.map((c: any) => c.name);
+  }, [allClasses, teacherId]);
+
   const [className, setClassName] = useState<string>("");
+
+  // Auto-select the class if there's only one option (the teacher's homeroom class)
+  React.useEffect(() => {
+    if (classOptions.length === 1 && !className) {
+      setClassName(classOptions[0]);
+    }
+  }, [classOptions, className]);
   const [semester, setSemester] = useState<number>(1);
   const [year, setYear] = useState<number>(new Date().getFullYear());
   const [selectedSubjectId, setSelectedSubjectId] = useState<string>("");
@@ -94,7 +113,7 @@ export default function TeacherInputGradesPage() {
       if (!name) return;
       if (!fromSchedules.has(name)) {
         const found = masterSubjects.find(
-          (m: any) => String(m.name).toLowerCase() === name.toLowerCase()
+          (m: any) => String(m.name).toLowerCase() === name.toLowerCase(),
         );
         // Hanya tambahkan jika ada ID yang valid dari masterSubjects
         if (found && (found._id || found.id)) {
@@ -178,7 +197,7 @@ export default function TeacherInputGradesPage() {
         } catch (error) {
           console.error(
             `Failed to load grades for student ${dbStudentId}:`,
-            error
+            error,
           );
         }
       }
@@ -190,15 +209,13 @@ export default function TeacherInputGradesPage() {
     loadExistingGrades();
   }, [students, semester, year, selectedSubjectId]);
 
-  // Robust homeroom check against classes collection (wali kelas = homeroomTeacherId)
-  const teacherId = teacher?.id || teacher?._id;
-  // Determine homeroom strictly by matching classes.homeroomTeacherId === teacherId
   const isHomeroom = useMemo(() => {
-    if (!teacherId) return false;
+    const currentTeacherId = teacher?.id || teacher?._id;
+    if (!currentTeacherId) return false;
     return allClasses.some(
-      (c: any) => String(c.homeroomTeacherId) === String(teacherId)
+      (c: any) => String(c.homeroomTeacherId) === String(currentTeacherId),
     );
-  }, [allClasses, teacherId]);
+  }, [allClasses, teacher]);
 
   const handleCellChange = (studentId: string, field: string, value: any) => {
     const parsedValue =
@@ -344,8 +361,8 @@ export default function TeacherInputGradesPage() {
                         setYear(
                           parseInt(
                             e.target.value || String(new Date().getFullYear()),
-                            10
-                          )
+                            10,
+                          ),
                         )
                       }
                       placeholder="Tahun"
@@ -394,14 +411,14 @@ export default function TeacherInputGradesPage() {
                                   className="w-24"
                                   value={
                                     rows.find(
-                                      (r: any) => r.studentId === dbStudentId
+                                      (r: any) => r.studentId === dbStudentId,
                                     )?.assignments ?? ""
                                   }
                                   onChange={(e) =>
                                     handleCellChange(
                                       dbStudentId,
                                       "assignments",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                 />
@@ -414,14 +431,14 @@ export default function TeacherInputGradesPage() {
                                   className="w-24"
                                   value={
                                     rows.find(
-                                      (r: any) => r.studentId === dbStudentId
+                                      (r: any) => r.studentId === dbStudentId,
                                     )?.midterm ?? ""
                                   }
                                   onChange={(e) =>
                                     handleCellChange(
                                       dbStudentId,
                                       "midterm",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                 />
@@ -434,14 +451,14 @@ export default function TeacherInputGradesPage() {
                                   className="w-24"
                                   value={
                                     rows.find(
-                                      (r: any) => r.studentId === dbStudentId
+                                      (r: any) => r.studentId === dbStudentId,
                                     )?.final ?? ""
                                   }
                                   onChange={(e) =>
                                     handleCellChange(
                                       dbStudentId,
                                       "final",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                 />
@@ -450,13 +467,13 @@ export default function TeacherInputGradesPage() {
                                 {(() => {
                                   const row =
                                     rows.find(
-                                      (r: any) => r.studentId === dbStudentId
+                                      (r: any) => r.studentId === dbStudentId,
                                     ) || {};
                                   const a = Number(row.assignments || 0);
                                   const m = Number(row.midterm || 0);
                                   const f = Number(row.final || 0);
                                   const g = calculateLetterGrade(
-                                    (a + m + f) / 3
+                                    (a + m + f) / 3,
                                   );
                                   return (
                                     <div className="px-3 py-1 w-24 text-center rounded border border-primary-600 bg-primary-50">
